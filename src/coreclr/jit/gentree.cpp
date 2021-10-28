@@ -21728,3 +21728,73 @@ bool GenTree::IsInvariant() const
     GenTree* lclVarTree = nullptr;
     return OperIsConst() || Compiler::impIsAddressInLocal(this, &lclVarTree);
 }
+
+GenTree* Compiler::gtReduceStrength(GenTree* tree)
+{
+    unsigned kind = tree->OperKind();
+
+    if (optValnumCSE_phase)
+    {
+        return tree;
+    }
+
+    if (!(kind & GTK_SMPOP))
+    {
+        return tree;
+    }
+
+    genTreeOps oper = tree->OperGet();
+
+    if (oper != GT_ADD)
+    {
+        return tree;
+    }
+
+    GenTree* op1 = gtReduceStrength(tree->AsOp()->gtOp1);
+    GenTree* op2 = gtReduceStrength(tree->AsOp()->gtOp2);
+
+    // ADD(V0, V0) => MUL(V0, 2)
+    if (op1->OperIs(GT_LCL_VAR) && op2->OperIs(GT_LCL_VAR) &&
+        op1->AsLclVarCommon()->GetLclNum() == op2->AsLclVarCommon()->GetLclNum() && varTypeIsIntegralOrI(op1))
+    {
+        // Transform
+        tree->AsOp()->gtOp2 = op2 = new (this, GT_CNS_INT) GenTreeIntCon(op2->TypeGet(), 2);
+
+        if (vnStore != nullptr)
+        {
+            // Update the ValueNumber for 'op2', as we just changed the constant
+            fgValueNumberTreeConst(op2);
+        }
+
+        oper = GT_MUL;
+        tree->ChangeOper(oper, GenTree::PRESERVE_VN);
+        return tree;
+    }
+
+    if (!op1->OperIs(GT_MUL))
+    {
+        return tree;
+    }
+
+    GenTree* op1Child1 = op1->AsOp()->gtOp1;
+    GenTree* op1Child2 = op1->AsOp()->gtOp2;
+
+    // ADD(MUL(V0, C), V0) => MUL(V0, C+1)
+
+    if (op2->OperIs(GT_LCL_VAR) && op1Child1->OperIs(GT_LCL_VAR) && op1Child2->OperIs(GT_CNS_INT) &&
+        op2->AsLclVarCommon()->GetLclNum() == op1Child1->AsLclVarCommon()->GetLclNum() && varTypeIsIntegralOrI(op2))
+    {
+        op1Child2->AsIntCon()->SetIconValue(op1Child2->AsIntCon()->IconValue() + 1);
+        if (vnStore != nullptr)
+        {
+            fgValueNumberTreeConst(op1Child2);
+        }
+
+        tree->SetOper(GT_MUL, GenTree::PRESERVE_VN);
+        tree->AsOp()->gtOp1 = op1Child1;
+        tree->AsOp()->gtOp2 = op1Child2;
+        return tree;
+    }
+
+    return tree;
+}
