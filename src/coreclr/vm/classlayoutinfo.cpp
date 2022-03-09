@@ -957,7 +957,8 @@ EEClassNativeLayoutInfo* EEClassNativeLayoutInfo::CollectNativeLayoutFieldMetada
         else
         if (pMT->HasSameTypeDefAs(CoreLibBinder::GetClass(CLASS__VECTOR64T)) ||
             pMT->HasSameTypeDefAs(CoreLibBinder::GetClass(CLASS__VECTOR128T)) ||
-            pMT->HasSameTypeDefAs(CoreLibBinder::GetClass(CLASS__VECTOR256T)))
+            pMT->HasSameTypeDefAs(CoreLibBinder::GetClass(CLASS__VECTOR256T)) ||
+            pMT->HasSameTypeDefAs(CoreLibBinder::GetClass(CLASS__VECTOR512T)))
         {
             pNativeLayoutInfo->m_alignmentRequirement = pEEClassLayoutInfo->m_ManagedLargestAlignmentRequirementOfAllMembers;
         }

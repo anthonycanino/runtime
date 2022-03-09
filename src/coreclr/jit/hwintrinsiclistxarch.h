@@ -823,6 +823,9 @@ HARDWARE_INTRINSIC(SSE2,            UCOMISD,                                    
 HARDWARE_INTRINSIC(SSE41,           PTEST,                                      16,              2,     {INS_ptest,             INS_ptest,              INS_ptest,              INS_ptest,              INS_ptest,              INS_ptest,              INS_ptest,              INS_ptest,              INS_invalid,            INS_invalid},           HW_Category_SimpleSIMD,             HW_Flag_NoRMWSemantics)
 HARDWARE_INTRINSIC(AVX,             PTEST,                                       0,              2,     {INS_ptest,             INS_ptest,              INS_ptest,              INS_ptest,              INS_ptest,              INS_ptest,              INS_ptest,              INS_ptest,              INS_vtestps,            INS_vtestpd},           HW_Category_SimpleSIMD,             HW_Flag_NoRMWSemantics)
 
+
+HARDWARE_INTRINSIC(AVX512,          Add,                                        64,              2,     {INS_paddb,             INS_paddb,              INS_paddw,              INS_paddw,              INS_paddd,              INS_paddd,              INS_paddq,              INS_paddq,              INS_invalid,            INS_invalid},           HW_Category_SimpleSIMD,             HW_Flag_Commutative)
+
 #endif // FEATURE_HW_INTRINSIC
 
 #undef HARDWARE_INTRINSIC

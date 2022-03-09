@@ -427,6 +427,7 @@ namespace Internal.TypeSystem.Interop
                     || InteropTypes.IsSystemRuntimeIntrinsicsVector64T(context, type)
                     || InteropTypes.IsSystemRuntimeIntrinsicsVector128T(context, type)
                     || InteropTypes.IsSystemRuntimeIntrinsicsVector256T(context, type)
+                    || InteropTypes.IsSystemRuntimeIntrinsicsVector512T(context, type)
                     || InteropTypes.IsSystemNumericsVectorT(context, type)))
                 {
                     // Generic types cannot be marshaled.
