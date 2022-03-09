@@ -38,6 +38,8 @@ static CORINFO_InstructionSet X64VersionOfIsa(CORINFO_InstructionSet isa)
             return InstructionSet_AVX2_X64;
         case InstructionSet_AVXVNNI:
             return InstructionSet_AVXVNNI_X64;
+        case InstructionSet_AVX512:
+            return InstructionSet_AVX512_X64;
         case InstructionSet_AES:
             return InstructionSet_AES_X64;
         case InstructionSet_BMI1:
@@ -85,6 +87,10 @@ static CORINFO_InstructionSet lookupInstructionSet(const char* className)
         if (strcmp(className, "AvxVnni") == 0)
         {
             return InstructionSet_AVXVNNI;
+        }
+        if (strcmp(className, "Avx512") == 0)
+        {
+            return InstructionSet_AVX512;
         }
     }
     else if (className[0] == 'S')
@@ -384,6 +390,10 @@ bool HWIntrinsicInfo::isFullyImplementedIsa(CORINFO_InstructionSet isa)
         case InstructionSet_Vector256:
         case InstructionSet_X86Base:
         case InstructionSet_X86Base_X64:
+
+        case InstructionSet_Vector512:
+        case InstructionSet_AVX512:
+        case InstructionSet_AVX512_X64:
         {
             return true;
         }

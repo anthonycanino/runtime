@@ -1378,6 +1378,11 @@ void EEJitManager::SetCpuInfo()
                                     {
                                         __cpuidex(cpuidInfo, 0x00000007, 0x00000000);
 
+                                        if ((cpuidInfo[EBX] & (1 << 16)) != 0)
+                                        {
+                                            CPUCompileFlags.Set(InstructionSet_AVX512);                     // AVX512F
+                                        }
+
                                         if ((cpuidInfo[EBX] & (1 << 5)) != 0)                               // AVX2
                                         {
                                             CPUCompileFlags.Set(InstructionSet_AVX2);

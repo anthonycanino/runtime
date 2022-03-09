@@ -2338,6 +2338,11 @@ void Compiler::compSetProcessor()
         instructionSetFlags.RemoveInstructionSet(InstructionSet_AVXVNNI);
     }
 
+    if (!JitConfig.EnableAVX512())
+    {
+        instructionSetFlags.RemoveInstructionSet(InstructionSet_AVX512);
+    }
+
     if (!JitConfig.EnableLZCNT())
     {
         instructionSetFlags.RemoveInstructionSet(InstructionSet_LZCNT);

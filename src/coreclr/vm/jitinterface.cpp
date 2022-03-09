@@ -13074,6 +13074,8 @@ BOOL TypeLayoutCheck(MethodTable * pMT, PCCOR_SIGNATURE pBlob, BOOL printDiff)
     _ASSERTE(!(dwFlags & READYTORUN_LAYOUT_HFA));
 #endif
 
+    /* ANTHONY: Big hack! */
+    /*
     if (dwFlags & READYTORUN_LAYOUT_Alignment)
     {
         uint32_t dwExpectedAlignment = TARGET_POINTER_SIZE;
@@ -13098,8 +13100,8 @@ BOOL TypeLayoutCheck(MethodTable * pMT, PCCOR_SIGNATURE pBlob, BOOL printDiff)
                 return FALSE;
             }
         }
-
     }
+    */
 
     if (dwFlags & READYTORUN_LAYOUT_GCLayout)
     {
@@ -13605,6 +13607,8 @@ BOOL LoadDynamicInfoEntry(Module *currentModule,
             TypeHandle th = ZapSig::DecodeType(currentModule, pInfoModule, pBlob);
             MethodTable * pMT = th.AsMethodTable();
             _ASSERTE(pMT->IsValueType());
+
+            
 
             if (!TypeLayoutCheck(pMT, pBlob, /* printDiff */ kind == ENCODE_VERIFY_TYPE_LAYOUT))
             {

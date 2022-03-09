@@ -2166,6 +2166,7 @@ MarshalInfo::MarshalInfo(Module* pModule,
                         || m_pMT->HasSameTypeDefAs(CoreLibBinder::GetClass(CLASS__VECTOR64T))
                         || m_pMT->HasSameTypeDefAs(CoreLibBinder::GetClass(CLASS__VECTOR128T))
                         || m_pMT->HasSameTypeDefAs(CoreLibBinder::GetClass(CLASS__VECTOR256T))
+                        || m_pMT->HasSameTypeDefAs(CoreLibBinder::GetClass(CLASS__VECTOR512T))
                             // Crossgen scenarios block Vector<T> from even being loaded
                             || m_pMT->HasSameTypeDefAs(CoreLibBinder::GetClass(CLASS__VECTORT))
                     )))
