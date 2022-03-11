@@ -65,8 +65,11 @@ BYTE* emitOutputRRR(BYTE* dst, instrDesc* id);
 BYTE* emitOutputLJ(insGroup* ig, BYTE* dst, instrDesc* id);
 
 unsigned emitOutputRexOrVexPrefixIfNeeded(instruction ins, BYTE* dst, code_t& code);
+unsigned emitOutputRexOrVexOrEvexPrefixIfNeeded(instruction ins, BYTE* dst, code_t& code);
+
 unsigned emitGetRexPrefixSize(instruction ins);
 unsigned emitGetVexPrefixSize(instruction ins, emitAttr attr);
+unsigned emitGetEvexPrefixSize(instruction ins, emitAttr attr);
 unsigned emitGetPrefixSize(code_t code, bool includeRexPrefixSize);
 unsigned emitGetAdjustedSize(instruction ins, emitAttr attr, code_t code);
 
@@ -74,6 +77,8 @@ unsigned insEncodeReg012(instruction ins, regNumber reg, emitAttr size, code_t* 
 unsigned insEncodeReg345(instruction ins, regNumber reg, emitAttr size, code_t* code);
 code_t insEncodeReg3456(instruction ins, regNumber reg, emitAttr size, code_t code);
 unsigned insEncodeRegSIB(instruction ins, regNumber reg, code_t* code);
+
+code_t insEncodeRegEvex3456(instruction ins, regNumber reg, emitAttr size, code_t code);
 
 code_t insEncodeMRreg(instruction ins, code_t code);
 code_t insEncodeRMreg(instruction ins, code_t code);
@@ -95,6 +100,7 @@ bool IsAVXInstruction(instruction ins) const;
 code_t insEncodeMIreg(instruction ins, regNumber reg, emitAttr size, code_t code);
 
 code_t AddRexWPrefix(instruction ins, code_t code);
+code_t AddRexWPrefix2(instruction ins, code_t code, emitAttr attr);
 code_t AddRexRPrefix(instruction ins, code_t code);
 code_t AddRexXPrefix(instruction ins, code_t code);
 code_t AddRexBPrefix(instruction ins, code_t code);
@@ -157,6 +163,47 @@ code_t AddVexPrefixIfNeededAndNotPresent(instruction ins, code_t code, emitAttr 
     }
     return code;
 }
+
+// 4-byte EVEX prefix starts with byte 0xC4
+#define EVEX_PREFIX_MASK 0xFF00000000000000ULL
+#define EVEX_PREFIX_CODE 0x6200000000000000ULL
+
+bool TakesEvexPrefix(instruction ins, emitAttr) const;
+
+// Returns true if the instruction encoding already contains VEX prefix
+bool hasEvexPrefix(code_t code)
+{
+    return (code & EVEX_PREFIX_MASK) == EVEX_PREFIX_CODE;
+}
+code_t AddEvexPrefix(instruction ins, code_t code, emitAttr attr);
+code_t AddEvexPrefixIfNeeded(instruction ins, code_t code, emitAttr size)
+{
+    if (TakesEvexPrefix(ins, size))
+    {
+        code = AddEvexPrefix(ins, code, size);
+    }
+    else if (TakesVexPrefix(ins))
+    {
+        code = AddVexPrefix(ins, code, size);
+    }
+    return code;
+}
+
+code_t AddEvexPrefixIfNeededAndNotPresent(instruction ins, code_t code, emitAttr size)
+{
+    if (TakesEvexPrefix(ins, size)) 
+    {
+        if (!hasEvexPrefix(code))
+            code = AddEvexPrefix(ins, code, size);
+    }
+    else if (TakesVexPrefix(ins) && !hasVexPrefix(code))
+    {
+        if (!hasVexPrefix(code))
+            code = AddVexPrefix(ins, code, size);
+    }
+    return code;
+}
+
 
 bool useVEXEncodings;
 bool UseVEXEncoding() const
@@ -224,6 +271,7 @@ void emitDispShift(instruction ins, int cnt = 0);
 
 const char* emitXMMregName(unsigned reg);
 const char* emitYMMregName(unsigned reg);
+const char* emitZMMregName(unsigned reg);
 
 #endif
 

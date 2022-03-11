@@ -157,6 +157,38 @@ CORINFO_CLASS_HANDLE Compiler::gtGetStructHandleForHWSIMD(var_types simdType, Co
                 assert(!"Didn't find a class handle for simdType");
         }
     }
+    else if (simdType == TYP_SIMD32)
+    {
+        switch (simdBaseJitType)
+        {
+            case CORINFO_TYPE_FLOAT:
+                return m_simdHandleCache->Vector256FloatHandle;
+            case CORINFO_TYPE_DOUBLE:
+                return m_simdHandleCache->Vector256DoubleHandle;
+            case CORINFO_TYPE_INT:
+                return m_simdHandleCache->Vector256IntHandle;
+            case CORINFO_TYPE_USHORT:
+                return m_simdHandleCache->Vector256UShortHandle;
+            case CORINFO_TYPE_UBYTE:
+                return m_simdHandleCache->Vector256UByteHandle;
+            case CORINFO_TYPE_SHORT:
+                return m_simdHandleCache->Vector256ShortHandle;
+            case CORINFO_TYPE_BYTE:
+                return m_simdHandleCache->Vector256ByteHandle;
+            case CORINFO_TYPE_LONG:
+                return m_simdHandleCache->Vector256LongHandle;
+            case CORINFO_TYPE_UINT:
+                return m_simdHandleCache->Vector256UIntHandle;
+            case CORINFO_TYPE_ULONG:
+                return m_simdHandleCache->Vector256ULongHandle;
+            case CORINFO_TYPE_NATIVEINT:
+                return m_simdHandleCache->Vector256NIntHandle;
+            case CORINFO_TYPE_NATIVEUINT:
+                return m_simdHandleCache->Vector256NUIntHandle;
+            default:
+                assert(!"Didn't find a class handle for simdType");
+        }
+    }
 #endif // TARGET_XARCH
 #ifdef TARGET_ARM64
     else if (simdType == TYP_SIMD8)
@@ -979,7 +1011,7 @@ GenTree* Compiler::impHWIntrinsic(NamedIntrinsic        intrinsic,
         assert(numArgs >= 0);
 
         if (!isScalar && ((HWIntrinsicInfo::lookupIns(intrinsic, simdBaseType) == INS_invalid) ||
-                          ((simdSize != 8) && (simdSize != 16) && (simdSize != 32))))
+                          ((simdSize != 8) && (simdSize != 16) && (simdSize != 32) && (simdSize != 64))))
         {
             assert(!"Unexpected HW Intrinsic");
             return nullptr;
