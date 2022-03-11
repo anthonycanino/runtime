@@ -178,13 +178,18 @@ const char* CodeGen::genSizeStr(emitAttr attr)
         "xmmword ptr ",
         nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
         nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-        "ymmword ptr"
+        "ymmword ptr",
+        nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+        nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+        nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+        nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, 
+        "zmmword ptr"
     };
     // clang-format on
 
     unsigned size = EA_SIZE(attr);
 
-    assert(size == 0 || size == 1 || size == 2 || size == 4 || size == 8 || size == 16 || size == 32);
+    assert(size == 0 || size == 1 || size == 2 || size == 4 || size == 8 || size == 16 || size == 32 || size == 64);
 
     if (EA_ATTR(size) == attr)
     {

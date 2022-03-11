@@ -101,6 +101,7 @@
 
   #define XMM_REGSIZE_BYTES        16      // XMM register size in bytes
   #define YMM_REGSIZE_BYTES        32      // YMM register size in bytes
+  #define ZMM_REGSIZE_BYTES        64      // YMM register size in bytes
 
   #define REGNUM_BITS              6       // number of bits in a REG_*
 

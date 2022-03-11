@@ -8975,6 +8975,19 @@ private:
         CORINFO_CLASS_HANDLE Vector256ULongHandle;
         CORINFO_CLASS_HANDLE Vector256NIntHandle;
         CORINFO_CLASS_HANDLE Vector256NUIntHandle;
+        CORINFO_CLASS_HANDLE Vector512FloatHandle;
+        CORINFO_CLASS_HANDLE Vector512DoubleHandle;
+        CORINFO_CLASS_HANDLE Vector512IntHandle;
+        CORINFO_CLASS_HANDLE Vector512UShortHandle;
+        CORINFO_CLASS_HANDLE Vector512UByteHandle;
+        CORINFO_CLASS_HANDLE Vector512ShortHandle;
+        CORINFO_CLASS_HANDLE Vector512ByteHandle;
+        CORINFO_CLASS_HANDLE Vector512LongHandle;
+        CORINFO_CLASS_HANDLE Vector512UIntHandle;
+        CORINFO_CLASS_HANDLE Vector512ULongHandle;
+        CORINFO_CLASS_HANDLE Vector512NIntHandle;
+        CORINFO_CLASS_HANDLE Vector512NUIntHandle;
+
 #endif // defined(TARGET_XARCH)
 #endif // FEATURE_HW_INTRINSICS
 
@@ -9350,6 +9363,10 @@ public:
         else if (size == 32)
         {
             simdType = TYP_SIMD32;
+        }
+        else if (size == 64)
+        {
+            simdType = TYP_SIMD64;
         }
         else
         {

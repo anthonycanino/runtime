@@ -462,7 +462,8 @@ protected:
         OPSZ8      = 3,
         OPSZ16     = 4,
         OPSZ32     = 5,
-        OPSZ_COUNT = 6,
+        OPSZ64     = 6,
+        OPSZ_COUNT = 7,
 #ifdef TARGET_AMD64
         OPSZP = OPSZ8,
 #else
@@ -2623,7 +2624,7 @@ inline emitAttr emitActualTypeSize(T type)
 /* static */ inline emitter::opSize emitter::emitEncodeSize(emitAttr size)
 {
     assert(size == EA_1BYTE || size == EA_2BYTE || size == EA_4BYTE || size == EA_8BYTE || size == EA_16BYTE ||
-           size == EA_32BYTE);
+           size == EA_32BYTE || size == EA_64BYTE);
 
     return emitSizeEncode[((int)size) - 1];
 }
