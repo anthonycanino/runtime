@@ -6191,6 +6191,7 @@ void Lowering::ContainCheckHWIntrinsic(GenTreeHWIntrinsic* node)
                            (intrinsicId == NI_SSE41_ConvertToVector128Int64) ||
                            (intrinsicId == NI_AVX2_BroadcastScalarToVector128) ||
                            (intrinsicId == NI_AVX2_BroadcastScalarToVector256) ||
+                           (intrinsicId == NI_AVX512_BroadcastScalarToVector512) ||
                            (intrinsicId == NI_AVX2_ConvertToVector256Int16) ||
                            (intrinsicId == NI_AVX2_ConvertToVector256Int32) ||
                            (intrinsicId == NI_AVX2_ConvertToVector256Int64));

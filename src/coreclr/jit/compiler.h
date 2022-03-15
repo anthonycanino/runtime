@@ -9325,15 +9325,8 @@ private:
     {
 #if defined(FEATURE_HW_INTRINSICS) && defined(TARGET_XARCH)
         if (compOpportunisticallyDependsOn(InstructionSet_AVX512))
-<<<<<<< HEAD
-=======
         {
-            return JitConfig.EnableHWIntrinsic() ? ZMM_REGSIZE_BYTES : XMM_REGSIZE_BYTES;
-        }
-        else if (compOpportunisticallyDependsOn(InstructionSet_AVX))
->>>>>>> b33e264c6db (Modified Vector512.Create to generate broadcast instructions.)
-        {
-            return JitConfig.EnableHWIntrinsic() ? ZMM_REGSIZE_BYTES : XMM_REGSIZE_BYTES;
+            return ZMM_REGSIZE_BYTES;
         }
         else if (compOpportunisticallyDependsOn(InstructionSet_AVX))
         {
