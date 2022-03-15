@@ -2254,6 +2254,7 @@ void Compiler::compSetProcessor()
         // Dummy ISAs for simplifying the JIT code
         instructionSetFlags.AddInstructionSet(InstructionSet_Vector128);
         instructionSetFlags.AddInstructionSet(InstructionSet_Vector256);
+        instructionSetFlags.AddInstructionSet(InstructionSet_Vector512);
     }
 
     if (!JitConfig.EnableSSE())

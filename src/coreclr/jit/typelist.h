@@ -63,7 +63,7 @@ DEF_TP(SIMD8    ,"simd8"  , TYP_SIMD8,   TI_STRUCT, 8, 8,  8,   2, 8, VTF_S,    
 DEF_TP(SIMD12   ,"simd12" , TYP_SIMD12,  TI_STRUCT,12,16, 16,   4,16, VTF_S,          TYPE_REF_STC)
 DEF_TP(SIMD16   ,"simd16" , TYP_SIMD16,  TI_STRUCT,16,16, 16,   4,16, VTF_S,          TYPE_REF_STC)
 DEF_TP(SIMD32   ,"simd32" , TYP_SIMD32,  TI_STRUCT,32,32, 32,   8,16, VTF_S,          TYPE_REF_STC)
-DEF_TP(SIMD64   ,"simd64" , TYP_SIMD32,  TI_STRUCT,64,64, 64,   8,16, VTF_S,          TYPE_REF_STC)
+DEF_TP(SIMD64   ,"simd64" , TYP_SIMD64,  TI_STRUCT,64,64, 64,   16,64, VTF_S,          TYPE_REF_STC)
 #endif // FEATURE_SIMD
 
 DEF_TP(UNKNOWN ,"unknown" ,TYP_UNKNOWN,  TI_ERROR, 0,  0,  0,   0, 0, VTF_ANY,        0           )

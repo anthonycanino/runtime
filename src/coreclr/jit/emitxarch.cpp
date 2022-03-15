@@ -2680,7 +2680,7 @@ inline UNATIVE_OFFSET emitter::emitInsSizeRR(instruction ins, regNumber reg1, re
 
 /*****************************************************************************/
 
-inline UNATIVE_OFFSET emitter::emitInsSizeSV(code_t code, int var, int dsp)
+inline UNATIVE_OFFSET emitter::emitInsSizeSV(code_t code, int var, int dsp, emitAttr attr)
 {
     UNATIVE_OFFSET size = emitInsSize(code, /* includeRexPrefixSize */ true);
     UNATIVE_OFFSET offs;
@@ -2726,7 +2726,6 @@ inline UNATIVE_OFFSET emitter::emitInsSizeSV(code_t code, int var, int dsp)
     {
 
         /* Get the frame offset of the (non-temp) variable */
-
         offs = dsp + emitComp->lvaFrameAddress(var, &EBPbased);
 
         /* An address off of ESP takes an extra byte */
@@ -2800,16 +2799,32 @@ inline UNATIVE_OFFSET emitter::emitInsSizeSV(code_t code, int var, int dsp)
                     offs -= emitMaxTmpSize;
                 }
 
+                // Anthony: hacking to guess if we have to use long from with disp*8 compression for
+                // avx512
                 if ((int)offs < 0)
                 {
                     // offset is negative
-                    return size + ((int(offs) >= SCHAR_MIN) ? sizeof(char) : sizeof(int));
+                    if (int(offs) >= SCHAR_MIN && (attr != EA_64BYTE || int(offs) % 64 == 0))
+                    {
+                        return size + sizeof(char);
+                    }
+                    else
+                    {
+                        return size + sizeof(int);
+                    }
                 }
 #ifdef TARGET_AMD64
                 // This case arises for localloc frames
                 else
                 {
-                    return size + ((offs <= SCHAR_MAX) ? sizeof(char) : sizeof(int));
+                    if (int(offs) <= SCHAR_MAX && (attr != EA_64BYTE || int(offs) % 64 == 0))
+                    {
+                        return size + sizeof(char);
+                    }
+                    else
+                    {
+                        return size + sizeof(int);
+                    }
                 }
 #endif
             }
@@ -2845,7 +2860,16 @@ inline UNATIVE_OFFSET emitter::emitInsSizeSV(code_t code, int var, int dsp)
 //         emitLclSize, emitMaxTmpSize, emitCurStackLvl, offs);
 
 #ifdef TARGET_AMD64
-    bool useSmallEncoding = (SCHAR_MIN <= (int)offs) && ((int)offs <= SCHAR_MAX);
+    // Anthony: hacking
+    bool useSmallEncoding = true;
+    if (SCHAR_MIN <= (int)offs && (int)offs <= SCHAR_MAX && (attr != EA_64BYTE || int(offs) % 64 == 0))
+    {
+        useSmallEncoding = true;
+    }
+    else
+    {
+        useSmallEncoding = false;
+    }
 #else
     bool useSmallEncoding = (offs <= size_t(SCHAR_MAX));
 #endif
@@ -2875,7 +2899,7 @@ inline UNATIVE_OFFSET emitter::emitInsSizeSV(instrDesc* id, code_t code, int var
         prefix += emitGetRexPrefixSize(ins);
     }
 
-    return prefix + emitInsSizeSV(code, var, dsp);
+    return prefix + emitInsSizeSV(code, var, dsp, attrSize);
 }
 
 inline UNATIVE_OFFSET emitter::emitInsSizeSV(instrDesc* id, code_t code, int var, int dsp, int val)
@@ -2920,7 +2944,7 @@ inline UNATIVE_OFFSET emitter::emitInsSizeSV(instrDesc* id, code_t code, int var
         prefix += emitGetRexPrefixSize(ins);
     }
 
-    return prefix + valSize + emitInsSizeSV(code, var, dsp);
+    return prefix + valSize + emitInsSizeSV(code, var, dsp, attrSize);
 }
 
 /*****************************************************************************/
@@ -5241,7 +5265,8 @@ void emitter::emitIns_R_R(instruction ins, emitAttr attr, regNumber reg1, regNum
 
     emitAttr size = EA_SIZE(attr);
 
-    assert(size <= EA_32BYTE);
+    // Anthony: hacking
+    assert(size <= EA_64BYTE);
     noway_assert(emitVerifyEncodable(ins, size, reg1, reg2));
 
     UNATIVE_OFFSET sz = emitInsSizeRR(ins, reg1, reg2, attr);
@@ -10826,7 +10851,8 @@ BYTE* emitter::emitOutputAM(BYTE* dst, instrDesc* id, code_t code, CnsVal* addc)
         }
         unsigned regcode = insEncodeReg345(ins, reg345, size, &code);
 
-        dst += emitOutputRexOrVexPrefixIfNeeded(ins, dst, code);
+        // Anthony: check this
+        dst += emitOutputRexOrVexOrEvexPrefixIfNeeded(ins, dst, code);
 
         if (UseVEXEncoding() && (ins != INS_crc32))
         {
@@ -10934,7 +10960,7 @@ BYTE* emitter::emitOutputAM(BYTE* dst, instrDesc* id, code_t code, CnsVal* addc)
     }
 
     // Output the REX prefix
-    dst += emitOutputRexOrVexPrefixIfNeeded(ins, dst, code);
+    dst += emitOutputRexOrVexOrEvexPrefixIfNeeded(ins, dst, code);
 
     // Get the displacement value
     dsp = emitGetInsAmdAny(id);
@@ -11706,7 +11732,7 @@ BYTE* emitter::emitOutputSV(BYTE* dst, instrDesc* id, code_t code, CnsVal* addc)
     }
 
     // Output the REX prefix
-    dst += emitOutputRexOrVexPrefixIfNeeded(ins, dst, code);
+    dst += emitOutputRexOrVexOrEvexPrefixIfNeeded(ins, dst, code);
 
     // Figure out the variable's frame position
     int varNum = id->idAddr()->iiaLclVar.lvaVarNum();
@@ -11720,7 +11746,17 @@ BYTE* emitter::emitOutputSV(BYTE* dst, instrDesc* id, code_t code, CnsVal* addc)
     // Anthony: hacking with the disp8 compressions
     if (dspInByte && size == EA_64BYTE)
     {
-        dsp /= 64;
+        // Can we use compressed disp*8 encoding
+        if (dsp % 64 == 0)
+        {
+            // Must be scaled by the VL operand size factor, for now just assuming 512 bit
+            dsp /= 64;
+        }
+        else
+        {
+            // Cant, we must switch to long disp
+            dspInByte = false;
+        }
     }
 
     // for stack varaibles the dsp should never be a reloc
@@ -11766,6 +11802,23 @@ BYTE* emitter::emitOutputSV(BYTE* dst, instrDesc* id, code_t code, CnsVal* addc)
 
         dspInByte = ((signed char)dsp == (int)dsp);
         dspIsZero = (dsp == 0);
+
+        // Anthony: hacking with the disp8 compressions
+        // Anthony: duplicatec code above
+        if (dspInByte && size == EA_64BYTE)
+        {
+            // Can we use compressed disp*8 encoding
+            if (dsp % 64 == 0)
+            {
+                // Must be scaled by the VL operand size factor, for now just assuming 512 bit
+                dsp /= 64;
+            }
+            else
+            {
+                // Cant, we must switch to long disp
+                dspInByte = false;
+            }
+        }
 
         // Does the offset fit in a byte?
         if (EncodedBySSE38orSSE3A(ins) || (ins == INS_crc32))
@@ -12676,12 +12729,12 @@ BYTE* emitter::emitOutputRR(BYTE* dst, instrDesc* id)
         {
             code = insCodeMR(ins);
         }
-        code = AddVexPrefixIfNeeded(ins, code, size);
+        code = AddEvexPrefixIfNeeded(ins, code, size);
         code = insEncodeRMreg(ins, code);
 
         if (TakesRexWPrefix(ins, size))
         {
-            code = AddRexWPrefix(ins, code);
+            code = AddRexWPrefix2(ins, code, size);
         }
     }
     else if ((ins == INS_movsx) || (ins == INS_movzx) || (insIsCMOV(ins)))
@@ -12805,7 +12858,7 @@ BYTE* emitter::emitOutputRR(BYTE* dst, instrDesc* id)
     unsigned regCode = insEncodeReg345(ins, regFor345Bits, size, &code);
     regCode |= insEncodeReg012(ins, regFor012Bits, size, &code);
 
-    if (TakesVexPrefix(ins))
+    if (TakesEvexPrefix(ins, size) || TakesVexPrefix(ins))
     {
         // In case of AVX instructions that take 3 operands, we generally want to encode reg1
         // as first source.  In this case, reg1 is both a source and a destination.
@@ -12817,17 +12870,23 @@ BYTE* emitter::emitOutputRR(BYTE* dst, instrDesc* id)
         if (IsDstDstSrcAVXInstruction(ins))
         {
             // encode source/dest operand reg in 'vvvv' bits in 1's complement form
-            code = insEncodeReg3456(ins, reg1, size, code);
+            if (TakesEvexPrefix(ins, size))
+                code = insEncodeRegEvex3456(ins, reg1, size, code);
+            else
+                code = insEncodeReg3456(ins, reg1, size, code);
         }
         else if (IsDstSrcSrcAVXInstruction(ins))
         {
             // encode source operand reg in 'vvvv' bits in 1's complement form
-            code = insEncodeReg3456(ins, reg2, size, code);
+            if (TakesEvexPrefix(ins, size))
+                code = insEncodeRegEvex3456(ins, reg1, size, code);
+            else
+                code = insEncodeReg3456(ins, reg2, size, code);
         }
     }
 
     // Output the REX prefix
-    dst += emitOutputRexOrVexPrefixIfNeeded(ins, dst, code);
+    dst += emitOutputRexOrVexOrEvexPrefixIfNeeded(ins, dst, code);
 
     if (code & 0xFF000000)
     {
@@ -14553,7 +14612,7 @@ size_t emitter::emitOutputInstr(insGroup* ig, instrDesc* id, BYTE** dp)
             }
             else
             {
-                code    = AddVexPrefixIfNeeded(ins, code, size);
+                code    = AddEvexPrefixIfNeeded(ins, code, size);
                 regcode = (insEncodeReg345(ins, id->idReg1(), size, &code) << 8);
                 dst     = emitOutputAM(dst, id, code | regcode);
             }
@@ -14801,7 +14860,7 @@ size_t emitter::emitOutputInstr(insGroup* ig, instrDesc* id, BYTE** dp)
         case IF_SWR_RRD:
         case IF_SRW_RRD:
             code = insCodeMR(ins);
-            code = AddVexPrefixIfNeeded(ins, code, size);
+            code = AddEvexPrefixIfNeeded(ins, code, size);
 
             // In case of AVX instructions that take 3 operands, encode reg1 as first source.
             // Note that reg1 is both a source and a destination.
