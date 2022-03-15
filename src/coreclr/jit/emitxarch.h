@@ -39,7 +39,7 @@ struct CnsVal
 };
 
 UNATIVE_OFFSET emitInsSize(code_t code, bool includeRexPrefixSize);
-UNATIVE_OFFSET emitInsSizeSV(code_t code, int var, int dsp);
+UNATIVE_OFFSET emitInsSizeSV(code_t code, int var, int dsp, emitAttr attr);
 UNATIVE_OFFSET emitInsSizeSV(instrDesc* id, code_t code, int var, int dsp);
 UNATIVE_OFFSET emitInsSizeSV(instrDesc* id, code_t code, int var, int dsp, int val);
 UNATIVE_OFFSET emitInsSizeRR(instrDesc* id, code_t code);

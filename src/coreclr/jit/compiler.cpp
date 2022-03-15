@@ -2247,9 +2247,131 @@ void Compiler::compSetProcessor()
 
     CORINFO_InstructionSetFlags instructionSetFlags = jitFlags.GetInstructionSetFlags();
 
+<<<<<<< HEAD
     opts.compSupportsISA         = 0;
     opts.compSupportsISAReported = 0;
     opts.compSupportsISAExactly  = 0;
+=======
+#ifdef TARGET_XARCH
+    if (JitConfig.EnableHWIntrinsic())
+    {
+        // Dummy ISAs for simplifying the JIT code
+        instructionSetFlags.AddInstructionSet(InstructionSet_Vector128);
+        instructionSetFlags.AddInstructionSet(InstructionSet_Vector256);
+        instructionSetFlags.AddInstructionSet(InstructionSet_Vector512);
+    }
+
+    if (!JitConfig.EnableSSE())
+    {
+        instructionSetFlags.RemoveInstructionSet(InstructionSet_SSE);
+#ifdef TARGET_AMD64
+        instructionSetFlags.RemoveInstructionSet(InstructionSet_SSE_X64);
+#endif
+    }
+
+    if (!JitConfig.EnableSSE2())
+    {
+        instructionSetFlags.RemoveInstructionSet(InstructionSet_SSE2);
+#ifdef TARGET_AMD64
+        instructionSetFlags.RemoveInstructionSet(InstructionSet_SSE2_X64);
+#endif
+    }
+
+    if (!JitConfig.EnableAES())
+    {
+        instructionSetFlags.RemoveInstructionSet(InstructionSet_AES);
+    }
+
+    if (!JitConfig.EnablePCLMULQDQ())
+    {
+        instructionSetFlags.RemoveInstructionSet(InstructionSet_PCLMULQDQ);
+    }
+
+    // We need to additionally check that COMPlus_EnableSSE3_4 is set, as that
+    // is a prexisting config flag that controls the SSE3+ ISAs
+    if (!JitConfig.EnableSSE3() || !JitConfig.EnableSSE3_4())
+    {
+        instructionSetFlags.RemoveInstructionSet(InstructionSet_SSE3);
+    }
+
+    if (!JitConfig.EnableSSSE3())
+    {
+        instructionSetFlags.RemoveInstructionSet(InstructionSet_SSSE3);
+    }
+
+    if (!JitConfig.EnableSSE41())
+    {
+        instructionSetFlags.RemoveInstructionSet(InstructionSet_SSE41);
+#ifdef TARGET_AMD64
+        instructionSetFlags.RemoveInstructionSet(InstructionSet_SSE41_X64);
+#endif
+    }
+
+    if (!JitConfig.EnableSSE42())
+    {
+        instructionSetFlags.RemoveInstructionSet(InstructionSet_SSE42);
+#ifdef TARGET_AMD64
+        instructionSetFlags.RemoveInstructionSet(InstructionSet_SSE42_X64);
+#endif
+    }
+
+    if (!JitConfig.EnablePOPCNT())
+    {
+        instructionSetFlags.RemoveInstructionSet(InstructionSet_POPCNT);
+#ifdef TARGET_AMD64
+        instructionSetFlags.RemoveInstructionSet(InstructionSet_POPCNT_X64);
+#endif
+    }
+
+    if (!JitConfig.EnableAVX())
+    {
+        instructionSetFlags.RemoveInstructionSet(InstructionSet_AVX);
+    }
+
+    if (!JitConfig.EnableFMA())
+    {
+        instructionSetFlags.RemoveInstructionSet(InstructionSet_FMA);
+    }
+
+    if (!JitConfig.EnableAVX2())
+    {
+        instructionSetFlags.RemoveInstructionSet(InstructionSet_AVX2);
+    }
+
+    if (!JitConfig.EnableAVXVNNI())
+    {
+        instructionSetFlags.RemoveInstructionSet(InstructionSet_AVXVNNI);
+    }
+
+    if (!JitConfig.EnableAVX512())
+    {
+        instructionSetFlags.RemoveInstructionSet(InstructionSet_AVX512);
+    }
+
+    if (!JitConfig.EnableLZCNT())
+    {
+        instructionSetFlags.RemoveInstructionSet(InstructionSet_LZCNT);
+#ifdef TARGET_AMD64
+        instructionSetFlags.RemoveInstructionSet(InstructionSet_LZCNT_X64);
+#endif // TARGET_AMD64
+    }
+
+    if (!JitConfig.EnableBMI1())
+    {
+        instructionSetFlags.RemoveInstructionSet(InstructionSet_BMI1);
+#ifdef TARGET_AMD64
+        instructionSetFlags.RemoveInstructionSet(InstructionSet_BMI1_X64);
+#endif // TARGET_AMD64
+    }
+
+    if (!JitConfig.EnableBMI2())
+    {
+        instructionSetFlags.RemoveInstructionSet(InstructionSet_BMI2);
+#ifdef TARGET_AMD64
+        instructionSetFlags.RemoveInstructionSet(InstructionSet_BMI2_X64);
+#endif // TARGET_AMD64
+    }
+>>>>>>> b33e264c6db (Modified Vector512.Create to generate broadcast instructions.)
 
 #if defined(TARGET_XARCH)
     instructionSetFlags.AddInstructionSet(InstructionSet_Vector128);

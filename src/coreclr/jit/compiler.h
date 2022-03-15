@@ -9029,6 +9029,8 @@ private:
                     break;
                 case TYP_SIMD32:
                     break;
+                case TYP_SIMD64:
+                    break;
                 default:
                     unreached();
             }
@@ -9322,7 +9324,11 @@ private:
     unsigned int maxSIMDStructBytes()
     {
 #if defined(FEATURE_HW_INTRINSICS) && defined(TARGET_XARCH)
-        if (compOpportunisticallyDependsOn(InstructionSet_AVX))
+        if (compOpportunisticallyDependsOn(InstructionSet_AVX512))
+        {
+            return JitConfig.EnableHWIntrinsic() ? ZMM_REGSIZE_BYTES : XMM_REGSIZE_BYTES;
+        }
+        else if (compOpportunisticallyDependsOn(InstructionSet_AVX))
         {
             return YMM_REGSIZE_BYTES;
         }
@@ -9403,7 +9409,7 @@ public:
             // otherwise cause the highest level of instruction set support to be reported to crossgen2.
             // and this api is only ever used as an optimization or assert, so no reporting should
             // ever happen.
-            return YMM_REGSIZE_BYTES;
+            return ZMM_REGSIZE_BYTES;
         }
 #endif // defined(FEATURE_HW_INTRINSICS) && defined(TARGET_XARCH)
         unsigned vectorRegSize = maxSIMDStructBytes();

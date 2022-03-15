@@ -152,6 +152,10 @@ static CORINFO_InstructionSet lookupInstructionSet(const char* className)
         {
             return InstructionSet_Vector256;
         }
+        else if (strncmp(className, "Vector512", 9) == 0)
+        {
+            return InstructionSet_Vector512;
+        }
     }
     else if (strcmp(className, "Fma") == 0)
     {
@@ -499,6 +503,7 @@ GenTree* Compiler::impSpecialIntrinsic(NamedIntrinsic        intrinsic,
     // other intrinsics need special importation
     switch (HWIntrinsicInfo::lookupIsa(intrinsic))
     {
+        case InstructionSet_Vector512:
         case InstructionSet_Vector256:
         case InstructionSet_Vector128:
         case InstructionSet_X86Base:
@@ -555,6 +560,11 @@ GenTree* Compiler::impBaseIntrinsic(NamedIntrinsic        intrinsic,
     CORINFO_InstructionSet isa = HWIntrinsicInfo::lookupIsa(intrinsic);
 
     if ((isa == InstructionSet_Vector256) && !compExactlyDependsOn(InstructionSet_AVX))
+    {
+        // We don't want to deal with TYP_SIMD32 if the compiler doesn't otherwise support the type.
+        return nullptr;
+    }
+    if ((isa == InstructionSet_Vector512) && !compExactlyDependsOn(InstructionSet_AVX512))
     {
         // We don't want to deal with TYP_SIMD32 if the compiler doesn't otherwise support the type.
         return nullptr;
@@ -894,6 +904,7 @@ GenTree* Compiler::impBaseIntrinsic(NamedIntrinsic        intrinsic,
 
         case NI_Vector128_Create:
         case NI_Vector256_Create:
+        case NI_Vector512_Create:
         {
 #if defined(TARGET_X86)
             if (varTypeIsLong(simdBaseType))

@@ -2604,6 +2604,7 @@ unsigned Compiler::gtSetMultiOpOrder(GenTreeMultiOp* multiOp)
 #if defined(TARGET_XARCH)
             case NI_Vector128_Create:
             case NI_Vector256_Create:
+            case NI_Vector512_Create:
 #elif defined(TARGET_ARM64)
             case NI_Vector64_Create:
             case NI_Vector128_Create:

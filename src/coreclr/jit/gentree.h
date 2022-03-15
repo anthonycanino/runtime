@@ -7704,7 +7704,7 @@ inline bool GenTree::IsIntegralConstVector(ssize_t constVal) const
         else if ((node->GetOperandCount() == 1) && node->Op(1)->IsIntegralConst(constVal))
         {
 #if defined(TARGET_XARCH)
-            return (intrinsicId == NI_Vector128_Create) || (intrinsicId == NI_Vector256_Create);
+            return (intrinsicId == NI_Vector128_Create) || (intrinsicId == NI_Vector256_Create) || (intrinsicId == NI_Vector512_Create);
 #elif defined(TARGET_ARM64)
             return (intrinsicId == NI_Vector64_Create) || (intrinsicId == NI_Vector128_Create);
 #endif // !TARGET_XARCH && !TARGET_ARM64

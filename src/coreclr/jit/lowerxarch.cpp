@@ -987,6 +987,7 @@ void Lowering::LowerHWIntrinsic(GenTreeHWIntrinsic* node)
     {
         case NI_Vector128_Create:
         case NI_Vector256_Create:
+        case NI_Vector512_Create:
         {
             // We don't directly support the Vector128.Create or Vector256.Create methods in codegen
             // and instead lower them to other intrinsic nodes in LowerHWIntrinsicCreate so we expect
@@ -1626,6 +1627,32 @@ void Lowering::LowerHWIntrinsicCreate(GenTreeHWIntrinsic* node)
         // We have the following (where simd is simd16 or simd32):
         //          /--*  op1  T
         //   node = *  HWINTRINSIC   simd   T Create
+
+        // LAST: Lower Vector512
+        if (intrinsicId == NI_Vector512_Create)
+        {
+            if (comp->compOpportunisticallyDependsOn(InstructionSet_AVX512))
+            {
+                // We will be constructing the following parts:
+                //          /--*  op1  T
+                //   tmp1 = *  HWINTRINSIC   simd16 T CreateScalarUnsafe
+                //          /--*  tmp1 simd16
+                //   node = *  HWINTRINSIC   simd32 T BroadcastScalarToVector256
+
+                // This is roughly the following managed code:
+                //   var tmp1 = Vector128.CreateScalarUnsafe(op1);
+                //   return Avx2.BroadcastScalarToVector256(tmp1);
+
+                tmp1 = comp->gtNewSimdHWIntrinsicNode(TYP_SIMD16, op1, NI_Vector128_CreateScalarUnsafe, simdBaseJitType,
+                                                      16);
+                BlockRange().InsertAfter(op1, tmp1);
+                LowerNode(tmp1);
+
+                node->ResetHWIntrinsicId(NI_AVX512_BroadcastScalarToVector512, tmp1);
+                return;
+            }
+        }
+
 
         if (intrinsicId == NI_Vector256_Create)
         {
@@ -5806,6 +5833,7 @@ bool Lowering::TryGetContainableHWIntrinsicOp(GenTreeHWIntrinsic* containingNode
 
                 case NI_AVX2_BroadcastScalarToVector128:
                 case NI_AVX2_BroadcastScalarToVector256:
+                case NI_AVX512_BroadcastScalarToVector512:
                 {
                     if (!containingNode->OperIsMemoryLoad())
                     {

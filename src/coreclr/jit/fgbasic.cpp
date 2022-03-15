@@ -1168,6 +1168,7 @@ void Compiler::fgFindJumpTargets(const BYTE* codeAddr, IL_OFFSET codeSize, Fixed
 #if defined(TARGET_XARCH) && defined(FEATURE_HW_INTRINSICS)
                             case NI_Vector128_Create:
                             case NI_Vector256_Create:
+                            case NI_Vector512_Create:
 #elif defined(TARGET_ARM64) && defined(FEATURE_HW_INTRINSICS)
                             case NI_Vector64_Create:
                             case NI_Vector128_Create:
