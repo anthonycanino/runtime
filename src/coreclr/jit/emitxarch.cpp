@@ -3068,7 +3068,7 @@ UNATIVE_OFFSET emitter::emitInsSizeAM(instrDesc* id, code_t code)
         assert((attrSize == EA_4BYTE) || (attrSize == EA_PTRSIZE)    // Only for x64
                || (attrSize == EA_16BYTE) || (attrSize == EA_32BYTE) // only for x64
                // Anthony: hacking, will this work? Check prefetch prefix with EVEX
-               //|| (attrSize == EA_64BYTE)
+               || (attrSize == EA_64BYTE)
                || (ins == INS_movzx) || (ins == INS_movsx)
                // The prefetch instructions are always 3 bytes and have part of their modr/m byte hardcoded
                || isPrefetch(ins));
