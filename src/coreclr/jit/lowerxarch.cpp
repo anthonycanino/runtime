@@ -5833,7 +5833,6 @@ bool Lowering::TryGetContainableHWIntrinsicOp(GenTreeHWIntrinsic* containingNode
 
                 case NI_AVX2_BroadcastScalarToVector128:
                 case NI_AVX2_BroadcastScalarToVector256:
-                case NI_AVX512_BroadcastScalarToVector512:
                 {
                     if (!containingNode->OperIsMemoryLoad())
                     {
@@ -5846,6 +5845,13 @@ bool Lowering::TryGetContainableHWIntrinsicOp(GenTreeHWIntrinsic* containingNode
                         // The memory form of this already takes a pointer and should be treated like a MemoryLoad
                         supportsGeneralLoads = !node->OperIsHWIntrinsic();
                     }
+                    break;
+                }
+
+                // Anthony: hacking
+                case NI_AVX512_BroadcastScalarToVector512:
+                {
+                    supportsGeneralLoads = (node->TypeGet() == TYP_SIMD16);
                     break;
                 }
 
