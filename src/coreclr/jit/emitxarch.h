@@ -86,6 +86,8 @@ code_t insEncodeMRreg(instruction ins, regNumber reg, emitAttr size, code_t code
 code_t insEncodeRRIb(instruction ins, regNumber reg, emitAttr size);
 code_t insEncodeOpreg(instruction ins, regNumber reg, emitAttr size);
 
+code_t insEncodeVL(instruction ins, code_t code, emitAttr size);
+
 unsigned insSSval(unsigned scale);
 
 static bool IsSSEInstruction(instruction ins);
@@ -98,6 +100,7 @@ static bool IsBMIInstruction(instruction ins);
 static regNumber getBmiRegNumber(instruction ins);
 static regNumber getSseShiftRegNumber(instruction ins);
 bool IsAVXInstruction(instruction ins) const;
+bool IsAVX512Instruction(instruction ins) const;
 code_t insEncodeMIreg(instruction ins, regNumber reg, emitAttr size, code_t code);
 
 code_t AddRexWPrefix(instruction ins, code_t code);

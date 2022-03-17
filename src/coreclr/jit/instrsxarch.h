@@ -592,7 +592,7 @@ INST3(LAST_AVXVNNI_INSTRUCTION, "LAST_AVXVNNI_INSTRUCTION", IUM_WR, BAD_CODE, BA
 
 INST3(FIRST_AVX512_INSTRUCTION, "FIRST_AVX512_INSTRUCTION", IUM_WR, BAD_CODE, BAD_CODE, BAD_CODE, INS_FLAGS_None)
 //    id                nm                  um      mr            mi            rm                                       flags
-INST3(vrsqrt14ps,       "vrsprt14ps",       IUM_WR, BAD_CODE,     BAD_CODE,     SSE38(0x4E),                                INS_FLAGS_None)
+INST3(vrsqrt14ps,       "rsprt14ps",       IUM_WR, BAD_CODE,     BAD_CODE,     SSE38(0x4E),                                INS_FLAGS_None)
 INST3(LAST_AVX512_INSTRUCTION, "LAST_AVX512_INSTRUCTION", IUM_WR, BAD_CODE, BAD_CODE, BAD_CODE, INS_FLAGS_None)
 
 // BMI1

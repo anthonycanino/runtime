@@ -128,6 +128,11 @@ bool emitter::IsAVXInstruction(instruction ins) const
     return UseVEXEncoding() && IsSSEOrAVXInstruction(ins);
 }
 
+bool emitter::IsAVX512Instruction(instruction ins) const
+{
+    return (INS_FIRST_AVX512_INSTRUCTION < ins && ins < INS_LAST_AVX512_INSTRUCTION);
+}
+
 // Returns true if the AVX instruction is a binary operator that requires 3 operands.
 // When we emit an instruction with only two operands, we will duplicate the destination
 // as a source.
@@ -658,7 +663,7 @@ emitter::code_t emitter::AddVexPrefix(instruction ins, code_t code, emitAttr att
 
 bool emitter::TakesEvexPrefix(instruction ins, emitAttr size) const
 {
-    return TakesVexPrefix(ins) && size == EA_64BYTE;
+    return (TakesVexPrefix(ins) && size == EA_64BYTE) || IsAVX512Instruction(ins);
 }
 
 // Add base EVEX prefix without setting W, R, X, or B bits
@@ -1698,7 +1703,7 @@ unsigned emitter::emitGetVexPrefixSize(instruction ins, emitAttr attr)
 // Size of vex prefix in bytes
 unsigned emitter::emitGetEvexPrefixSize(instruction ins, emitAttr attr)
 {
-    if (IsAVXInstruction(ins) && attr == EA_64BYTE)
+    if ((IsAVXInstruction(ins) && attr == EA_64BYTE) || IsAVX512Instruction(ins))
     {
         return 4;
     }
@@ -1720,7 +1725,7 @@ unsigned emitter::emitGetAdjustedSize(instruction ins, emitAttr attr, code_t cod
 {
     unsigned adjustedSize = 0;
 
-    if (IsAVXInstruction(ins))
+    if (IsAVXInstruction(ins) || IsAVX512Instruction(ins))
     {
         // VEX prefix encodes some bytes of the opcode and as a result, overall size of the instruction reduces.
         // Therefore, to estimate the size adding VEX prefix size and size of instruction opcode bytes will always
@@ -1737,7 +1742,7 @@ unsigned emitter::emitGetAdjustedSize(instruction ins, emitAttr attr, code_t cod
         //  = opcodeSize + vexPrefixAdjustedSize
 
         unsigned vexPrefixAdjustedSize; 
-        if (attr == EA_64BYTE)
+        if (attr == EA_64BYTE || IsAVX512Instruction(ins))
             vexPrefixAdjustedSize = emitGetEvexPrefixSize(ins, attr);
         else
             vexPrefixAdjustedSize = emitGetVexPrefixSize(ins, attr);
@@ -1805,6 +1810,11 @@ unsigned emitter::emitGetAdjustedSize(instruction ins, emitAttr attr, code_t cod
 //
 unsigned emitter::emitGetPrefixSize(code_t code, bool includeRexPrefixSize)
 {
+    if (hasEvexPrefix(code))
+    {
+        return 4;
+    }
+
     if (hasVexPrefix(code))
     {
         return 3;
@@ -2486,6 +2496,28 @@ inline emitter::code_t emitter::insEncodeOpreg(instruction ins, regNumber reg, e
     code_t   code    = insCodeRR(ins);
     unsigned regcode = insEncodeReg012(ins, reg, size, &code);
     code |= regcode;
+    return code;
+}
+
+emitter::code_t emitter::insEncodeVL(instruction ins, code_t code, emitAttr attr)
+{
+    if (IsAVX512Instruction(ins))
+    {
+        code &= 0xFFFFFF9FFFFFFFFFULL;
+        switch (attr)
+        {
+            case EA_16BYTE:
+                return emitter::code_t(code | 0x0000000000000000ULL);
+            case EA_32BYTE:
+                return emitter::code_t(code | 0x0000002000000000ULL);
+            case EA_64BYTE:
+                return emitter::code_t(code | 0x0000004000000000ULL);
+            default:
+                assert(!"UNREACHED");
+                return code;
+        }
+    }
+
     return code;
 }
 
@@ -12823,6 +12855,7 @@ BYTE* emitter::emitOutputRR(BYTE* dst, instrDesc* id)
             code = insCodeMR(ins);
         }
         code = AddEvexPrefixIfNeeded(ins, code, size);
+        code = insEncodeVL(ins, code, size);
         code = insEncodeRMreg(ins, code);
 
         if (TakesRexWPrefix(ins, size))
@@ -16876,6 +16909,14 @@ emitter::insExecutionCharacteristics emitter::getInsExecutionCharacteristics(ins
         {
             result.insLatency    = PERFSCORE_LATENCY_140C;
             result.insThroughput = PERFSCORE_THROUGHPUT_140C;
+            break;
+        }
+
+        case INS_vrsqrt14ps:
+        {
+            // Anthony: hacking
+            result.insLatency    = PERFSCORE_LATENCY_1C;
+            result.insThroughput = PERFSCORE_THROUGHPUT_1C;
             break;
         }
 
