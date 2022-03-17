@@ -712,6 +712,11 @@ HARDWARE_INTRINSIC(AVX2,            Xor,                                        
 // ***************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************
 //  AVX512 Intrinsics
 HARDWARE_INTRINSIC(AVX512,          BroadcastScalarToVector512,                 64,              1,     {INS_vpbroadcastb,      INS_vpbroadcastb,       INS_vpbroadcastw,       INS_vpbroadcastw,       INS_vpbroadcastd,       INS_vpbroadcastd,       INS_vpbroadcastq,       INS_vpbroadcastq,       INS_vbroadcastss,       INS_vbroadcastsd},      HW_Category_SIMDScalar,             HW_Flag_MaybeMemoryLoad)
+HARDWARE_INTRINSIC(AVX512,          Add,                                        64,              2,     {INS_paddb,             INS_paddb,              INS_paddw,              INS_paddw,              INS_paddd,              INS_paddd,              INS_paddq,              INS_paddq,              INS_addps,              INS_addpd},             HW_Category_SimpleSIMD,             HW_Flag_Commutative)
+
+HARDWARE_INTRINSIC(AVX512,          ReciprocalSqrt128,                          16,              1,     {INS_invalid,           INS_invalid,            INS_invalid,            INS_invalid,            INS_invalid,            INS_invalid,            INS_invalid,            INS_invalid,            INS_vrsqrt14ps,         INS_invalid},           HW_Category_SimpleSIMD,             HW_Flag_MaybeMemoryLoad)
+HARDWARE_INTRINSIC(AVX512,          ReciprocalSqrt256,                          32,              1,     {INS_invalid,           INS_invalid,            INS_invalid,            INS_invalid,            INS_invalid,            INS_invalid,            INS_invalid,            INS_invalid,            INS_vrsqrt14ps,         INS_invalid},           HW_Category_SimpleSIMD,             HW_Flag_MaybeMemoryLoad)
+HARDWARE_INTRINSIC(AVX512,          ReciprocalSqrt512,                          64,              1,     {INS_invalid,           INS_invalid,            INS_invalid,            INS_invalid,            INS_invalid,            INS_invalid,            INS_invalid,            INS_invalid,            INS_vrsqrt14ps,         INS_invalid},           HW_Category_SimpleSIMD,             HW_Flag_MaybeMemoryLoad)
 
 
 // ***************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************
@@ -841,7 +846,6 @@ HARDWARE_INTRINSIC(SSE41,           PTEST,                                      
 HARDWARE_INTRINSIC(AVX,             PTEST,                                       0,              2,     {INS_ptest,             INS_ptest,              INS_ptest,              INS_ptest,              INS_ptest,              INS_ptest,              INS_ptest,              INS_ptest,              INS_vtestps,            INS_vtestpd},           HW_Category_SimpleSIMD,             HW_Flag_NoRMWSemantics)
 
 
-HARDWARE_INTRINSIC(AVX512,          Add,                                        64,              2,     {INS_paddb,             INS_paddb,              INS_paddw,              INS_paddw,              INS_paddd,              INS_paddd,              INS_paddq,              INS_paddq,              INS_invalid,            INS_invalid},           HW_Category_SimpleSIMD,             HW_Flag_Commutative)
 
 #endif // FEATURE_HW_INTRINSIC
 

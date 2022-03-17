@@ -157,34 +157,34 @@ CORINFO_CLASS_HANDLE Compiler::gtGetStructHandleForHWSIMD(var_types simdType, Co
                 assert(!"Didn't find a class handle for simdType");
         }
     }
-    else if (simdType == TYP_SIMD32)
+    else if (simdType == TYP_SIMD64)
     {
         switch (simdBaseJitType)
         {
             case CORINFO_TYPE_FLOAT:
-                return m_simdHandleCache->Vector256FloatHandle;
+                return m_simdHandleCache->Vector512FloatHandle;
             case CORINFO_TYPE_DOUBLE:
-                return m_simdHandleCache->Vector256DoubleHandle;
+                return m_simdHandleCache->Vector512DoubleHandle;
             case CORINFO_TYPE_INT:
-                return m_simdHandleCache->Vector256IntHandle;
+                return m_simdHandleCache->Vector512IntHandle;
             case CORINFO_TYPE_USHORT:
-                return m_simdHandleCache->Vector256UShortHandle;
+                return m_simdHandleCache->Vector512UShortHandle;
             case CORINFO_TYPE_UBYTE:
-                return m_simdHandleCache->Vector256UByteHandle;
+                return m_simdHandleCache->Vector512UByteHandle;
             case CORINFO_TYPE_SHORT:
-                return m_simdHandleCache->Vector256ShortHandle;
+                return m_simdHandleCache->Vector512ShortHandle;
             case CORINFO_TYPE_BYTE:
-                return m_simdHandleCache->Vector256ByteHandle;
+                return m_simdHandleCache->Vector512ByteHandle;
             case CORINFO_TYPE_LONG:
-                return m_simdHandleCache->Vector256LongHandle;
+                return m_simdHandleCache->Vector512LongHandle;
             case CORINFO_TYPE_UINT:
-                return m_simdHandleCache->Vector256UIntHandle;
+                return m_simdHandleCache->Vector512UIntHandle;
             case CORINFO_TYPE_ULONG:
-                return m_simdHandleCache->Vector256ULongHandle;
+                return m_simdHandleCache->Vector512ULongHandle;
             case CORINFO_TYPE_NATIVEINT:
-                return m_simdHandleCache->Vector256NIntHandle;
+                return m_simdHandleCache->Vector512NIntHandle;
             case CORINFO_TYPE_NATIVEUINT:
-                return m_simdHandleCache->Vector256NUIntHandle;
+                return m_simdHandleCache->Vector512NUIntHandle;
             default:
                 assert(!"Didn't find a class handle for simdType");
         }

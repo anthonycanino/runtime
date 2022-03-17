@@ -25,5 +25,10 @@ namespace System.Runtime.Intrinsics.X86
         }
 
         public static Vector512<int> Add(Vector512<int> left, Vector512<int> right) => Add(left, right);
+        public static Vector512<float> Add(Vector512<float> left, Vector512<float> right) => Add(left, right);
+
+        public static Vector128<float> ReciprocalSqrt128(Vector128<float> vals) => ReciprocalSqrt128(vals);
+        public static Vector256<float> ReciprocalSqrt256(Vector256<float> vals) => ReciprocalSqrt256(vals);
+        public static Vector512<float> ReciprocalSqrt512(Vector512<float> vals) => ReciprocalSqrt512(vals);
     }
 }

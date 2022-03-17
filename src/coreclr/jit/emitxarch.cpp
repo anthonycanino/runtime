@@ -11767,7 +11767,7 @@ BYTE* emitter::emitOutputSV(BYTE* dst, instrDesc* id, code_t code, CnsVal* addc)
         assert(ins != INS_bt);
 
         // Output the REX prefix
-        dst += emitOutputRexOrVexPrefixIfNeeded(ins, dst, code);
+        dst += emitOutputRexOrVexOrEvexPrefixIfNeeded(ins, dst, code);
 
         // Output the highest byte of the opcode.
         // We need to check again because in case of AVX instructions the leading

@@ -3954,12 +3954,19 @@ namespace System.Runtime.Intrinsics.X86
         public static new bool IsSupported { get { throw null; } }
 
         public static System.Runtime.Intrinsics.Vector512<int> Add(System.Runtime.Intrinsics.Vector512<int> left, System.Runtime.Intrinsics.Vector512<int> right) { throw null; }
+        public static System.Runtime.Intrinsics.Vector512<float> Add(System.Runtime.Intrinsics.Vector512<float> left, System.Runtime.Intrinsics.Vector512<float> right) { throw null; }
+
+        public static System.Runtime.Intrinsics.Vector128<float> ReciprocalSqrt128(System.Runtime.Intrinsics.Vector128<float> vals) { throw null; }
+        public static System.Runtime.Intrinsics.Vector256<float> ReciprocalSqrt256(System.Runtime.Intrinsics.Vector256<float> vals) { throw null; }
+        public static System.Runtime.Intrinsics.Vector512<float> ReciprocalSqrt512(System.Runtime.Intrinsics.Vector512<float> vals) { throw null; }
 
         public new abstract partial class X64 : System.Runtime.Intrinsics.X86.Avx.X64
         {
             internal X64() { }
             public static new bool IsSupported { get { throw null; } }
         }
+
+
     }
 
 
