@@ -9907,6 +9907,22 @@ void MethodTableBuilder::CheckForSystemTypes()
                     pLayout->m_ManagedLargestAlignmentRequirementOfAllMembers = 64; // sizeof(__m256)
     #endif // TARGET_ARM elif TARGET_ARM64
                 }
+                else if (strcmp(name, g_KMaskName) == 0)
+                {
+    #ifdef TARGET_ARM
+                    // No such type exists for the Procedure Call Standard for ARM. We will default
+                    // to the same alignment as __m128, which is supported by the ABI.
+
+                    pLayout->m_ManagedLargestAlignmentRequirementOfAllMembers = 8;
+    #elif defined(TARGET_ARM64)
+                    // The Procedure Call Standard for ARM 64-bit (with SVE support) defaults to
+                    // 16-byte alignment for __m256.
+
+                    pLayout->m_ManagedLargestAlignmentRequirementOfAllMembers = 8;
+    #else
+                    pLayout->m_ManagedLargestAlignmentRequirementOfAllMembers = 8; // sizeof(__m256)
+    #endif // TARGET_ARM elif TARGET_ARM64
+                }
                 else
                 {
                     // These types should be handled or explicitly skipped below to ensure that we don't

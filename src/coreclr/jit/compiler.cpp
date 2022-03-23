@@ -2255,6 +2255,7 @@ void Compiler::compSetProcessor()
     instructionSetFlags.AddInstructionSet(InstructionSet_Vector128);
     instructionSetFlags.AddInstructionSet(InstructionSet_Vector256);
     instructionSetFlags.AddInstructionSet(InstructionSet_Vector512);
+    instructionSetFlags.AddInstructionSet(InstructionSet_KMask);
 #endif // TARGET_XARCH
 
 #if defined(TARGET_ARM64)

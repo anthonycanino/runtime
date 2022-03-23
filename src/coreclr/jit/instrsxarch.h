@@ -62,6 +62,8 @@ INST5(inc_l,            "inc",              IUM_RW, 0x0000FE,     BAD_CODE,     
 INST5(dec,              "dec",              IUM_RW, 0x0008FE,     BAD_CODE,     BAD_CODE,     BAD_CODE,     0x000048,    Writes_OF      | Writes_SF     | Writes_ZF     | Writes_AF     | Writes_PF | INS_FLAGS_Has_Wbit )
 INST5(dec_l,            "dec",              IUM_RW, 0x0008FE,     BAD_CODE,     BAD_CODE,     BAD_CODE,     0x00C8FE,    Writes_OF      | Writes_SF     | Writes_ZF     | Writes_AF     | Writes_PF )
 
+INST5(kmovw,             "kmovw",          IUM_WR, PCKFLT(0x91), BAD_CODE,     PCKFLT(0x90),  BAD_CODE,     PCKFLT(0x92), INS_FLAGS_None)    
+
 // Multi-byte opcodes without modrm are represented in mixed endian fashion.
 // See comment around quarter way through this file for more information.
 INST5(bswap,            "bswap",            IUM_RW, 0x0F00C8,     BAD_CODE,     BAD_CODE,     BAD_CODE,     0x00C80F,    INS_FLAGS_None )
@@ -593,6 +595,12 @@ INST3(LAST_AVXVNNI_INSTRUCTION, "LAST_AVXVNNI_INSTRUCTION", IUM_WR, BAD_CODE, BA
 INST3(FIRST_AVX512_INSTRUCTION, "FIRST_AVX512_INSTRUCTION", IUM_WR, BAD_CODE, BAD_CODE, BAD_CODE, INS_FLAGS_None)
 //    id                nm                  um      mr            mi            rm                                       flags
 INST3(vrsqrt14ps,       "rsprt14ps",       IUM_WR, BAD_CODE,     BAD_CODE,     SSE38(0x4E),                                INS_FLAGS_None)
+
+//INST3(kmovb,             "kmovb",          IUM_WR, PCKDBL(0x7E), BAD_CODE,     PCKDBL(0x6E),                            INS_FLAGS_None)    
+//    id                nm                  um      mr            mi            rm            a4            rr           flags
+//INST3(kmovd,             "kmovd",          IUM_WR, PCKDBL(0x7E), BAD_CODE,     PCKDBL(0x6E),                            INS_FLAGS_None)    
+//INST3(kmovq,             "kmovq",          IUM_WR, PCKDBL(0xD6), BAD_CODE,     SSEFLT(0x7E),                            INS_FLAGS_None)    
+
 INST3(LAST_AVX512_INSTRUCTION, "LAST_AVX512_INSTRUCTION", IUM_WR, BAD_CODE, BAD_CODE, BAD_CODE, INS_FLAGS_None)
 
 // BMI1

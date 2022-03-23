@@ -50,6 +50,9 @@
 #define g_Vector512ClassName "System.Runtime.Intrinsics.Vector512`1"
 #define g_Vector512Name "Vector512`1"
 
+#define g_KMaskClassName "System.Runtime.Intrinsics.KMask`1"
+#define g_KMaskName "KMask`1"
+
 #define g_EnumeratorToEnumClassName "System.Runtime.InteropServices.CustomMarshalers.EnumeratorToEnumVariantMarshaler"
 #define g_ExceptionClassName "System.Exception"
 #define g_ExecutionEngineExceptionClassName "System.ExecutionEngineException"

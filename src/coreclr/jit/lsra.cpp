@@ -249,6 +249,12 @@ regMaskTP LinearScan::allRegs(RegisterType rt)
     }
 #ifdef FEATURE_SIMD
     // TODO-Cleanup: Add an RBM_ALLSIMD
+#ifdef TARGET_AMD64
+    else if (rt == TYP_KMASK)
+    {
+        return availableKMaskRegs;
+    }
+#endif
     else if (varTypeIsSIMD(rt))
     {
         return availableDoubleRegs;
@@ -715,6 +721,10 @@ LinearScan::LinearScan(Compiler* theCompiler)
     availableDoubleRegs = RBM_ALLDOUBLE;
 
 #ifdef TARGET_AMD64
+    availableKMaskRegs  = RBM_ALLKMASK;
+#endif
+
+#ifdef TARGET_AMD64
     if (compiler->opts.compDbgEnC)
     {
         // On x64 when the EnC option is set, we always save exactly RBP, RSI and RDI.
@@ -722,6 +732,7 @@ LinearScan::LinearScan(Compiler* theCompiler)
         // callee-save registers available.
         availableIntRegs &= ~RBM_CALLEE_SAVED | RBM_RSI | RBM_RDI;
         availableFloatRegs &= ~RBM_CALLEE_SAVED;
+        // Anthony: might need to revist
         availableDoubleRegs &= ~RBM_CALLEE_SAVED;
     }
 #endif // TARGET_AMD64
@@ -8944,6 +8955,12 @@ void dumpRegMask(regMaskTP regs)
     {
         printf("[allDouble]");
     }
+#ifdef TARGET_AMD64
+    else if (regs == RBM_ALLKMASK)
+    {
+        printf("[allKMask]");
+    }
+#endif
     else
     {
         dspRegMask(regs);

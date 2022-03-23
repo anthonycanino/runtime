@@ -157,6 +157,10 @@ static CORINFO_InstructionSet lookupInstructionSet(const char* className)
             return InstructionSet_Vector512;
         }
     }
+    else if (strcmp(className, "KMask") == 0)
+    {
+        return InstructionSet_KMask;
+    }
     else if (strcmp(className, "Fma") == 0)
     {
         return InstructionSet_FMA;
@@ -396,6 +400,7 @@ bool HWIntrinsicInfo::isFullyImplementedIsa(CORINFO_InstructionSet isa)
         case InstructionSet_X86Base_X64:
 
         case InstructionSet_Vector512:
+        case InstructionSet_KMask:
         case InstructionSet_AVX512:
         case InstructionSet_AVX512_X64:
         {
@@ -503,6 +508,7 @@ GenTree* Compiler::impSpecialIntrinsic(NamedIntrinsic        intrinsic,
     // other intrinsics need special importation
     switch (HWIntrinsicInfo::lookupIsa(intrinsic))
     {
+        case InstructionSet_KMask:
         case InstructionSet_Vector512:
         case InstructionSet_Vector256:
         case InstructionSet_Vector128:
@@ -905,6 +911,7 @@ GenTree* Compiler::impBaseIntrinsic(NamedIntrinsic        intrinsic,
         case NI_Vector128_Create:
         case NI_Vector256_Create:
         case NI_Vector512_Create:
+        case NI_KMask_Create:
         {
 #if defined(TARGET_X86)
             if (varTypeIsLong(simdBaseType))

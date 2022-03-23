@@ -35,6 +35,7 @@ const unsigned int RegisterTypeCount    = 2;
 typedef var_types RegisterType;
 #define IntRegisterType TYP_INT
 #define FloatRegisterType TYP_FLOAT
+#define MaskRegisterType  TYP_KMASK
 
 //------------------------------------------------------------------------
 // regType: Return the RegisterType to use for a given type
@@ -502,6 +503,12 @@ public:
         {
             registerType = FloatRegisterType;
         }
+#ifdef TARGET_AMD64
+        else if (emitter::isMaskReg(reg))
+        {
+            registerType = MaskRegisterType;
+        }
+#endif
         else
         {
             // The constructor defaults to IntRegisterType
@@ -1573,6 +1580,7 @@ private:
     PhasedVar<regMaskTP> availableIntRegs;
     PhasedVar<regMaskTP> availableFloatRegs;
     PhasedVar<regMaskTP> availableDoubleRegs;
+    PhasedVar<regMaskTP> availableKMaskRegs;
 
     // The set of all register candidates. Note that this may be a subset of tracked vars.
     VARSET_TP registerCandidateVars;
@@ -1636,7 +1644,7 @@ private:
 
     void resetAvailableRegs()
     {
-        m_AvailableRegs          = (availableIntRegs | availableFloatRegs);
+        m_AvailableRegs          = (availableIntRegs | availableFloatRegs | availableKMaskRegs);
         m_RegistersWithConstants = RBM_NONE;
     }
 

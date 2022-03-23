@@ -1721,7 +1721,17 @@ var_types Compiler::impNormStructType(CORINFO_CLASS_HANDLE structHnd, CorInfoTyp
             if (structSizeMightRepresentSIMDType(originalSize))
             {
                 unsigned int sizeBytes;
-                CorInfoType  simdBaseJitType = getBaseJitTypeAndSizeOfSIMDType(structHnd, &sizeBytes);
+
+                CorInfoType  simdBaseJitType = getBaseJitTypeOfKMaskType(structHnd);
+                if (simdBaseJitType != CORINFO_TYPE_UNDEF)
+                {
+                    structType = TYP_KMASK;
+                    *pSimdBaseJitType = simdBaseJitType;
+                    compFloatingPointUsed = true;
+                    return structType;
+                }
+
+                simdBaseJitType = getBaseJitTypeAndSizeOfSIMDType(structHnd, &sizeBytes);
                 if (simdBaseJitType != CORINFO_TYPE_UNDEF)
                 {
                     assert(sizeBytes == originalSize);

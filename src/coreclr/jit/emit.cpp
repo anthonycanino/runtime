@@ -1564,6 +1564,11 @@ void* emitter::emitAllocAnyInstr(size_t sz, emitAttr opsz)
     }
 #endif // DEBUG
 
+#ifdef TARGET_AMD64
+    // Anthony: No opmask reg by default
+    id->idRegKMask(REG_NA);
+#endif
+
     return id;
 }
 

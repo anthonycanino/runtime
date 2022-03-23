@@ -72,6 +72,8 @@ inline bool varTypeIsSIMD(T vt)
         case TYP_SIMD16:
         case TYP_SIMD32:
         case TYP_SIMD64:
+        // Anthony: SIMD type hack for now
+        case TYP_KMASK:
             return true;
         default:
             return false;

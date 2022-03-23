@@ -6,6 +6,34 @@
 
 namespace System.Runtime.Intrinsics
 {
+    public static partial class KMask
+    {
+        public static bool IsHardwareAccelerated { get { throw null; } }
+        public static System.Runtime.Intrinsics.KMask<TTo> As<TFrom, TTo>(this System.Runtime.Intrinsics.KMask<TFrom> vector) where TFrom : struct where TTo : struct { throw null; }
+        public static System.Runtime.Intrinsics.KMask<System.Byte> Create(byte value) { throw null; }
+
+        [System.CLSCompliantAttribute(false)]
+        public static System.Runtime.Intrinsics.KMask<System.UInt16> Create(ushort value) { throw null; }
+
+        [System.CLSCompliantAttribute(false)]
+        public static System.Runtime.Intrinsics.KMask<System.UInt32> Create(uint value) { throw null; }
+
+        [System.CLSCompliantAttribute(false)]
+        public static System.Runtime.Intrinsics.KMask<System.UInt64> Create(ulong value) { throw null; }
+
+        public static System.Runtime.Intrinsics.KMask<T> Create<T>(T value) where T : struct { throw null; }
+    }
+    public readonly partial struct KMask<T> : System.IEquatable<System.Runtime.Intrinsics.KMask<T>> where T : struct
+    {
+        private readonly int _dummyPrimitive;
+        public static System.Runtime.Intrinsics.KMask<T> AllBitsSet { get { throw null; } }
+        public static System.Runtime.Intrinsics.KMask<T> Zero { get { throw null; } }
+        public override bool Equals([System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] object? obj) { throw null; }
+        public bool Equals(System.Runtime.Intrinsics.KMask<T> other) { throw null; }
+        public override int GetHashCode() { throw null; }
+	}
+
+
     public static partial class Vector512
     {
         public static bool IsHardwareAccelerated { get { throw null; } }
@@ -3955,6 +3983,8 @@ namespace System.Runtime.Intrinsics.X86
 
         public static System.Runtime.Intrinsics.Vector512<int> Add(System.Runtime.Intrinsics.Vector512<int> left, System.Runtime.Intrinsics.Vector512<int> right) { throw null; }
         public static System.Runtime.Intrinsics.Vector512<float> Add(System.Runtime.Intrinsics.Vector512<float> left, System.Runtime.Intrinsics.Vector512<float> right) { throw null; }
+
+        public static System.Runtime.Intrinsics.Vector512<int> MaskAdd(System.Runtime.Intrinsics.Vector512<int> left, System.Runtime.Intrinsics.Vector512<int> right, System.Runtime.Intrinsics.KMask<ushort> mask) { throw null; }
 
         public static System.Runtime.Intrinsics.Vector128<float> ReciprocalSqrt128(System.Runtime.Intrinsics.Vector128<float> vals) { throw null; }
         public static System.Runtime.Intrinsics.Vector256<float> ReciprocalSqrt256(System.Runtime.Intrinsics.Vector256<float> vals) { throw null; }

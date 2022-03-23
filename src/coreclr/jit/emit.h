@@ -877,6 +877,7 @@ protected:
             {
                 regNumber _idReg3 : REGNUM_BITS;
                 regNumber _idReg4 : REGNUM_BITS;
+                regNumber _idRegKMask : REGNUM_BITS;
             };
 #endif // defined(TARGET_XARCH)
 
@@ -1053,6 +1054,17 @@ protected:
             assert(!idIsSmallDsc());
             idAddr()->_idReg4 = reg;
             assert(reg == idAddr()->_idReg4);
+        }
+        regNumber idRegKMask() const
+        {
+            assert(!idIsSmallDsc());
+            return idAddr()->_idRegKMask;
+        }
+        void idRegKMask(regNumber reg)
+        {
+            assert(!idIsSmallDsc());
+            idAddr()->_idRegKMask = reg;
+            assert(reg == idAddr()->_idRegKMask);
         }
 #endif // defined(TARGET_XARCH)
 #ifdef TARGET_ARMARCH

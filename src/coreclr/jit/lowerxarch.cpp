@@ -1002,6 +1002,13 @@ void Lowering::LowerHWIntrinsic(GenTreeHWIntrinsic* node)
             return;
         }
 
+        case NI_KMask_Create:
+        {
+            LowerHWIntrinsicCreate(node);
+            LowerNode(node);
+            return;
+        }
+
         case NI_Vector128_Dot:
         case NI_Vector256_Dot:
         {
@@ -1570,7 +1577,8 @@ void Lowering::LowerHWIntrinsicCreate(GenTreeHWIntrinsic* node)
     }
     assert((argCnt == 1) || (argCnt == (simdSize / genTypeSize(simdBaseType))));
 
-    if (argCnt == cnsArgCnt)
+    // Anthony: hacking
+    if (argCnt == cnsArgCnt && intrinsicId != NI_KMask_Create)
     {
         for (GenTree* arg : node->Operands())
         {
@@ -1624,6 +1632,16 @@ void Lowering::LowerHWIntrinsicCreate(GenTreeHWIntrinsic* node)
     }
     else if (argCnt == 1)
     {
+
+        if (intrinsicId == NI_KMask_Create)
+        {
+            if (comp->compOpportunisticallyDependsOn(InstructionSet_AVX512))
+            {
+                node->ResetHWIntrinsicId(NI_KMask_CreateScalarUnsafe, op1);
+                return;
+            }
+        }
+
         // We have the following (where simd is simd16 or simd32):
         //          /--*  op1  T
         //   node = *  HWINTRINSIC   simd   T Create
@@ -6597,6 +6615,9 @@ void Lowering::ContainCheckHWIntrinsic(GenTreeHWIntrinsic* node)
                                 }
                                 break;
                             }
+
+                            case NI_AVX512_MaskAdd:
+                                break;
 
                             default:
                             {

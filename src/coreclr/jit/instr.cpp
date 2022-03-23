@@ -1240,6 +1240,63 @@ void CodeGen::inst_RV_RV_TT(
             unreached();
     }
 }
+
+void CodeGen::inst_RV_RV_TT_Opmask(
+    instruction ins, emitAttr size, regNumber targetReg, regNumber op1Reg, GenTree* op2, bool isRMW, regNumber opmaskReg)
+{
+    emitter* emit = GetEmitter();
+    noway_assert(emit->emitVerifyEncodable(ins, EA_SIZE(size), targetReg));
+
+    // TODO-XArch-CQ: Commutative operations can have op1 be contained
+    // TODO-XArch-CQ: Non-VEX encoded instructions can have both ops contained
+
+    OperandDesc op2Desc = genOperandDesc(op2);
+    switch (op2Desc.GetKind())
+    {
+        case OperandKind::ClsVar:
+            emit->emitIns_SIMD_R_R_C(ins, size, targetReg, op1Reg, op2Desc.GetFieldHnd(), 0);
+            break;
+
+        case OperandKind::Local:
+            emit->emitIns_SIMD_R_R_S(ins, size, targetReg, op1Reg, op2Desc.GetVarNum(), op2Desc.GetLclOffset());
+            break;
+
+        case OperandKind::Indir:
+        {
+            // Until we improve the handling of addressing modes in the emitter, we'll create a
+            // temporary GT_IND to generate code with.
+            GenTreeIndir  indirForm;
+            GenTreeIndir* indir = op2Desc.GetIndirForm(&indirForm);
+            emit->emitIns_SIMD_R_R_A(ins, size, targetReg, op1Reg, indir);
+        }
+        break;
+
+        case OperandKind::Reg:
+        {
+            regNumber op2Reg = op2->GetRegNum();
+
+            if ((op1Reg != targetReg) && (op2Reg == targetReg) && isRMW)
+            {
+                // We have "reg2 = reg1 op reg2" where "reg1 != reg2" on a RMW instruction.
+                //
+                // For non-commutative instructions, we should have ensured that op2 was marked
+                // delay free in order to prevent it from getting assigned the same register
+                // as target. However, for commutative instructions, we can just swap the operands
+                // in order to have "reg2 = reg2 op reg1" which will end up producing the right code.
+
+                op2Reg = op1Reg;
+                op1Reg = targetReg;
+            }
+
+            emit->emitIns_SIMD_R_R_R_Opmask(ins, size, targetReg, op1Reg, op2Reg, opmaskReg);
+        }
+        break;
+
+        default:
+            unreached();
+    }
+}
+
 #endif // TARGET_XARCH
 
 /*****************************************************************************
@@ -1574,7 +1631,10 @@ instruction CodeGenInterface::ins_Load(var_types srcType, bool aligned /*=false*
     {
 #if defined(TARGET_XARCH)
 #ifdef FEATURE_SIMD
-        if (srcType == TYP_SIMD8)
+        if (srcType == TYP_KMASK)
+        {
+            return INS_kmovw;
+        } else if (srcType == TYP_SIMD8)
         {
             return INS_movsdsse2;
         }
@@ -1778,7 +1838,12 @@ instruction CodeGenInterface::ins_Store(var_types dstType, bool aligned /*=false
     if (varTypeIsSIMD(dstType))
     {
 #ifdef FEATURE_SIMD
-        if (dstType == TYP_SIMD8)
+        // Anthony: Hacking, storing KMask regs probably needs its own path
+        if (dstType == TYP_KMASK)
+        {
+            return INS_kmovw;
+        }
+        else if (dstType == TYP_SIMD8)
         {
             return INS_movsdsse2;
         }

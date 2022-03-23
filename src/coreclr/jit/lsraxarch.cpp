@@ -2017,6 +2017,7 @@ int LinearScan::BuildHWIntrinsic(GenTreeHWIntrinsic* intrinsicTree, int* pDstCou
     int srcCount = 0;
     int dstCount = intrinsicTree->IsValue() ? 1 : 0;
 
+    // LAST: dstCandidates, follow this chain, see if you can 
     regMaskTP dstCandidates = RBM_NONE;
 
     if (intrinsicTree->GetOperandCount() == 0)

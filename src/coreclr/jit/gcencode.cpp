@@ -2464,7 +2464,7 @@ size_t GCInfo::gcMakeRegPtrTable(BYTE* dest, int mask, const InfoHdr& header, un
 #ifdef TARGET_X86
         assert(compiler->IsFullPtrRegMapRequired());
 
-        unsigned ptrRegs = 0;
+        unsigned __int64 ptrRegs = 0;
 
         regPtrDsc* genRegPtrTemp;
 
@@ -2669,7 +2669,7 @@ size_t GCInfo::gcMakeRegPtrTable(BYTE* dest, int mask, const InfoHdr& header, un
             }
             else
             {
-                unsigned regMask;
+                unsigned __int64 regMask;
 
                 /* Record any registers that are becoming dead */
 
@@ -2677,7 +2677,7 @@ size_t GCInfo::gcMakeRegPtrTable(BYTE* dest, int mask, const InfoHdr& header, un
 
                 while (regMask) // EAX,ECX,EDX,EBX,---,EBP,ESI,EDI
                 {
-                    unsigned  tmpMask;
+                    unsigned __int64  tmpMask;
                     regNumber regNum;
 
                     /* Get hold of the next register bit */

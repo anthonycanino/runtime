@@ -31,6 +31,9 @@ bool emitter::IsSSEInstruction(instruction ins)
 
 bool emitter::IsSSEOrAVXInstruction(instruction ins)
 {
+    if (ins == INS_kmovw)
+        return true;
+
     return (ins >= INS_FIRST_SSE_INSTRUCTION) && (ins <= INS_LAST_AVX_INSTRUCTION);
 }
 
@@ -663,6 +666,10 @@ emitter::code_t emitter::AddVexPrefix(instruction ins, code_t code, emitAttr att
 
 bool emitter::TakesEvexPrefix(instruction ins, emitAttr size) const
 {
+    // kmov takes VEX prefix even though its EVEX
+    if (ins == INS_kmovw)
+        return false;
+
     return (TakesVexPrefix(ins) && size == EA_64BYTE) || IsAVX512Instruction(ins);
 }
 
@@ -2361,6 +2368,24 @@ inline emitter::code_t emitter::insEncodeRegEvex3456(instruction ins, regNumber 
     return code ^ regBits;
 }
 
+inline emitter::code_t emitter::insEncodeOpmask(instruction ins, regNumber reg, code_t code)
+{
+    assert(reg < REG_STK);
+    assert(IsAVXInstruction(ins));
+    assert(hasEvexPrefix(code));
+
+    // Get 4-bit register encoding
+    // RegEncoding() gives lower 3 bits
+    // IsExtendedReg() gives MSB.
+    code_t regBits = RegEncoding(reg);
+
+    // EVEX prefix encodes opmask in EVEX.aaa bits, 
+    // Shift count = 5-bytes of opcode + 0-2 bits
+    assert(regBits <= 0xF);
+    regBits <<= 32;
+    return code | regBits;
+}
+
 /*****************************************************************************
  *
  *  Returns an encoding for the specified register to be used in the bit3-5
@@ -2501,6 +2526,10 @@ inline emitter::code_t emitter::insEncodeOpreg(instruction ins, regNumber reg, e
 
 emitter::code_t emitter::insEncodeVL(instruction ins, code_t code, emitAttr attr)
 {
+    // Anthony: kmov is part of AVX512 but not EVEX encoding
+    if (ins == INS_kmovw)
+        return code;
+
     if (IsAVX512Instruction(ins))
     {
         code &= 0xFFFFFF9FFFFFFFFFULL;
@@ -5756,6 +5785,27 @@ void emitter::emitIns_R_R_R(instruction ins, emitAttr attr, regNumber targetReg,
     emitCurIGsize += sz;
 }
 
+void emitter::emitIns_R_R_R_Opmask(instruction ins, emitAttr attr, regNumber targetReg, regNumber reg1, regNumber reg2, regNumber opmaskReg)
+{
+    assert(IsSSEOrAVXInstruction(ins));
+    assert(IsThreeOperandAVXInstruction(ins));
+
+    instrDesc* id = emitNewInstr(attr);
+    id->idIns(ins);
+    id->idInsFmt(IF_RWR_RRD_RRD);
+    id->idReg1(targetReg);
+    id->idReg2(reg1);
+    id->idReg3(reg2);
+    id->idRegKMask(opmaskReg);
+
+    UNATIVE_OFFSET sz = emitInsSizeRR(id, insCodeRM(ins));
+    id->idCodeSize(sz);
+
+    dispIns(id);
+    emitCurIGsize += sz;
+}
+
+
 void emitter::emitIns_R_R_S(instruction ins, emitAttr attr, regNumber reg1, regNumber reg2, int varx, int offs)
 {
     assert(IsSSEOrAVXInstruction(ins));
@@ -5779,6 +5829,32 @@ void emitter::emitIns_R_R_S(instruction ins, emitAttr attr, regNumber reg1, regN
     dispIns(id);
     emitCurIGsize += sz;
 }
+
+void emitter::emitIns_R_R_S_Opmask(instruction ins, emitAttr attr, regNumber reg1, regNumber reg2, int varx, int offs, regNumber opmaskReg)
+{
+    assert(IsSSEOrAVXInstruction(ins));
+    assert(IsThreeOperandAVXInstruction(ins));
+
+    instrDesc* id = emitNewInstr(attr);
+
+    id->idIns(ins);
+    id->idInsFmt(IF_RWR_RRD_SRD);
+    id->idReg1(reg1);
+    id->idReg2(reg2);
+    id->idAddr()->iiaLclVar.initLclVarAddr(varx, offs);
+    id->idRegKMask(opmaskReg);
+
+#ifdef DEBUG
+    id->idDebugOnlyInfo()->idVarRefOffs = emitVarRefOffs;
+#endif
+
+    UNATIVE_OFFSET sz = emitInsSizeSV(id, insCodeRM(ins), varx, offs);
+    id->idCodeSize(sz);
+
+    dispIns(id);
+    emitCurIGsize += sz;
+}
+
 
 void emitter::emitIns_R_R_A_I(
     instruction ins, emitAttr attr, regNumber reg1, regNumber reg2, GenTreeIndir* indir, int ival, insFormat fmt)
@@ -7132,6 +7208,31 @@ void emitter::emitIns_SIMD_R_R_R(
     }
 }
 
+void emitter::emitIns_SIMD_R_R_R_Opmask(
+    instruction ins, emitAttr attr, regNumber targetReg, regNumber op1Reg, regNumber op2Reg, regNumber opmaskReg)
+{
+    if (UseVEXEncoding())
+    {
+        emitIns_R_R_R_Opmask(ins, attr, targetReg, op1Reg, op2Reg, opmaskReg);
+    }
+    else
+    {
+        // Ensure we aren't overwriting op2
+        assert((op2Reg != targetReg) || (op1Reg == targetReg));
+
+        emitIns_Mov(INS_movaps, attr, targetReg, op1Reg, /* canSkip */ true);
+
+        if (IsMovInstruction(ins))
+        {
+            emitIns_Mov(ins, attr, targetReg, op2Reg, /* canSkip */ false);
+        }
+        else
+        {
+            emitIns_R_R(ins, attr, targetReg, op2Reg);
+        }
+    }
+}
+
 //------------------------------------------------------------------------
 // emitIns_SIMD_R_R_S: emits the code for a SIMD instruction that takes a register operand, a variable index + offset,
 //                     and that returns a value in register
@@ -7150,6 +7251,20 @@ void emitter::emitIns_SIMD_R_R_S(
     if (UseVEXEncoding())
     {
         emitIns_R_R_S(ins, attr, targetReg, op1Reg, varx, offs);
+    }
+    else
+    {
+        emitIns_Mov(INS_movaps, attr, targetReg, op1Reg, /* canSkip */ true);
+        emitIns_R_S(ins, attr, targetReg, varx, offs);
+    }
+}
+
+void emitter::emitIns_SIMD_R_R_S_Opmask(
+    instruction ins, emitAttr attr, regNumber targetReg, regNumber op1Reg, int varx, int offs, regNumber opmaskReg)
+{
+    if (UseVEXEncoding())
+    {
+        emitIns_R_R_S_Opmask(ins, attr, targetReg, op1Reg, varx, offs, opmaskReg);
     }
     else
     {
@@ -8643,6 +8758,7 @@ size_t emitter::emitSizeOfInsDsc(instrDesc* id)
 
 /*****************************************************************************/
 #ifdef DEBUG
+
 /*****************************************************************************
  *
  *  Return a string that represents the given register.
@@ -8657,6 +8773,11 @@ const char* emitter::emitRegName(regNumber reg, emitAttr attr, bool varName)
 
 #ifdef TARGET_AMD64
     char suffix = '\0';
+
+    if (reg >= REG_KMASK_FIRST && reg <= REG_KMASK_LAST)
+    {
+        return emitKregName(reg);
+    }
 
     switch (EA_SIZE(attr))
     {
@@ -8877,6 +8998,21 @@ const char* emitter::emitZMMregName(unsigned reg)
 
     return regNames[reg];
 }
+
+const char* emitter::emitKregName(unsigned reg)
+{
+    static const char* const regNames[] = {
+#define REGDEF(name, rnum, mask, sname) "k" sname,
+#include "register.h"
+    };
+
+    assert(reg < REG_COUNT);
+    assert(reg < ArrLen(regNames));
+
+    return regNames[reg];
+}
+
+
 
 
 /*****************************************************************************
@@ -10093,7 +10229,16 @@ void emitter::emitDispIns(
                 reg2          = reg3;
                 reg3          = tmp;
             }
-            printf("%s, ", emitRegName(id->idReg1(), attr));
+
+            // Anthony: Some pretty printing 
+            regNumber opmask = id->idRegKMask();
+
+            printf("%s", emitRegName(id->idReg1(), attr));
+            if (opmask != REG_NA)
+            {
+                printf("{%s}", emitKregName(opmask));
+            }
+            printf(", ");
             printf("%s, ", emitRegName(reg2, attr));
             printf("%s", emitRegName(reg3, attr));
             break;
@@ -12846,7 +12991,11 @@ BYTE* emitter::emitOutputRR(BYTE* dst, instrDesc* id)
     {
         assert((ins != INS_movd) || (isFloatReg(reg1) != isFloatReg(reg2)));
 
-        if ((ins != INS_movd) || isFloatReg(reg1))
+        if (ins == INS_kmovw)
+        {
+            code = insCodeRR(ins);
+        }
+        else if ((ins != INS_movd) || isFloatReg(reg1))
         {
             code = insCodeRM(ins);
         }
@@ -13246,6 +13395,7 @@ BYTE* emitter::emitOutputRRR(BYTE* dst, instrDesc* id)
     regNumber src1      = id->idReg2();
     regNumber src2      = id->idReg3();
     emitAttr  size      = id->idOpSize();
+    regNumber opmask    = id->idRegKMask();
 
     code = insCodeRM(ins);
     code = AddEvexPrefixIfNeeded(ins, code, size);
@@ -13264,6 +13414,11 @@ BYTE* emitter::emitOutputRRR(BYTE* dst, instrDesc* id)
         code = insEncodeRegEvex3456(ins, src1, size, code);
     else
         code = insEncodeReg3456(ins, src1, size, code);
+
+    if (opmask != REG_NA)
+    {
+        code = insEncodeOpmask(ins, opmask, code);
+    }
 
     // Output the REX prefix
     dst += emitOutputRexOrVexOrEvexPrefixIfNeeded(ins, dst, code);
@@ -16913,6 +17068,14 @@ emitter::insExecutionCharacteristics emitter::getInsExecutionCharacteristics(ins
         }
 
         case INS_vrsqrt14ps:
+        {
+            // Anthony: hacking
+            result.insLatency    = PERFSCORE_LATENCY_1C;
+            result.insThroughput = PERFSCORE_THROUGHPUT_1C;
+            break;
+        }
+
+        case INS_kmovw:
         {
             // Anthony: hacking
             result.insLatency    = PERFSCORE_LATENCY_1C;

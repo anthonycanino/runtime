@@ -139,6 +139,57 @@ unsigned Compiler::getSIMDInitTempVarNum(var_types simdType)
     return lvaSIMDInitTempVarNum;
 }
 
+CorInfoType Compiler::getBaseJitTypeOfKMaskType(CORINFO_CLASS_HANDLE typeHnd)
+{
+    CorInfoType simdBaseJitType = CORINFO_TYPE_UNDEF;
+
+    // Doesn't match with any of the cached type handles.
+    const char*          className   = getClassNameFromMetadata(typeHnd, nullptr);
+    CORINFO_CLASS_HANDLE baseTypeHnd = getTypeInstantiationArgument(typeHnd, 0);
+
+    if (baseTypeHnd != nullptr)
+    {
+        CorInfoType type = info.compCompHnd->getTypeForPrimitiveNumericClass(baseTypeHnd);
+
+        JITDUMP("HW Intrinsic SIMD Candidate Type %s with Base Type %s\n", className,
+                getClassNameFromMetadata(baseTypeHnd, nullptr));
+
+#if defined(TARGET_XARCH)
+        if (strcmp(className, "KMask`1") == 0)
+        {
+            switch (type)
+            {
+                case CORINFO_TYPE_UINT:
+                    m_simdHandleCache->KMaskUIntHandle = typeHnd;
+                    simdBaseJitType                        = CORINFO_TYPE_UINT;
+                    JITDUMP("  Found type Hardware Intrinsic SIMD KMask<uint>\n");
+                    break;
+                case CORINFO_TYPE_USHORT:
+                    m_simdHandleCache->KMaskUShortHandle = typeHnd;
+                    simdBaseJitType                          = CORINFO_TYPE_USHORT;
+                    JITDUMP("  Found type Hardware Intrinsic SIMD KMask<ushort>\n");
+                    break;
+                case CORINFO_TYPE_ULONG:
+                    m_simdHandleCache->KMaskULongHandle = typeHnd;
+                    simdBaseJitType                         = CORINFO_TYPE_ULONG;
+                    JITDUMP("  Found type Hardware Intrinsic SIMD KMask<ulong>\n");
+                    break;
+                case CORINFO_TYPE_BYTE:
+                    m_simdHandleCache->KMaskUByteHandle = typeHnd;
+                    simdBaseJitType                        = CORINFO_TYPE_UBYTE;
+                    JITDUMP("  Found type Hardware Intrinsic SIMD KMask<byte>\n");
+                    break;
+                
+                default:
+                    JITDUMP("  Unknown Hardware Intrinsic SIMD Type KMask<T>\n");
+            }
+        }
+#endif
+    }
+
+    return simdBaseJitType;
+}
+
 //----------------------------------------------------------------------------------
 // Return the base type and size of SIMD vector type given its type handle.
 //
@@ -437,13 +488,38 @@ CorInfoType Compiler::getBaseJitTypeAndSizeOfSIMDType(CORINFO_CLASS_HANDLE typeH
         const size_t Vector128SizeBytes = 128 / 8;
         const size_t Vector256SizeBytes = 256 / 8;
         const size_t Vector512SizeBytes = 512 / 8;
+        const size_t KMaskSizeBytes     = 8;
 
 #if defined(TARGET_XARCH)
         static_assert_no_msg(ZMM_REGSIZE_BYTES == Vector512SizeBytes);
         static_assert_no_msg(YMM_REGSIZE_BYTES == Vector256SizeBytes);
         static_assert_no_msg(XMM_REGSIZE_BYTES == Vector128SizeBytes);
 
-        if (typeHnd == m_simdHandleCache->Vector512FloatHandle)
+        if (typeHnd == m_simdHandleCache->KMaskUIntHandle)
+        {
+            simdBaseJitType = CORINFO_TYPE_UINT;
+            size            = KMaskSizeBytes;
+            JITDUMP("  Known type KMask<uint>\n");
+        }
+        else if (typeHnd == m_simdHandleCache->KMaskUShortHandle)
+        {
+            simdBaseJitType = CORINFO_TYPE_USHORT;
+            size            = KMaskSizeBytes;
+            JITDUMP("  Known type KMask<ushort>\n");
+        }
+        else if (typeHnd == m_simdHandleCache->KMaskUByteHandle)
+        {
+            simdBaseJitType = CORINFO_TYPE_UBYTE;
+            size            = KMaskSizeBytes;
+            JITDUMP("  Known type KMasksbyte>\n");
+        }
+        else if (typeHnd == m_simdHandleCache->KMaskULongHandle)
+        {
+            simdBaseJitType = CORINFO_TYPE_ULONG;
+            size            = KMaskSizeBytes;
+            JITDUMP("  Known type KMask<ulong>\n");
+        }
+        else if (typeHnd == m_simdHandleCache->Vector512FloatHandle)
         {
             simdBaseJitType = CORINFO_TYPE_FLOAT;
             size            = Vector512SizeBytes;
@@ -752,7 +828,37 @@ CorInfoType Compiler::getBaseJitTypeAndSizeOfSIMDType(CORINFO_CLASS_HANDLE typeH
                         getClassNameFromMetadata(baseTypeHnd, nullptr));
 
 #if defined(TARGET_XARCH)
-                if (strcmp(className, "Vector512`1") == 0)
+                if (strcmp(className, "KMask`1") == 0)
+                {
+                    size = KMaskSizeBytes;
+                    switch (type)
+                    {
+                        case CORINFO_TYPE_UINT:
+                            m_simdHandleCache->KMaskUIntHandle = typeHnd;
+                            simdBaseJitType                        = CORINFO_TYPE_UINT;
+                            JITDUMP("  Found type Hardware Intrinsic SIMD KMask<uint>\n");
+                            break;
+                        case CORINFO_TYPE_USHORT:
+                            m_simdHandleCache->KMaskUShortHandle = typeHnd;
+                            simdBaseJitType                          = CORINFO_TYPE_USHORT;
+                            JITDUMP("  Found type Hardware Intrinsic SIMD KMask<ushort>\n");
+                            break;
+                        case CORINFO_TYPE_ULONG:
+                            m_simdHandleCache->KMaskULongHandle = typeHnd;
+                            simdBaseJitType                         = CORINFO_TYPE_ULONG;
+                            JITDUMP("  Found type Hardware Intrinsic SIMD KMask<ulong>\n");
+                            break;
+                        case CORINFO_TYPE_BYTE:
+                            m_simdHandleCache->KMaskUByteHandle = typeHnd;
+                            simdBaseJitType                        = CORINFO_TYPE_UBYTE;
+                            JITDUMP("  Found type Hardware Intrinsic SIMD KMask<byte>\n");
+                            break;
+                        
+                        default:
+                            JITDUMP("  Unknown Hardware Intrinsic SIMD Type KMask<T>\n");
+                    }
+                }
+                else if (strcmp(className, "Vector512`1") == 0)
                 {
                     size = Vector512SizeBytes;
                     switch (type)

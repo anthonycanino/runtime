@@ -478,9 +478,17 @@ GenTree* Compiler::getArgForHWIntrinsic(var_types            argType,
     {
         if (!varTypeIsSIMD(argType))
         {
-            unsigned int argSizeBytes;
-            (void)getBaseJitTypeAndSizeOfSIMDType(argClass, &argSizeBytes);
-            argType = getSIMDTypeForSize(argSizeBytes);
+            // Anthony: hacking in KMask
+            if (getBaseJitTypeOfKMaskType(argClass) != CORINFO_TYPE_UNDEF)
+            {
+                argType = TYP_KMASK;
+            }
+            else
+            {
+                unsigned int argSizeBytes;
+                (void)getBaseJitTypeAndSizeOfSIMDType(argClass, &argSizeBytes);
+                argType = getSIMDTypeForSize(argSizeBytes);
+            }
         }
         assert(varTypeIsSIMD(argType));
 
@@ -801,24 +809,34 @@ GenTree* Compiler::impHWIntrinsic(NamedIntrinsic        intrinsic,
     if ((retType == TYP_STRUCT) && supportSIMDTypes())
     {
         unsigned int sizeBytes;
-        simdBaseJitType = getBaseJitTypeAndSizeOfSIMDType(sig->retTypeSigClass, &sizeBytes);
 
-        if (HWIntrinsicInfo::IsMultiReg(intrinsic))
+        // Anthony: Hacking in KMask
+        simdBaseJitType = getBaseJitTypeOfKMaskType(sig->retTypeSigClass);
+        if (simdBaseJitType != CORINFO_TYPE_UNDEF)
         {
-            assert(sizeBytes == 0);
+            retType = TYP_KMASK;
         }
         else
         {
-            assert(sizeBytes != 0);
+            simdBaseJitType = getBaseJitTypeAndSizeOfSIMDType(sig->retTypeSigClass, &sizeBytes);
 
-            // We want to return early here for cases where retType was TYP_STRUCT as per method signature and
-            // rather than deferring the decision after getting the simdBaseJitType of arg.
-            if (!isSupportedBaseType(intrinsic, simdBaseJitType))
+            if (HWIntrinsicInfo::IsMultiReg(intrinsic))
             {
-                return nullptr;
+                assert(sizeBytes == 0);
             }
+            else
+            {
+                assert(sizeBytes != 0);
 
-            retType = getSIMDTypeForSize(sizeBytes);
+                // We want to return early here for cases where retType was TYP_STRUCT as per method signature and
+                // rather than deferring the decision after getting the simdBaseJitType of arg.
+                if (!isSupportedBaseType(intrinsic, simdBaseJitType))
+                {
+                    return nullptr;
+                }
+
+                retType = getSIMDTypeForSize(sizeBytes);
+            }
         }
     }
 

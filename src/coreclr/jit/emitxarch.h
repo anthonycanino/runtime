@@ -23,6 +23,13 @@ inline static bool isDoubleReg(regNumber reg)
     return isFloatReg(reg);
 }
 
+#ifdef TARGET_AMD64
+inline static bool isMaskReg(regNumber reg)
+{
+    return (reg >= REG_KMASK_FIRST && reg <= REG_KMASK_LAST);
+}
+#endif
+
 /************************************************************************/
 /*         Routines that compute the size of / encode instructions      */
 /************************************************************************/
@@ -79,6 +86,7 @@ code_t insEncodeReg3456(instruction ins, regNumber reg, emitAttr size, code_t co
 unsigned insEncodeRegSIB(instruction ins, regNumber reg, code_t* code);
 
 code_t insEncodeRegEvex3456(instruction ins, regNumber reg, emitAttr size, code_t code);
+code_t insEncodeOpmask(instruction ins, regNumber reg, code_t code);
 
 code_t insEncodeMRreg(instruction ins, code_t code);
 code_t insEncodeRMreg(instruction ins, code_t code);
@@ -278,6 +286,7 @@ void emitDispShift(instruction ins, int cnt = 0);
 const char* emitXMMregName(unsigned reg);
 const char* emitYMMregName(unsigned reg);
 const char* emitZMMregName(unsigned reg);
+const char* emitKregName(unsigned reg);
 
 #endif
 
@@ -412,7 +421,11 @@ void emitIns_R_R_C(
 
 void emitIns_R_R_S(instruction ins, emitAttr attr, regNumber reg1, regNumber reg2, int varx, int offs);
 
+void emitIns_R_R_S_Opmask(instruction ins, emitAttr attr, regNumber reg1, regNumber reg2, int varx, int offs, regNumber opmaskReg);
+
 void emitIns_R_R_R(instruction ins, emitAttr attr, regNumber reg1, regNumber reg2, regNumber reg3);
+
+void emitIns_R_R_R_Opmask(instruction ins, emitAttr attr, regNumber reg1, regNumber reg2, regNumber reg3, regNumber opmaskReg);
 
 void emitIns_R_R_A_I(
     instruction ins, emitAttr attr, regNumber reg1, regNumber reg2, GenTreeIndir* indir, int ival, insFormat fmt);
@@ -516,6 +529,9 @@ void emitIns_SIMD_R_R_C(
     instruction ins, emitAttr attr, regNumber targetReg, regNumber op1Reg, CORINFO_FIELD_HANDLE fldHnd, int offs);
 void emitIns_SIMD_R_R_R(instruction ins, emitAttr attr, regNumber targetReg, regNumber op1Reg, regNumber op2Reg);
 void emitIns_SIMD_R_R_S(instruction ins, emitAttr attr, regNumber targetReg, regNumber op1Reg, int varx, int offs);
+
+void emitIns_SIMD_R_R_R_Opmask(instruction ins, emitAttr attr, regNumber targetReg, regNumber op1Reg, regNumber op2Reg, regNumber opmaskReg);
+void emitIns_SIMD_R_R_S_Opmask(instruction ins, emitAttr attr, regNumber targetReg, regNumber op1Reg, int varx, int offs, regNumber opmaskReg);
 
 #ifdef FEATURE_HW_INTRINSICS
 void emitIns_SIMD_R_R_A_I(

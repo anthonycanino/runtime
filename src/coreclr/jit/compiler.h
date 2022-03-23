@@ -8988,6 +8988,12 @@ private:
         CORINFO_CLASS_HANDLE Vector512NIntHandle;
         CORINFO_CLASS_HANDLE Vector512NUIntHandle;
 
+        CORINFO_CLASS_HANDLE KMaskUByteHandle;
+        CORINFO_CLASS_HANDLE KMaskUShortHandle;
+        CORINFO_CLASS_HANDLE KMaskUIntHandle;
+        CORINFO_CLASS_HANDLE KMaskULongHandle;
+
+
 #endif // defined(TARGET_XARCH)
 #endif // FEATURE_HW_INTRINSICS
 
@@ -9165,6 +9171,9 @@ private:
     // Get the base (element) type and size in bytes for a SIMD type. Returns CORINFO_TYPE_UNDEF
     // if it is not a SIMD type or is an unsupported base JIT type.
     CorInfoType getBaseJitTypeAndSizeOfSIMDType(CORINFO_CLASS_HANDLE typeHnd, unsigned* sizeBytes = nullptr);
+
+    // Anthony: hacking in a new type
+    CorInfoType getBaseJitTypeOfKMaskType(CORINFO_CLASS_HANDLE typeHnd);
 
     CorInfoType getBaseJitTypeOfSIMDType(CORINFO_CLASS_HANDLE typeHnd)
     {

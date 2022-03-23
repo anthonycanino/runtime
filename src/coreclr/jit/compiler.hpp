@@ -4453,7 +4453,7 @@ inline char* regMaskToString(regMaskTP mask, Compiler* context)
     const size_t cchRegMask = 24;
     char*        regmask    = new (context, CMK_Unknown) char[cchRegMask];
 
-    sprintf_s(regmask, cchRegMask, REG_MASK_ALL_FMT, mask);
+    sprintf_s(regmask, cchRegMask, REG_MASK_ALL_FMT, (unsigned __int64) mask);
 
     return regmask;
 }
@@ -4468,7 +4468,7 @@ inline char* regMaskIntToString(regMaskTP mask, Compiler* context)
     const size_t cchRegMask = 24;
     char*        regmask    = new (context, CMK_Unknown) char[cchRegMask];
 
-    sprintf_s(regmask, cchRegMask, REG_MASK_INT_FMT, (mask & RBM_ALLINT));
+    sprintf_s(regmask, cchRegMask, REG_MASK_INT_FMT, (unsigned __int64) (mask & RBM_ALLINT));
 
     return regmask;
 }

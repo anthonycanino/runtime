@@ -162,7 +162,10 @@ namespace Internal.TypeSystem.Interop
             return IsCoreNamedType(context, type, "System.Runtime.Intrinsics", "Vector512`1");
         }
 
-
+        public static bool IsSystemRuntimeIntrinsicsKMaskT(TypeSystemContext context, TypeDesc type)
+        {
+            return IsCoreNamedType(context, type, "System.Runtime.Intrinsics", "KMask`1");
+        }
 
         public static bool IsSystemNumericsVectorT(TypeSystemContext context, TypeDesc type)
         {

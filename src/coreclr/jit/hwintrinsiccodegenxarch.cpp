@@ -356,6 +356,14 @@ void CodeGen::genHWIntrinsic(GenTreeHWIntrinsic* node)
                             genHWIntrinsic_R_R_R_RM(ins, simdSize, targetReg, op1Reg, op2Reg, op3);
                             break;
                         }
+
+                        // Anthony: 
+                        case NI_AVX512_MaskAdd:
+                        {
+                            genHWIntrinsic_R_R_RM_Opmask(node, ins, simdSize);
+                            break;
+                        }
+
                         default:
                         {
                             unreached();
@@ -378,6 +386,9 @@ void CodeGen::genHWIntrinsic(GenTreeHWIntrinsic* node)
     {
         case InstructionSet_Vector128:
         case InstructionSet_Vector256:
+            genBaseIntrinsic(node);
+            break;
+        case InstructionSet_KMask:
             genBaseIntrinsic(node);
             break;
         case InstructionSet_X86Base:
@@ -569,6 +580,60 @@ void CodeGen::genHWIntrinsic_R_R_RM(
     bool isRMW = node->isRMWHWIntrinsic(compiler);
     inst_RV_RV_TT(ins, attr, targetReg, op1Reg, op2, isRMW);
 }
+
+// Some AVX512 opmask hacking
+//------------------------------------------------------------------------
+// genHWIntrinsic_R_R_RM: Generates the code for a hardware intrinsic node that takes a register operand, a
+//                        register/memory operand, and that returns a value in register
+//
+// Arguments:
+//    node - The hardware intrinsic node
+//    ins  - The instruction being generated
+//    attr - The emit attribute for the instruciton being generated
+//
+void CodeGen::genHWIntrinsic_R_R_RM_Opmask(GenTreeHWIntrinsic* node, instruction ins, emitAttr attr)
+{
+    regNumber targetReg = node->GetRegNum();
+    GenTree*  op1       = node->Op(1);
+    GenTree*  op2       = node->Op(2);
+    GenTree*  op3       = node->Op(3);
+    regNumber op1Reg    = op1->GetRegNum();
+    regNumber op3Reg    = op3->GetRegNum();
+
+    assert(targetReg != REG_NA);
+    assert(op1Reg != REG_NA);
+
+    genHWIntrinsic_R_R_RM_Opmask(node, ins, attr, targetReg, op1Reg, op2, op3Reg);
+}
+
+//------------------------------------------------------------------------
+// genHWIntrinsic_R_R_RM: Generates the code for a hardware intrinsic node that takes a register operand, a
+//                        register/memory operand, and that returns a value in register
+//
+// Arguments:
+//    node - The hardware intrinsic node
+//    ins  - The instruction being generated
+//    attr - The emit attribute for the instruciton being generated
+//    targetReg - The register allocated to the result
+//    op1Reg    - The register allocated to the first operand
+//    op2       - Another operand that maybe in register or memory
+//
+void CodeGen::genHWIntrinsic_R_R_RM_Opmask(
+    GenTreeHWIntrinsic* node, instruction ins, emitAttr attr, regNumber targetReg, regNumber op1Reg, GenTree* op2, regNumber opmaskReg)
+{
+    assert(targetReg != REG_NA);
+    assert(op1Reg != REG_NA);
+
+    if (op2->isContained() || op2->isUsedFromSpillTemp())
+    {
+        assert(HWIntrinsicInfo::SupportsContainment(node->GetHWIntrinsicId()));
+        assertIsContainableHWIntrinsicOp(compiler->m_pLowering, node, op2);
+    }
+
+    bool isRMW = node->isRMWHWIntrinsic(compiler);
+    inst_RV_RV_TT_Opmask(ins, attr, targetReg, op1Reg, op2, isRMW, opmaskReg);
+}
+
 
 //------------------------------------------------------------------------
 // genHWIntrinsic_R_R_RM_I: Generates the code for a hardware intrinsic node that takes a register operand, a
@@ -864,6 +929,13 @@ void CodeGen::genBaseIntrinsic(GenTreeHWIntrinsic* node)
 
     switch (intrinsicId)
     {
+        case NI_KMask_CreateScalarUnsafe:
+        {
+            assert(varTypeIsIntegral(baseType));
+            genHWIntrinsic_R_RM(node, ins, emitActualTypeSize(baseType), targetReg, op1);
+            break;
+        }
+
         case NI_Vector128_CreateScalarUnsafe:
         case NI_Vector256_CreateScalarUnsafe:
         {
