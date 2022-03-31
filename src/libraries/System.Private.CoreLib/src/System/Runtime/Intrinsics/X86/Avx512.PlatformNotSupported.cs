@@ -26,6 +26,8 @@ namespace System.Runtime.Intrinsics.X86
 
         public static Vector512<int> Add(Vector512<int> left, Vector512<int> right) { throw new PlatformNotSupportedException(); }
         public static Vector512<int> Add(Vector512<float> left, Vector512<float> right) { throw new PlatformNotSupportedException(); }
+
+        public static Vector256<int> MaskAdd(Vector256<int> left, Vector256<int> right, KMask<ushort> mask) { throw new PlatformNotSupportedException(); }
         public static Vector512<int> MaskAdd(Vector512<int> left, Vector512<int> right, KMask<ushort> mask) { throw new PlatformNotSupportedException(); }
 
         public static Vector128<float> ReciprocalSqrt128(Vector128<float> vals) { throw new PlatformNotSupportedException(); }
