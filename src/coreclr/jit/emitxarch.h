@@ -46,6 +46,8 @@ struct CnsVal
 };
 
 UNATIVE_OFFSET emitInsSize(code_t code, bool includeRexPrefixSize);
+UNATIVE_OFFSET emitInsSize(code_t code, bool includeRexPrefixSize, instrDesc *id);
+
 UNATIVE_OFFSET emitInsSizeSV(code_t code, int var, int dsp, emitAttr attr);
 UNATIVE_OFFSET emitInsSizeSV(instrDesc* id, code_t code, int var, int dsp);
 UNATIVE_OFFSET emitInsSizeSV(instrDesc* id, code_t code, int var, int dsp, int val);
@@ -77,7 +79,10 @@ unsigned emitOutputRexOrVexOrEvexPrefixIfNeeded(instruction ins, BYTE* dst, code
 unsigned emitGetRexPrefixSize(instruction ins);
 unsigned emitGetVexPrefixSize(instruction ins, emitAttr attr);
 unsigned emitGetEvexPrefixSize(instruction ins, emitAttr attr);
+
 unsigned emitGetPrefixSize(code_t code, bool includeRexPrefixSize);
+unsigned emitGetPrefixSize(code_t code, bool includeRexPrefixSize, instrDesc *id);
+
 unsigned emitGetAdjustedSize(instruction ins, emitAttr attr, code_t code);
 
 unsigned insEncodeReg012(instruction ins, regNumber reg, emitAttr size, code_t* code);
@@ -95,6 +100,7 @@ code_t insEncodeRRIb(instruction ins, regNumber reg, emitAttr size);
 code_t insEncodeOpreg(instruction ins, regNumber reg, emitAttr size);
 
 code_t insEncodeVL(instruction ins, code_t code, emitAttr size);
+code_t insEncodeVL(instrDesc *id, code_t code);
 
 unsigned insSSval(unsigned scale);
 
@@ -181,6 +187,7 @@ code_t AddVexPrefixIfNeededAndNotPresent(instruction ins, code_t code, emitAttr 
 #define EVEX_PREFIX_CODE 0x6200000000000000ULL
 
 bool TakesEvexPrefix(instruction ins, emitAttr) const;
+bool TakesEvexPrefix(instrDesc *id) const;
 
 // Returns true if the instruction encoding already contains VEX prefix
 bool hasEvexPrefix(code_t code)
@@ -191,6 +198,22 @@ code_t AddEvexPrefix(instruction ins, code_t code, emitAttr attr);
 code_t AddEvexPrefixIfNeeded(instruction ins, code_t code, emitAttr size)
 {
     if (TakesEvexPrefix(ins, size))
+    {
+        code = AddEvexPrefix(ins, code, size);
+    }
+    else if (TakesVexPrefix(ins))
+    {
+        code = AddVexPrefix(ins, code, size);
+    }
+    return code;
+}
+
+code_t AddEvexPrefixIfNeeded(instrDesc *id, code_t code)
+{
+    instruction ins     = id->idIns();
+    emitAttr  size      = id->idOpSize();
+
+    if (TakesEvexPrefix(id))
     {
         code = AddEvexPrefix(ins, code, size);
     }

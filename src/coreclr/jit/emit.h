@@ -1066,6 +1066,10 @@ protected:
             idAddr()->_idRegKMask = reg;
             assert(reg == idAddr()->_idRegKMask);
         }
+        bool hasRegKMask() const
+        {
+            return !idIsSmallDsc() && idRegKMask() != REG_NA;
+        }
 #endif // defined(TARGET_XARCH)
 #ifdef TARGET_ARMARCH
         insOpts idInsOpt() const

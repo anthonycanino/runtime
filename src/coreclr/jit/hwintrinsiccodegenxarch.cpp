@@ -358,7 +358,8 @@ void CodeGen::genHWIntrinsic(GenTreeHWIntrinsic* node)
                         }
 
                         // Anthony: 
-                        case NI_AVX512_MaskAdd:
+                        case NI_AVX512_MaskAdd256:
+                        case NI_AVX512_MaskAdd512:
                         {
                             genHWIntrinsic_R_R_RM_Opmask(node, ins, simdSize);
                             break;

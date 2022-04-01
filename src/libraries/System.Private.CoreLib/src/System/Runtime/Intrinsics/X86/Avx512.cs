@@ -28,8 +28,8 @@ namespace System.Runtime.Intrinsics.X86
         public static Vector512<float> Add(Vector512<float> left, Vector512<float> right) => Add(left, right);
 
 
-        public static Vector256<int> MaskAdd(Vector256<int> left, Vector256<int> right, KMask<ushort> mask) => MaskAdd(left, right, mask);
-        public static Vector512<int> MaskAdd(Vector512<int> left, Vector512<int> right, KMask<ushort> mask) => MaskAdd(left, right, mask);
+        public static Vector256<int> MaskAdd256(Vector256<int> left, Vector256<int> right, KMask<ushort> mask) => MaskAdd256(left, right, mask);
+        public static Vector512<int> MaskAdd512(Vector512<int> left, Vector512<int> right, KMask<ushort> mask) => MaskAdd512(left, right, mask);
 
         public static Vector128<float> ReciprocalSqrt128(Vector128<float> vals) => ReciprocalSqrt128(vals);
         public static Vector256<float> ReciprocalSqrt256(Vector256<float> vals) => ReciprocalSqrt256(vals);

@@ -673,6 +673,24 @@ bool emitter::TakesEvexPrefix(instruction ins, emitAttr size) const
     return (TakesVexPrefix(ins) && size == EA_64BYTE) || IsAVX512Instruction(ins);
 }
 
+bool emitter::TakesEvexPrefix(instrDesc *id) const
+{
+    instruction ins     = id->idIns();
+    emitAttr  size      = id->idOpSize();
+
+    // kmov takes VEX prefix even though its EVEX
+    if (ins == INS_kmovw)
+        return false;
+
+    if (id->hasRegKMask())
+        return true;
+
+    if ((TakesVexPrefix(ins) && size == EA_64BYTE) || IsAVX512Instruction(ins))
+        return true;
+
+    return false;
+}
+
 // Add base EVEX prefix without setting W, R, X, or B bits
 // L bit will be set based on emitter attr.
 //
@@ -1835,6 +1853,27 @@ unsigned emitter::emitGetPrefixSize(code_t code, bool includeRexPrefixSize)
     return 0;
 }
 
+
+unsigned emitter::emitGetPrefixSize(code_t code, bool includeRexPrefixSize, instrDesc *id)
+{
+    if (hasEvexPrefix(code) || id->hasRegKMask())
+    {
+        return 4;
+    }
+
+    if (hasVexPrefix(code))
+    {
+        return 3;
+    }
+
+    if (includeRexPrefixSize && hasRexPrefix(code))
+    {
+        return 1;
+    }
+
+    return 0;
+}
+
 #ifdef TARGET_X86
 /*****************************************************************************
  *
@@ -2550,6 +2589,35 @@ emitter::code_t emitter::insEncodeVL(instruction ins, code_t code, emitAttr attr
     return code;
 }
 
+emitter::code_t emitter::insEncodeVL(instrDesc *id, code_t code)
+{
+    instruction ins     = id->idIns();
+    emitAttr  attr      = id->idOpSize();
+
+    // Anthony: kmov is part of AVX512 but not EVEX encoding
+    if (ins == INS_kmovw)
+        return code;
+
+    if (IsAVX512Instruction(ins) || id->hasRegKMask())
+    {
+        code &= 0xFFFFFF9FFFFFFFFFULL;
+        switch (attr)
+        {
+            case EA_16BYTE:
+                return emitter::code_t(code | 0x0000000000000000ULL);
+            case EA_32BYTE:
+                return emitter::code_t(code | 0x0000002000000000ULL);
+            case EA_64BYTE:
+                return emitter::code_t(code | 0x0000004000000000ULL);
+            default:
+                assert(!"UNREACHED");
+                return code;
+        }
+    }
+
+    return code;
+}
+
 /*****************************************************************************
  *
  *  Return the 'SS' field value for the given index scale factor.
@@ -2675,6 +2743,16 @@ inline UNATIVE_OFFSET emitter::emitInsSize(code_t code, bool includeRexPrefixSiz
     return size;
 }
 
+inline UNATIVE_OFFSET emitter::emitInsSize(code_t code, bool includeRexPrefixSize, instrDesc *id)
+{
+    UNATIVE_OFFSET size = (code & 0xFF000000) ? 4 : (code & 0x00FF0000) ? 3 : 2;
+#ifdef TARGET_AMD64
+    size += emitGetPrefixSize(code, includeRexPrefixSize, id);
+#endif
+    return size;
+}
+
+
 //------------------------------------------------------------------------
 // emitInsSizeRR: Determines the code size for an instruction encoding that does not have any addressing modes
 //
@@ -2699,7 +2777,7 @@ inline UNATIVE_OFFSET emitter::emitInsSizeRR(instrDesc* id, code_t code)
         includeRexPrefixSize = !IsAVXInstruction(ins);
     }
 
-    sz += emitInsSize(code, includeRexPrefixSize);
+    sz += emitInsSize(code, includeRexPrefixSize, id);
 
     return sz;
 }
@@ -13003,8 +13081,8 @@ BYTE* emitter::emitOutputRR(BYTE* dst, instrDesc* id)
         {
             code = insCodeMR(ins);
         }
-        code = AddEvexPrefixIfNeeded(ins, code, size);
-        code = insEncodeVL(ins, code, size);
+        code = AddEvexPrefixIfNeeded(id, code);
+        code = insEncodeVL(id, code);
         code = insEncodeRMreg(ins, code);
 
         if (TakesRexWPrefix(ins, size))
@@ -13398,7 +13476,8 @@ BYTE* emitter::emitOutputRRR(BYTE* dst, instrDesc* id)
     regNumber opmask    = id->idRegKMask();
 
     code = insCodeRM(ins);
-    code = AddEvexPrefixIfNeeded(ins, code, size);
+    code = AddEvexPrefixIfNeeded(id, code);
+    code = insEncodeVL(id, code);
     code = insEncodeRMreg(ins, code);
 
     if (TakesRexWPrefix(ins, size))
@@ -13410,7 +13489,7 @@ BYTE* emitter::emitOutputRRR(BYTE* dst, instrDesc* id)
     regCode |= insEncodeReg012(ins, src2, size, &code);
     // encode source operand reg in 'vvvv' bits in 1's complement form
 
-    if (TakesEvexPrefix(ins, size))
+    if (TakesEvexPrefix(id))
         code = insEncodeRegEvex3456(ins, src1, size, code);
     else
         code = insEncodeReg3456(ins, src1, size, code);
