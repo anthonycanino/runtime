@@ -31,7 +31,7 @@ bool emitter::IsSSEInstruction(instruction ins)
 
 bool emitter::IsSSEOrAVXInstruction(instruction ins)
 {
-    if (ins == INS_kmovw)
+    if (ins == INS_kmovw || ins == INS_knotw)
         return true;
 
     return (ins >= INS_FIRST_SSE_INSTRUCTION) && (ins <= INS_LAST_AVX_INSTRUCTION);
@@ -667,7 +667,7 @@ emitter::code_t emitter::AddVexPrefix(instruction ins, code_t code, emitAttr att
 bool emitter::TakesEvexPrefix(instruction ins, emitAttr size) const
 {
     // kmov takes VEX prefix even though its EVEX
-    if (ins == INS_kmovw)
+    if (ins == INS_kmovw || ins == INS_knotw)
         return false;
 
     return (TakesVexPrefix(ins) && size == EA_64BYTE) || IsAVX512Instruction(ins);
@@ -679,7 +679,7 @@ bool emitter::TakesEvexPrefix(instrDesc *id) const
     emitAttr  size      = id->idOpSize();
 
     // kmov takes VEX prefix even though its EVEX
-    if (ins == INS_kmovw)
+    if (ins == INS_kmovw || ins == INS_knotw)
         return false;
 
     if (id->hasRegKMask())
@@ -2566,7 +2566,7 @@ inline emitter::code_t emitter::insEncodeOpreg(instruction ins, regNumber reg, e
 emitter::code_t emitter::insEncodeVL(instruction ins, code_t code, emitAttr attr)
 {
     // Anthony: kmov is part of AVX512 but not EVEX encoding
-    if (ins == INS_kmovw)
+    if (ins == INS_kmovw || ins == INS_knotw)
         return code;
 
     if (IsAVX512Instruction(ins))
@@ -2595,7 +2595,7 @@ emitter::code_t emitter::insEncodeVL(instrDesc *id, code_t code)
     emitAttr  attr      = id->idOpSize();
 
     // Anthony: kmov is part of AVX512 but not EVEX encoding
-    if (ins == INS_kmovw)
+    if (ins == INS_kmovw || ins == INS_knotw)
         return code;
 
     if (IsAVX512Instruction(ins) || id->hasRegKMask())
@@ -2832,9 +2832,18 @@ inline UNATIVE_OFFSET emitter::emitInsSizeRR(instruction ins, regNumber reg1, re
     // If Byte 4 (which is 0xFF00) is zero, that's where the RM encoding goes.
     // Otherwise, it will be placed after the 4 byte encoding, making the total 5 bytes.
     // This would probably be better expressed as a different format or something?
-    code_t code = insCodeRM(ins);
+    code_t code;
+    
+    if (ins == INS_kmovw || ins == INS_knotw)
+    {
+        code = insCodeRR(ins);
+    }
+    else
+    {
+        code = insCodeRM(ins);
+    }
 
-    UNATIVE_OFFSET sz = emitGetAdjustedSize(ins, size, insCodeRM(ins));
+    UNATIVE_OFFSET sz = emitGetAdjustedSize(ins, size, code);
 
     bool includeRexPrefixSize = true;
     // REX prefix
@@ -9080,7 +9089,7 @@ const char* emitter::emitZMMregName(unsigned reg)
 const char* emitter::emitKregName(unsigned reg)
 {
     static const char* const regNames[] = {
-#define REGDEF(name, rnum, mask, sname) "k" sname,
+#define REGDEF(name, rnum, mask, sname) sname,
 #include "register.h"
     };
 
@@ -13069,7 +13078,7 @@ BYTE* emitter::emitOutputRR(BYTE* dst, instrDesc* id)
     {
         assert((ins != INS_movd) || (isFloatReg(reg1) != isFloatReg(reg2)));
 
-        if (ins == INS_kmovw)
+        if (ins == INS_kmovw || ins == INS_knotw)
         {
             code = insCodeRR(ins);
         }
@@ -17155,6 +17164,14 @@ emitter::insExecutionCharacteristics emitter::getInsExecutionCharacteristics(ins
         }
 
         case INS_kmovw:
+        {
+            // Anthony: hacking
+            result.insLatency    = PERFSCORE_LATENCY_1C;
+            result.insThroughput = PERFSCORE_THROUGHPUT_1C;
+            break;
+        }
+
+        case INS_knotw:
         {
             // Anthony: hacking
             result.insLatency    = PERFSCORE_LATENCY_1C;

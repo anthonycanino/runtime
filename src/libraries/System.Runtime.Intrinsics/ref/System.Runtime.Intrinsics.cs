@@ -22,7 +22,11 @@ namespace System.Runtime.Intrinsics
         public static System.Runtime.Intrinsics.KMask<System.UInt64> Create(ulong value) { throw null; }
 
         public static System.Runtime.Intrinsics.KMask<T> Create<T>(T value) where T : struct { throw null; }
+
+        [System.CLSCompliantAttribute(false)]
+        public static System.Runtime.Intrinsics.KMask<System.UInt16> Not(KMask<System.UInt16> left) { throw null; }
     }
+
     public readonly partial struct KMask<T> : System.IEquatable<System.Runtime.Intrinsics.KMask<T>> where T : struct
     {
         private readonly int _dummyPrimitive;
@@ -3986,6 +3990,8 @@ namespace System.Runtime.Intrinsics.X86
 
         public static System.Runtime.Intrinsics.Vector512<int> MaskAdd512(System.Runtime.Intrinsics.Vector512<int> left, System.Runtime.Intrinsics.Vector512<int> right, System.Runtime.Intrinsics.KMask<ushort> mask) { throw null; }
         public static System.Runtime.Intrinsics.Vector256<int> MaskAdd256(System.Runtime.Intrinsics.Vector256<int> left, System.Runtime.Intrinsics.Vector256<int> right, System.Runtime.Intrinsics.KMask<ushort> mask) { throw null; }
+
+        public static System.Runtime.Intrinsics.Vector128<int> MaskAdd128(System.Runtime.Intrinsics.Vector128<int> left, System.Runtime.Intrinsics.Vector128<int> right, System.Runtime.Intrinsics.KMask<ushort> mask) { throw null; }
 
         public static System.Runtime.Intrinsics.Vector128<float> ReciprocalSqrt128(System.Runtime.Intrinsics.Vector128<float> vals) { throw null; }
         public static System.Runtime.Intrinsics.Vector256<float> ReciprocalSqrt256(System.Runtime.Intrinsics.Vector256<float> vals) { throw null; }

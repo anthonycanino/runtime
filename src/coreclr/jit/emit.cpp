@@ -3900,6 +3900,10 @@ size_t emitter::emitIssue1Instr(insGroup* ig, instrDesc* id, BYTE** dp)
     if (actualSize != estimatedSize)
     {
         // It is fatal to under-estimate the instruction size, except for alignment instructions
+        if (estimatedSize < actualSize)
+        {
+            printf("Mispredicted instruction: %s\n", codeGen->genInsDisplayName(id));
+        }
         noway_assert(estimatedSize >= actualSize);
 
 #if FEATURE_LOOP_ALIGN

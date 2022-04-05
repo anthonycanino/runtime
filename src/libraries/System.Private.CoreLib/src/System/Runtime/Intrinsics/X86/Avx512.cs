@@ -28,6 +28,7 @@ namespace System.Runtime.Intrinsics.X86
         public static Vector512<float> Add(Vector512<float> left, Vector512<float> right) => Add(left, right);
 
 
+        public static Vector128<int> MaskAdd128(Vector128<int> left, Vector128<int> right, KMask<ushort> mask) => MaskAdd128(left, right, mask);
         public static Vector256<int> MaskAdd256(Vector256<int> left, Vector256<int> right, KMask<ushort> mask) => MaskAdd256(left, right, mask);
         public static Vector512<int> MaskAdd512(Vector512<int> left, Vector512<int> right, KMask<ushort> mask) => MaskAdd512(left, right, mask);
 

@@ -78,6 +78,7 @@
 
   #define RBM_ALLFLOAT            (RBM_XMM0 | RBM_XMM1 | RBM_XMM2 | RBM_XMM3 | RBM_XMM4 | RBM_XMM5 | RBM_XMM6 | RBM_XMM7 | RBM_XMM8 | RBM_XMM9 | RBM_XMM10 | RBM_XMM11 | RBM_XMM12 | RBM_XMM13 | RBM_XMM14 | RBM_XMM15)
   #define RBM_ALLDOUBLE            RBM_ALLFLOAT
+  //#define RBM_ALLKMASK            (RBM_KMASK1 | RBM_KMASK2 | RBM_KMASK3 | RBM_KMASK4 | RBM_KMASK5 | RBM_KMASK6 | RBM_KMASK7 )
   #define RBM_ALLKMASK            (RBM_KMASK1 | RBM_KMASK2 | RBM_KMASK3 | RBM_KMASK4 | RBM_KMASK5 | RBM_KMASK6 | RBM_KMASK7 )
   #define REG_FP_FIRST             REG_XMM0
   #define REG_FP_LAST              REG_XMM15
@@ -95,7 +96,7 @@
   #define REGSIZE_BYTES            8       // number of bytes in one register
   #define XMM_REGSIZE_BYTES        16      // XMM register size in bytes
   #define YMM_REGSIZE_BYTES        32      // YMM register size in bytes
-  #define ZMM_REGSIZE_BYTES        64      // YMM register size in bytes
+  #define ZMM_REGSIZE_BYTES        64      // ZMM register size in bytes
 
   #define CODE_ALIGN               1       // code alignment requirement
   #define STACK_ALIGN              16      // stack alignment requirement

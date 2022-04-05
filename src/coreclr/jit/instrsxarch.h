@@ -63,6 +63,7 @@ INST5(dec,              "dec",              IUM_RW, 0x0008FE,     BAD_CODE,     
 INST5(dec_l,            "dec",              IUM_RW, 0x0008FE,     BAD_CODE,     BAD_CODE,     BAD_CODE,     0x00C8FE,    Writes_OF      | Writes_SF     | Writes_ZF     | Writes_AF     | Writes_PF )
 
 INST5(kmovw,             "kmovw",          IUM_WR, PCKFLT(0x91), BAD_CODE,     PCKFLT(0x90),  BAD_CODE,     PCKFLT(0x92), INS_FLAGS_None)    
+INST5(knotw,             "knotw",          IUM_WR, BAD_CODE,     BAD_CODE,     BAD_CODE,      BAD_CODE,     PCKFLT(0x44), INS_FLAGS_None)    
 
 // Multi-byte opcodes without modrm are represented in mixed endian fashion.
 // See comment around quarter way through this file for more information.

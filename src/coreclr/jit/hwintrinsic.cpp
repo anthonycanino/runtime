@@ -189,6 +189,22 @@ CORINFO_CLASS_HANDLE Compiler::gtGetStructHandleForHWSIMD(var_types simdType, Co
                 assert(!"Didn't find a class handle for simdType");
         }
     }
+    else if (simdType == TYP_KMASK)
+    {
+        switch (simdBaseJitType)
+        {
+            case CORINFO_TYPE_UINT:
+                return m_simdHandleCache->KMaskUIntHandle;
+            case CORINFO_TYPE_USHORT:
+                return m_simdHandleCache->KMaskUShortHandle;
+            case CORINFO_TYPE_ULONG:
+                return m_simdHandleCache->KMaskULongHandle;
+            case CORINFO_TYPE_BYTE:
+                return m_simdHandleCache->KMaskUByteHandle;
+            default:
+                assert(!"Didn't find a class handle for simdType");
+        }
+    }
 #endif // TARGET_XARCH
 #ifdef TARGET_ARM64
     else if (simdType == TYP_SIMD8)

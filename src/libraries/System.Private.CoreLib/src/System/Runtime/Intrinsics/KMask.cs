@@ -193,5 +193,12 @@ namespace System.Runtime.Intrinsics
 
             return Unsafe.As<KMask<TFrom>, KMask<TTo>>(ref vector);
         }
+
+        [Intrinsic]
+        [CLSCompliant(false)]
+        public static KMask<ushort> Not(KMask<ushort> left)
+        {
+            throw  new Exception("not yet impl");
+        }
     }
 }

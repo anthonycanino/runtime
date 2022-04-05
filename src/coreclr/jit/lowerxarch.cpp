@@ -6616,6 +6616,7 @@ void Lowering::ContainCheckHWIntrinsic(GenTreeHWIntrinsic* node)
                                 break;
                             }
 
+                            case NI_AVX512_MaskAdd128:
                             case NI_AVX512_MaskAdd256:
                             case NI_AVX512_MaskAdd512:
                                 break;
