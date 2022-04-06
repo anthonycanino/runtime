@@ -64,6 +64,7 @@ INST5(dec_l,            "dec",              IUM_RW, 0x0008FE,     BAD_CODE,     
 
 INST5(kmovw,             "kmovw",          IUM_WR, PCKFLT(0x91), BAD_CODE,     PCKFLT(0x90),  BAD_CODE,     PCKFLT(0x92), INS_FLAGS_None)    
 INST5(knotw,             "knotw",          IUM_WR, BAD_CODE,     BAD_CODE,     BAD_CODE,      BAD_CODE,     PCKFLT(0x44), INS_FLAGS_None)    
+INST5(korw,              "korw",           IUM_WR, BAD_CODE,     BAD_CODE,     BAD_CODE,      BAD_CODE,     PCKFLT(0x45), INS_Flags_IsDstSrcSrcAVXInstruction)    
 
 // Multi-byte opcodes without modrm are represented in mixed endian fashion.
 // See comment around quarter way through this file for more information.

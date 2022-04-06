@@ -31,7 +31,7 @@ bool emitter::IsSSEInstruction(instruction ins)
 
 bool emitter::IsSSEOrAVXInstruction(instruction ins)
 {
-    if (ins == INS_kmovw || ins == INS_knotw)
+    if (ins == INS_kmovw || ins == INS_knotw || ins == INS_korw)
         return true;
 
     return (ins >= INS_FIRST_SSE_INSTRUCTION) && (ins <= INS_LAST_AVX_INSTRUCTION);
@@ -667,7 +667,7 @@ emitter::code_t emitter::AddVexPrefix(instruction ins, code_t code, emitAttr att
 bool emitter::TakesEvexPrefix(instruction ins, emitAttr size) const
 {
     // kmov takes VEX prefix even though its EVEX
-    if (ins == INS_kmovw || ins == INS_knotw)
+    if (ins == INS_kmovw || ins == INS_knotw || ins == INS_korw)
         return false;
 
     return (TakesVexPrefix(ins) && size == EA_64BYTE) || IsAVX512Instruction(ins);
@@ -679,7 +679,7 @@ bool emitter::TakesEvexPrefix(instrDesc *id) const
     emitAttr  size      = id->idOpSize();
 
     // kmov takes VEX prefix even though its EVEX
-    if (ins == INS_kmovw || ins == INS_knotw)
+    if (ins == INS_kmovw || ins == INS_knotw || ins == INS_korw)
         return false;
 
     if (id->hasRegKMask())
@@ -2566,7 +2566,7 @@ inline emitter::code_t emitter::insEncodeOpreg(instruction ins, regNumber reg, e
 emitter::code_t emitter::insEncodeVL(instruction ins, code_t code, emitAttr attr)
 {
     // Anthony: kmov is part of AVX512 but not EVEX encoding
-    if (ins == INS_kmovw || ins == INS_knotw)
+    if (ins == INS_kmovw || ins == INS_knotw || ins == INS_korw)
         return code;
 
     if (IsAVX512Instruction(ins))
@@ -2595,7 +2595,7 @@ emitter::code_t emitter::insEncodeVL(instrDesc *id, code_t code)
     emitAttr  attr      = id->idOpSize();
 
     // Anthony: kmov is part of AVX512 but not EVEX encoding
-    if (ins == INS_kmovw || ins == INS_knotw)
+    if (ins == INS_kmovw || ins == INS_knotw || ins == INS_korw)
         return code;
 
     if (IsAVX512Instruction(ins) || id->hasRegKMask())
@@ -5865,7 +5865,17 @@ void emitter::emitIns_R_R_R(instruction ins, emitAttr attr, regNumber targetReg,
     id->idReg2(reg1);
     id->idReg3(reg2);
 
-    UNATIVE_OFFSET sz = emitInsSizeRR(id, insCodeRM(ins));
+    code_t code;
+    if (ins == INS_korw)
+    {
+        code = insCodeRR(ins);
+    }
+    else
+    {
+        code = insCodeRM(ins);
+    }
+
+    UNATIVE_OFFSET sz = emitInsSizeRR(id, code);
     id->idCodeSize(sz);
 
     dispIns(id);
@@ -13484,8 +13494,23 @@ BYTE* emitter::emitOutputRRR(BYTE* dst, instrDesc* id)
     emitAttr  size      = id->idOpSize();
     regNumber opmask    = id->idRegKMask();
 
-    code = insCodeRM(ins);
+    if (ins == INS_korw)
+    {
+        code = insCodeRR(ins);
+    }
+    else
+    {
+        code = insCodeRM(ins);
+    }
+
     code = AddEvexPrefixIfNeeded(id, code);
+
+    if (ins == INS_korw)
+    {
+        // Set the L bit
+        code |= LBIT_IN_3BYTE_VEX_PREFIX;
+    }
+
     code = insEncodeVL(id, code);
     code = insEncodeRMreg(ins, code);
 
@@ -17164,14 +17189,8 @@ emitter::insExecutionCharacteristics emitter::getInsExecutionCharacteristics(ins
         }
 
         case INS_kmovw:
-        {
-            // Anthony: hacking
-            result.insLatency    = PERFSCORE_LATENCY_1C;
-            result.insThroughput = PERFSCORE_THROUGHPUT_1C;
-            break;
-        }
-
         case INS_knotw:
+        case INS_korw:
         {
             // Anthony: hacking
             result.insLatency    = PERFSCORE_LATENCY_1C;

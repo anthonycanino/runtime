@@ -25,8 +25,13 @@ namespace System.Runtime.Intrinsics
 
         [System.CLSCompliantAttribute(false)]
         public static System.Runtime.Intrinsics.KMask<System.UInt16> Not(KMask<System.UInt16> left) { throw null; }
-    }
 
+        [System.CLSCompliantAttribute(false)]
+        public static System.Runtime.Intrinsics.KMask<System.UInt16> Or(KMask<System.UInt16> left, KMask<System.UInt16> right) { throw null; }
+
+
+
+    }
     public readonly partial struct KMask<T> : System.IEquatable<System.Runtime.Intrinsics.KMask<T>> where T : struct
     {
         private readonly int _dummyPrimitive;

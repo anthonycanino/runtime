@@ -200,5 +200,13 @@ namespace System.Runtime.Intrinsics
         {
             throw  new Exception("not yet impl");
         }
+
+        [Intrinsic]
+        [CLSCompliant(false)]
+        public static KMask<ushort> Or(KMask<ushort> left, KMask<ushort> right)
+        {
+            throw  new Exception("not yet impl");
+        }
+
     }
 }
