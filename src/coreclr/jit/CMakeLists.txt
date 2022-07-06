@@ -156,6 +156,7 @@ set( JIT_SOURCES
   regalloc.cpp
   register_arg_convention.cpp
   regset.cpp
+  revec.cpp
   scopeinfo.cpp
   sideeffects.cpp
   sm.cpp
@@ -336,6 +337,7 @@ set( JIT_HEADERS
   register_arg_convention.h
   register.h
   regset.h
+  revec.h
   sideeffects.h
   simd.h
   simdashwintrinsic.h

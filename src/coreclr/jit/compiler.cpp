@@ -23,6 +23,7 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 #include "jittelemetry.h"
 #include "patchpointinfo.h"
 #include "jitstd/algorithm.h"
+#include "revec.h"
 
 extern ICorJitHost* g_jitHost;
 
@@ -5071,6 +5072,10 @@ void Compiler::compCompile(void** methodCodePtr, uint32_t* methodCodeSize, JitFl
         StackLevelSetter stackLevelSetter(this);
         stackLevelSetter.Run();
     }
+
+    // Anthony: Adding a revectorize pass here
+    Revectorizer *revec = new (this, CMK_LSRA) Revectorizer(this);
+    revec->Run();
 
     // We can not add any new tracked variables after this point.
     lvaTrackedFixed = true;

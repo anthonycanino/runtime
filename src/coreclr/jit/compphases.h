@@ -109,6 +109,8 @@ CompPhaseNameMacro(PHASE_EMIT_CODE,              "Emit code",                   
 CompPhaseNameMacro(PHASE_EMIT_GCEH,              "Emit GC+EH tables",              "EMT-GCEH", false, -1, false)
 CompPhaseNameMacro(PHASE_POST_EMIT,              "Post-Emit",                      "POST-EMIT", false, -1, false)
 
+CompPhaseNameMacro(PHASE_REVECTORIZER,           "Revectorize HW Intrinsics",      "REVEC", false, -1, true)
+
 #if MEASURE_CLRAPI_CALLS
 // The following is a "pseudo-phase" - it aggregates timing info
 // for calls through ICorJitInfo across all "real" phases.
