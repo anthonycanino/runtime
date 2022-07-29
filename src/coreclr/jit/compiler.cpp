@@ -5074,8 +5074,16 @@ void Compiler::compCompile(void** methodCodePtr, uint32_t* methodCodeSize, JitFl
     }
 
     // Anthony: Adding a revectorize pass here
-    Revectorizer *revec = new (this, CMK_LSRA) Revectorizer(this);
-    revec->Run();
+
+#ifdef FEATURE_HW_INTRINSICS
+#ifdef TARGET_XARCH
+    if (JitConfig.JitEnableRevec())
+    {
+        Revectorizer *revec = new (this, CMK_LSRA) Revectorizer(this);
+        revec->Run();
+    }
+#endif
+#endif
 
     // We can not add any new tracked variables after this point.
     lvaTrackedFixed = true;

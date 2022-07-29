@@ -618,6 +618,9 @@ CONFIG_INTEGER(JitDispIns, W("JitDispIns"), 0)
 
 CONFIG_INTEGER(JitEnregStructLocals, W("JitEnregStructLocals"), 1) // Allow to enregister locals with struct type.
 
+// Anthony
+CONFIG_INTEGER(JitEnableRevec,          W("JitEnableRevec"),          0) // Allows AES+ hardware intrinsics to be disabled
+
 #undef CONFIG_INTEGER
 #undef CONFIG_STRING
 #undef CONFIG_METHODSET

@@ -229,9 +229,10 @@ void Phase::PostPhase(PhaseStatus status)
         PHASE_RATIONALIZE,
         PHASE_LOWERING,
         // lsra
-        PHASE_STACK_LEVEL_SETTER
+        PHASE_STACK_LEVEL_SETTER,
         // align loops
         // codegen
+        PHASE_REVECTORIZER
     };
 
     // clang-format on
