@@ -60,25 +60,27 @@ enum CORINFO_InstructionSet
     InstructionSet_AVXVNNI=19,
     InstructionSet_MOVBE=20,
     InstructionSet_X86Serialize=21,
-    InstructionSet_X86Base_X64=22,
-    InstructionSet_SSE_X64=23,
-    InstructionSet_SSE2_X64=24,
-    InstructionSet_SSE3_X64=25,
-    InstructionSet_SSSE3_X64=26,
-    InstructionSet_SSE41_X64=27,
-    InstructionSet_SSE42_X64=28,
-    InstructionSet_AVX_X64=29,
-    InstructionSet_AVX2_X64=30,
-    InstructionSet_AES_X64=31,
-    InstructionSet_BMI1_X64=32,
-    InstructionSet_BMI2_X64=33,
-    InstructionSet_FMA_X64=34,
-    InstructionSet_LZCNT_X64=35,
-    InstructionSet_PCLMULQDQ_X64=36,
-    InstructionSet_POPCNT_X64=37,
-    InstructionSet_AVXVNNI_X64=38,
-    InstructionSet_MOVBE_X64=39,
-    InstructionSet_X86Serialize_X64=40,
+    InstructionSet_AVX512F=22,
+    InstructionSet_X86Base_X64=23,
+    InstructionSet_SSE_X64=24,
+    InstructionSet_SSE2_X64=25,
+    InstructionSet_SSE3_X64=26,
+    InstructionSet_SSSE3_X64=27,
+    InstructionSet_SSE41_X64=28,
+    InstructionSet_SSE42_X64=29,
+    InstructionSet_AVX_X64=30,
+    InstructionSet_AVX2_X64=31,
+    InstructionSet_AES_X64=32,
+    InstructionSet_BMI1_X64=33,
+    InstructionSet_BMI2_X64=34,
+    InstructionSet_FMA_X64=35,
+    InstructionSet_LZCNT_X64=36,
+    InstructionSet_PCLMULQDQ_X64=37,
+    InstructionSet_POPCNT_X64=38,
+    InstructionSet_AVXVNNI_X64=39,
+    InstructionSet_MOVBE_X64=40,
+    InstructionSet_X86Serialize_X64=41,
+    InstructionSet_AVX512F_X64=42,
 #endif // TARGET_AMD64
 #ifdef TARGET_X86
     InstructionSet_X86Base=1,
@@ -102,25 +104,27 @@ enum CORINFO_InstructionSet
     InstructionSet_AVXVNNI=19,
     InstructionSet_MOVBE=20,
     InstructionSet_X86Serialize=21,
-    InstructionSet_X86Base_X64=22,
-    InstructionSet_SSE_X64=23,
-    InstructionSet_SSE2_X64=24,
-    InstructionSet_SSE3_X64=25,
-    InstructionSet_SSSE3_X64=26,
-    InstructionSet_SSE41_X64=27,
-    InstructionSet_SSE42_X64=28,
-    InstructionSet_AVX_X64=29,
-    InstructionSet_AVX2_X64=30,
-    InstructionSet_AES_X64=31,
-    InstructionSet_BMI1_X64=32,
-    InstructionSet_BMI2_X64=33,
-    InstructionSet_FMA_X64=34,
-    InstructionSet_LZCNT_X64=35,
-    InstructionSet_PCLMULQDQ_X64=36,
-    InstructionSet_POPCNT_X64=37,
-    InstructionSet_AVXVNNI_X64=38,
-    InstructionSet_MOVBE_X64=39,
-    InstructionSet_X86Serialize_X64=40,
+    InstructionSet_AVX512F=22,
+    InstructionSet_X86Base_X64=23,
+    InstructionSet_SSE_X64=24,
+    InstructionSet_SSE2_X64=25,
+    InstructionSet_SSE3_X64=26,
+    InstructionSet_SSSE3_X64=27,
+    InstructionSet_SSE41_X64=28,
+    InstructionSet_SSE42_X64=29,
+    InstructionSet_AVX_X64=30,
+    InstructionSet_AVX2_X64=31,
+    InstructionSet_AES_X64=32,
+    InstructionSet_BMI1_X64=33,
+    InstructionSet_BMI2_X64=34,
+    InstructionSet_FMA_X64=35,
+    InstructionSet_LZCNT_X64=36,
+    InstructionSet_PCLMULQDQ_X64=37,
+    InstructionSet_POPCNT_X64=38,
+    InstructionSet_AVXVNNI_X64=39,
+    InstructionSet_MOVBE_X64=40,
+    InstructionSet_X86Serialize_X64=41,
+    InstructionSet_AVX512F_X64=42,
 #endif // TARGET_X86
 
 };
@@ -224,6 +228,8 @@ public:
             AddInstructionSet(InstructionSet_MOVBE_X64);
         if (HasInstructionSet(InstructionSet_X86Serialize))
             AddInstructionSet(InstructionSet_X86Serialize_X64);
+        if (HasInstructionSet(InstructionSet_AVX512F))
+            AddInstructionSet(InstructionSet_AVX512F_X64);
 #endif // TARGET_AMD64
 #ifdef TARGET_X86
 #endif // TARGET_X86
@@ -377,6 +383,10 @@ inline CORINFO_InstructionSetFlags EnsureInstructionSetFlagsAreValid(CORINFO_Ins
             resultflags.RemoveInstructionSet(InstructionSet_X86Serialize);
         if (resultflags.HasInstructionSet(InstructionSet_X86Serialize_X64) && !resultflags.HasInstructionSet(InstructionSet_X86Serialize))
             resultflags.RemoveInstructionSet(InstructionSet_X86Serialize_X64);
+        if (resultflags.HasInstructionSet(InstructionSet_AVX512F) && !resultflags.HasInstructionSet(InstructionSet_AVX512F_X64))
+            resultflags.RemoveInstructionSet(InstructionSet_AVX512F);
+        if (resultflags.HasInstructionSet(InstructionSet_AVX512F_X64) && !resultflags.HasInstructionSet(InstructionSet_AVX512F))
+            resultflags.RemoveInstructionSet(InstructionSet_AVX512F_X64);
         if (resultflags.HasInstructionSet(InstructionSet_SSE) && !resultflags.HasInstructionSet(InstructionSet_X86Base))
             resultflags.RemoveInstructionSet(InstructionSet_SSE);
         if (resultflags.HasInstructionSet(InstructionSet_SSE2) && !resultflags.HasInstructionSet(InstructionSet_SSE))
@@ -417,6 +427,8 @@ inline CORINFO_InstructionSetFlags EnsureInstructionSetFlagsAreValid(CORINFO_Ins
             resultflags.RemoveInstructionSet(InstructionSet_MOVBE);
         if (resultflags.HasInstructionSet(InstructionSet_X86Serialize) && !resultflags.HasInstructionSet(InstructionSet_X86Base))
             resultflags.RemoveInstructionSet(InstructionSet_X86Serialize);
+        if (resultflags.HasInstructionSet(InstructionSet_AVX512F) && !resultflags.HasInstructionSet(InstructionSet_AVX2))
+            resultflags.RemoveInstructionSet(InstructionSet_AVX512F);
 #endif // TARGET_AMD64
 #ifdef TARGET_X86
         if (resultflags.HasInstructionSet(InstructionSet_SSE) && !resultflags.HasInstructionSet(InstructionSet_X86Base))
@@ -459,6 +471,8 @@ inline CORINFO_InstructionSetFlags EnsureInstructionSetFlagsAreValid(CORINFO_Ins
             resultflags.RemoveInstructionSet(InstructionSet_MOVBE);
         if (resultflags.HasInstructionSet(InstructionSet_X86Serialize) && !resultflags.HasInstructionSet(InstructionSet_X86Base))
             resultflags.RemoveInstructionSet(InstructionSet_X86Serialize);
+        if (resultflags.HasInstructionSet(InstructionSet_AVX512F) && !resultflags.HasInstructionSet(InstructionSet_AVX2))
+            resultflags.RemoveInstructionSet(InstructionSet_AVX512F);
 #endif // TARGET_X86
 
     } while (!oldflags.Equals(resultflags));
@@ -599,6 +613,10 @@ inline const char *InstructionSetToString(CORINFO_InstructionSet instructionSet)
             return "X86Serialize";
         case InstructionSet_X86Serialize_X64 :
             return "X86Serialize_X64";
+        case InstructionSet_AVX512F :
+            return "AVX512F";
+        case InstructionSet_AVX512F_X64 :
+            return "AVX512F_X64";
 #endif // TARGET_AMD64
 #ifdef TARGET_X86
         case InstructionSet_X86Base :
@@ -643,6 +661,8 @@ inline const char *InstructionSetToString(CORINFO_InstructionSet instructionSet)
             return "MOVBE";
         case InstructionSet_X86Serialize :
             return "X86Serialize";
+        case InstructionSet_AVX512F :
+            return "AVX512F";
 #endif // TARGET_X86
 
         default:
@@ -694,6 +714,7 @@ inline CORINFO_InstructionSet InstructionSetFromR2RInstructionSet(ReadyToRunInst
         case READYTORUN_INSTRUCTION_AvxVnni: return InstructionSet_AVXVNNI;
         case READYTORUN_INSTRUCTION_Movbe: return InstructionSet_MOVBE;
         case READYTORUN_INSTRUCTION_X86Serialize: return InstructionSet_X86Serialize;
+        case READYTORUN_INSTRUCTION_Avx512F: return InstructionSet_AVX512F;
 #endif // TARGET_AMD64
 #ifdef TARGET_X86
         case READYTORUN_INSTRUCTION_X86Base: return InstructionSet_X86Base;
@@ -715,6 +736,7 @@ inline CORINFO_InstructionSet InstructionSetFromR2RInstructionSet(ReadyToRunInst
         case READYTORUN_INSTRUCTION_AvxVnni: return InstructionSet_AVXVNNI;
         case READYTORUN_INSTRUCTION_Movbe: return InstructionSet_MOVBE;
         case READYTORUN_INSTRUCTION_X86Serialize: return InstructionSet_X86Serialize;
+        case READYTORUN_INSTRUCTION_Avx512F: return InstructionSet_AVX512F;
 #endif // TARGET_X86
 
         default:

@@ -1467,6 +1467,16 @@ void EEJitManager::SetCpuInfo()
                                             }
                                         }
                                     }
+
+                                    if (zmmStateSupport() == 1)                                             // XGETBV XRC0[7:5] == 111
+                                    {
+                                        __cpuidex(cpuidInfo, 0x00000007, 0x00000000);
+
+                                        if ((cpuidInfo[EBX] & (1 << 16)) != 0)                                // AVX512F
+                                        {
+                                            CPUCompileFlags.Set(InstructionSet_AVX512F);
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -1691,6 +1701,12 @@ void EEJitManager::SetCpuInfo()
     {
         CPUCompileFlags.Clear(InstructionSet_X86Serialize);
     }
+
+    if (!CLRConfig::GetConfigValue(CLRConfig::EXTERNAL_EnableAVX512F))
+    {
+        CPUCompileFlags.Clear(InstructionSet_AVX512F);
+    }
+
 #elif defined(TARGET_ARM64)
     if (!CLRConfig::GetConfigValue(CLRConfig::EXTERNAL_EnableHWIntrinsic))
     {

@@ -1237,6 +1237,19 @@ REDHAWK_PALEXPORT uint32_t REDHAWK_PALAPI xmmYmmStateSupport()
     // check OS has enabled both XMM and YMM state support
     return ((eax & 0x06) == 0x06) ? 1 : 0;
 }
+
+REDHAWK_PALEXPORT uint32_t REDHAWK_PALAPI zmmStateSupport()
+{
+    DWORD eax;
+    __asm("  xgetbv\n" \
+        : "=a"(eax) /*output in eax*/\
+        : "c"(0) /*inputs - 0 in ecx*/\
+        : "edx" /* registers that are clobbered*/
+      );
+    // check OS has enabled both XMM and YMM state support
+    return ((eax & 0x70) == 0x70) ? 1 : 0;
+}
+
 #endif // defined(HOST_X86) || defined(HOST_AMD64)
 
 #if defined (HOST_ARM64)

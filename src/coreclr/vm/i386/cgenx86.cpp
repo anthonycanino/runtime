@@ -1106,6 +1106,31 @@ extern "C" DWORD __stdcall xmmYmmStateSupport()
 }
 #pragma warning(pop)
 
+#pragma warning(push)
+#pragma warning(disable: 4035)
+extern "C" DWORD __stdcall zmmStateSupport()
+{
+    // No CONTRACT
+    STATIC_CONTRACT_NOTHROW;
+    STATIC_CONTRACT_GC_NOTRIGGER;
+
+    __asm
+    {
+        mov     ecx, 0                  ; Specify xcr0
+        xgetbv                          ; result in EDX:EAX
+        and eax, 70H
+        cmp eax, 70H                    ; check OS opmask state, upper 256-bit ZMM0-ZMM15, and ZMM16-ZMM32
+        jne     not_supported
+        mov     eax, 1
+        jmp     done
+    not_supported:
+        mov     eax, 0
+    done:
+    }
+}
+#pragma warning(pop)
+
+
 #else // !TARGET_UNIX
 
 void __cpuid(int cpuInfo[4], int function_id)
@@ -1140,6 +1165,18 @@ extern "C" DWORD __stdcall xmmYmmStateSupport()
         );
     // check OS has enabled both XMM and YMM state support
     return ((eax & 0x06) == 0x06) ? 1 : 0;
+}
+
+extern "C" DWORD __stdcall zmmStateSupport()
+{
+    DWORD eax;
+    __asm("  xgetbv\n" \
+        : "=a"(eax) /*output in eax*/\
+        : "c"(0) /*inputs - 0 in ecx*/\
+        : "edx" /* registers that are clobbered*/
+        );
+    // check OS has enabled both XMM and YMM state support
+    return ((eax & 0x70) == 0x70) ? 1 : 0;
 }
 
 #endif // !TARGET_UNIX

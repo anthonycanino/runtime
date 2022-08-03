@@ -93,6 +93,8 @@ namespace Internal.ReadyToRunConstants
                             case InstructionSet.X64_MOVBE_X64: return ReadyToRunInstructionSet.Movbe;
                             case InstructionSet.X64_X86Serialize: return ReadyToRunInstructionSet.X86Serialize;
                             case InstructionSet.X64_X86Serialize_X64: return ReadyToRunInstructionSet.X86Serialize;
+                            case InstructionSet.X64_AVX512F: return ReadyToRunInstructionSet.Avx512F;
+                            case InstructionSet.X64_AVX512F_X64: return ReadyToRunInstructionSet.Avx512F;
 
                             default: throw new Exception("Unknown instruction set");
                         }
@@ -142,6 +144,8 @@ namespace Internal.ReadyToRunConstants
                             case InstructionSet.X86_MOVBE_X64: return null;
                             case InstructionSet.X86_X86Serialize: return ReadyToRunInstructionSet.X86Serialize;
                             case InstructionSet.X86_X86Serialize_X64: return null;
+                            case InstructionSet.X86_AVX512F: return ReadyToRunInstructionSet.Avx512F;
+                            case InstructionSet.X86_AVX512F_X64: return null;
 
                             default: throw new Exception("Unknown instruction set");
                         }

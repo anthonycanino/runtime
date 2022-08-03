@@ -19,3 +19,20 @@ LEAF_ENTRY xmmYmmStateSupport, _TEXT
 LEAF_END xmmYmmStateSupport, _TEXT
 
         end
+
+;; extern "C" DWORD __stdcall xmmYmmStateSupport();
+LEAF_ENTRY zmmStateSupport, _TEXT
+        mov     ecx, 0                  ; Specify xcr0
+        xgetbv                          ; result in EDX:EAX
+        and eax, 70H
+        cmp eax, 70H                    ; check OS has enabled both XMM and YMM state support
+        jne     not_supported
+        mov     eax, 1
+        jmp     done
+    not_supported:
+        mov     eax, 0
+    done:
+        ret
+LEAF_END zmmStateSupport, _TEXT
+
+        end
