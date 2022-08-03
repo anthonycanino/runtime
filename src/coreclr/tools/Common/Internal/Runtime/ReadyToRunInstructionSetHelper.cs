@@ -95,6 +95,12 @@ namespace Internal.ReadyToRunConstants
                             case InstructionSet.X64_X86Serialize_X64: return ReadyToRunInstructionSet.X86Serialize;
                             case InstructionSet.X64_AVX512F: return ReadyToRunInstructionSet.Avx512F;
                             case InstructionSet.X64_AVX512F_X64: return ReadyToRunInstructionSet.Avx512F;
+                            case InstructionSet.X64_AVX512CD: return ReadyToRunInstructionSet.Avx512CD;
+                            case InstructionSet.X64_AVX512CD_X64: return ReadyToRunInstructionSet.Avx512CD;
+                            case InstructionSet.X64_AVX512BW: return ReadyToRunInstructionSet.Avx512BW;
+                            case InstructionSet.X64_AVX512BW_X64: return ReadyToRunInstructionSet.Avx512BW;
+                            case InstructionSet.X64_AVX512DQ: return ReadyToRunInstructionSet.Avx512DQ;
+                            case InstructionSet.X64_AVX512DQ_X64: return ReadyToRunInstructionSet.Avx512DQ;
 
                             default: throw new Exception("Unknown instruction set");
                         }
@@ -146,6 +152,12 @@ namespace Internal.ReadyToRunConstants
                             case InstructionSet.X86_X86Serialize_X64: return null;
                             case InstructionSet.X86_AVX512F: return ReadyToRunInstructionSet.Avx512F;
                             case InstructionSet.X86_AVX512F_X64: return null;
+                            case InstructionSet.X86_AVX512CD: return ReadyToRunInstructionSet.Avx512CD;
+                            case InstructionSet.X86_AVX512CD_X64: return null;
+                            case InstructionSet.X86_AVX512BW: return ReadyToRunInstructionSet.Avx512BW;
+                            case InstructionSet.X86_AVX512BW_X64: return null;
+                            case InstructionSet.X86_AVX512DQ: return ReadyToRunInstructionSet.Avx512DQ;
+                            case InstructionSet.X86_AVX512DQ_X64: return null;
 
                             default: throw new Exception("Unknown instruction set");
                         }

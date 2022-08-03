@@ -1472,9 +1472,24 @@ void EEJitManager::SetCpuInfo()
                                     {
                                         __cpuidex(cpuidInfo, 0x00000007, 0x00000000);
 
-                                        if ((cpuidInfo[EBX] & (1 << 16)) != 0)                                // AVX512F
+                                        if ((cpuidInfo[EBX] & (1 << 16)) != 0)                              // AVX512F
                                         {
                                             CPUCompileFlags.Set(InstructionSet_AVX512F);
+
+                                            if ((cpuidInfo[EBX] & (1 << 28)) != 0)                          // AVX512CD
+                                            {
+                                                CPUCompileFlags.Set(InstructionSet_AVX512CD);
+                                            }
+
+                                            if ((cpuidInfo[EBX] & (1 << 17)) != 0)                          // AVX512DQ
+                                            {
+                                                CPUCompileFlags.Set(InstructionSet_AVX512DQ);
+                                            }
+
+                                            if ((cpuidInfo[EBX] & (1 << 30)) != 0)                          // AVX512BW
+                                            {
+                                                CPUCompileFlags.Set(InstructionSet_AVX512BW);
+                                            }
                                         }
                                     }
                                 }
@@ -1705,6 +1720,21 @@ void EEJitManager::SetCpuInfo()
     if (!CLRConfig::GetConfigValue(CLRConfig::EXTERNAL_EnableAVX512F))
     {
         CPUCompileFlags.Clear(InstructionSet_AVX512F);
+    }
+
+    if (!CLRConfig::GetConfigValue(CLRConfig::EXTERNAL_EnableAVX512CD))
+    {
+        CPUCompileFlags.Clear(InstructionSet_AVX512CD);
+    }
+
+    if (!CLRConfig::GetConfigValue(CLRConfig::EXTERNAL_EnableAVX512BW))
+    {
+        CPUCompileFlags.Clear(InstructionSet_AVX512BW);
+    }
+
+    if (!CLRConfig::GetConfigValue(CLRConfig::EXTERNAL_EnableAVX512DQ))
+    {
+        CPUCompileFlags.Clear(InstructionSet_AVX512DQ);
     }
 
 #elif defined(TARGET_ARM64)

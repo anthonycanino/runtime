@@ -41,6 +41,9 @@ namespace Internal.ReadyToRunConstants
         Movbe=27,
         X86Serialize=28,
         Avx512F=29,
+        Avx512CD=30,
+        Avx512BW=31,
+        Avx512DQ=32,
 
     }
 }
