@@ -767,6 +767,7 @@ RETAIL_CONFIG_DWORD_INFO(EXTERNAL_EnableAVX512F,      W("EnableAVX512F"),      1
 RETAIL_CONFIG_DWORD_INFO(EXTERNAL_EnableAVX512CD,      W("EnableAVX512CD"),      1, "Allows AVX512CD+ hardware intrinsics to be disabled")
 RETAIL_CONFIG_DWORD_INFO(EXTERNAL_EnableAVX512BW,      W("EnableAVX512BW"),      1, "Allows AVX512BW+ hardware intrinsics to be disabled")
 RETAIL_CONFIG_DWORD_INFO(EXTERNAL_EnableAVX512DQ,      W("EnableAVX512DQ"),      1, "Allows AVX512DQ+ hardware intrinsics to be disabled")
+RETAIL_CONFIG_DWORD_INFO(EXTERNAL_EnableAVX512VL,      W("EnableAVX512VL"),      1, "Allows AVX512VL+ hardware intrinsics to be disabled")
 #elif defined(TARGET_ARM64)
 RETAIL_CONFIG_DWORD_INFO(EXTERNAL_EnableArm64AdvSimd, W("EnableArm64AdvSimd"), 1, "Allows Arm64 AdvSimd+ hardware intrinsics to be disabled")
 RETAIL_CONFIG_DWORD_INFO(EXTERNAL_EnableArm64Aes,     W("EnableArm64Aes"),     1, "Allows Arm64 Aes+ hardware intrinsics to be disabled")

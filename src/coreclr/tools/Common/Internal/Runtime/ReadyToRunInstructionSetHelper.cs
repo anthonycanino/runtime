@@ -101,6 +101,8 @@ namespace Internal.ReadyToRunConstants
                             case InstructionSet.X64_AVX512BW_X64: return ReadyToRunInstructionSet.Avx512BW;
                             case InstructionSet.X64_AVX512DQ: return ReadyToRunInstructionSet.Avx512DQ;
                             case InstructionSet.X64_AVX512DQ_X64: return ReadyToRunInstructionSet.Avx512DQ;
+                            case InstructionSet.X64_AVX512VL: return ReadyToRunInstructionSet.Avx512VL;
+                            case InstructionSet.X64_AVX512VL_X64: return ReadyToRunInstructionSet.Avx512VL;
 
                             default: throw new Exception("Unknown instruction set");
                         }
@@ -158,6 +160,8 @@ namespace Internal.ReadyToRunConstants
                             case InstructionSet.X86_AVX512BW_X64: return null;
                             case InstructionSet.X86_AVX512DQ: return ReadyToRunInstructionSet.Avx512DQ;
                             case InstructionSet.X86_AVX512DQ_X64: return null;
+                            case InstructionSet.X86_AVX512VL: return ReadyToRunInstructionSet.Avx512VL;
+                            case InstructionSet.X86_AVX512VL_X64: return null;
 
                             default: throw new Exception("Unknown instruction set");
                         }

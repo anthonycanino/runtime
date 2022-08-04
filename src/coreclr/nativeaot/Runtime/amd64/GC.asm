@@ -20,7 +20,7 @@ LEAF_END xmmYmmStateSupport, _TEXT
 
         end
 
-;; extern "C" DWORD __stdcall xmmYmmStateSupport();
+;; extern "C" DWORD __stdcall zmmStateSupport();
 LEAF_ENTRY zmmStateSupport, _TEXT
         mov     ecx, 0                  ; Specify xcr0
         xgetbv                          ; result in EDX:EAX

@@ -44,6 +44,7 @@ namespace Internal.ReadyToRunConstants
         Avx512CD=30,
         Avx512BW=31,
         Avx512DQ=32,
+        Avx512VL=33,
 
     }
 }

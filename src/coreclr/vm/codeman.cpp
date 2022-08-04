@@ -1490,6 +1490,11 @@ void EEJitManager::SetCpuInfo()
                                             {
                                                 CPUCompileFlags.Set(InstructionSet_AVX512BW);
                                             }
+
+                                            if ((cpuidInfo[EBX] & (1 << 31)) != 0)                          // AVX512VL
+                                            {
+                                                CPUCompileFlags.Set(InstructionSet_AVX512VL);
+                                            }
                                         }
                                     }
                                 }
@@ -1735,6 +1740,11 @@ void EEJitManager::SetCpuInfo()
     if (!CLRConfig::GetConfigValue(CLRConfig::EXTERNAL_EnableAVX512DQ))
     {
         CPUCompileFlags.Clear(InstructionSet_AVX512DQ);
+    }
+
+    if (!CLRConfig::GetConfigValue(CLRConfig::EXTERNAL_EnableAVX512VL))
+    {
+        CPUCompileFlags.Clear(InstructionSet_AVX512VL);
     }
 
 #elif defined(TARGET_ARM64)
