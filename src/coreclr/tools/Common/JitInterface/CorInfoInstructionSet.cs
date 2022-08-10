@@ -17,7 +17,7 @@ namespace Internal.JitInterface
     public enum InstructionSet
     {
         ILLEGAL = 0,
-        NONE = 63,
+        NONE = 41,
         ARM64_ArmBase = InstructionSet_ARM64.ArmBase,
         ARM64_AdvSimd = InstructionSet_ARM64.AdvSimd,
         ARM64_Aes = InstructionSet_ARM64.Aes,
@@ -120,7 +120,6 @@ namespace Internal.JitInterface
         X86_MOVBE_X64 = InstructionSet_X86.MOVBE_X64,
         X86_X86Serialize_X64 = InstructionSet_X86.X86Serialize_X64,
     }
-
     public enum InstructionSet_ARM64
     {
         ILLEGAL = InstructionSet.ILLEGAL,
@@ -240,54 +239,85 @@ namespace Internal.JitInterface
         X86Serialize_X64 = 40,
     }
 
-    public struct InstructionSetFlags : IEnumerable<InstructionSet>
+    public unsafe struct InstructionSetFlags : IEnumerable<InstructionSet>
     {
-        private ulong _flags;
-
+        private static int _flagsArrSize = 1;
+        private fixed ulong _flags[1];
         public IEnumerable<InstructionSet_ARM64> ARM64Flags => this.Select((x) => (InstructionSet_ARM64)x);
 
         public IEnumerable<InstructionSet_X64> X64Flags => this.Select((x) => (InstructionSet_X64)x);
 
         public IEnumerable<InstructionSet_X86> X86Flags => this.Select((x) => (InstructionSet_X86)x);
 
+        public InstructionSetFlags() { }
+
         public void AddInstructionSet(InstructionSet instructionSet)
         {
-            _flags = _flags | (((ulong)1) << (int)instructionSet);
+            int arrayIdx = (int)instructionSet / 64;
+            int bit = (int)instructionSet % 64;
+            _flags[arrayIdx] = _flags[arrayIdx] | (((ulong)1) << (int)bit);
         }
 
         public void RemoveInstructionSet(InstructionSet instructionSet)
         {
-            _flags = _flags & ~(((ulong)1) << (int)instructionSet);
+            int arrayIdx = (int)instructionSet / 64;
+            int bit = (int)instructionSet % 64;
+            _flags[arrayIdx] = _flags[arrayIdx] & ~(((ulong)1) << (int)bit);
         }
 
         public bool HasInstructionSet(InstructionSet instructionSet)
         {
-            return (_flags & (((ulong)1) << (int)instructionSet)) != 0;
+            int arrayIdx = (int)instructionSet / 64;
+            int bit = (int)instructionSet % 64;
+            return (_flags[arrayIdx] & (((ulong)1) << (int)bit)) != 0;
         }
 
         public bool Equals(InstructionSetFlags other)
         {
-            return _flags == other._flags;
+            for (int i = 0; i < _flagsArrSize; i++)
+            {
+                if (_flags[i] != other._flags[i])
+                {
+                    return false;
+                }
+            }
+            return true;
         }
 
         public void Add(InstructionSetFlags other)
         {
-            _flags |= other._flags;
+            for (int i = 0; i < _flagsArrSize; i++)
+            {
+                _flags[i] |= other._flags[i];
+            }
         }
 
         public void IntersectionWith(InstructionSetFlags other)
         {
-            _flags &= other._flags;
+            for (int i = 0; i < _flagsArrSize; i++)
+            {
+                _flags[i] &= other._flags[i];
+            }
         }
 
         public void Remove(InstructionSetFlags other)
         {
-            _flags &= ~other._flags;
+            for (int i = 0; i < _flagsArrSize; i++)
+            {
+                _flags[i] &= ~other._flags[i];
+            }
         }
 
         public bool IsEmpty()
         {
-            return _flags == 0;
+            for (int i = 0; i < _flagsArrSize; i++)
+            {
+                if (_flags[i] != 0)
+                {
+                    return false;
+                }
+            }
+            return true;
         }
 
         IEnumerator IEnumerable.GetEnumerator()

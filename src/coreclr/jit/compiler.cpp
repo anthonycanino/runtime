@@ -2269,9 +2269,12 @@ void Compiler::compSetProcessor()
 
     CORINFO_InstructionSetFlags instructionSetFlags = jitFlags.GetInstructionSetFlags();
 
-    opts.compSupportsISA         = 0;
-    opts.compSupportsISAReported = 0;
-    opts.compSupportsISAExactly  = 0;
+    for (int i = 0; i < CORINFO_InstructionSetFlags::FlagsArrSize; i++)
+    {
+        opts.compSupportsISA[i]         = 0;
+        opts.compSupportsISAReported[i] = 0;
+        opts.compSupportsISAExactly[i]  = 0;
+    }
 
 #if defined(TARGET_XARCH)
     instructionSetFlags.AddInstructionSet(InstructionSet_Vector128);

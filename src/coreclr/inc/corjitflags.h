@@ -202,7 +202,7 @@ public:
     }
 
     // DO NOT USE THIS FUNCTION! (except in very restricted special cases)
-    uint64_t GetInstructionSetFlagsRaw()
+    uint64_t* GetInstructionSetFlagsRaw()
     {
         return instructionSetFlags.GetFlagsRaw();
     }

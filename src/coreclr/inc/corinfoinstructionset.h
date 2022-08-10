@@ -14,7 +14,7 @@
 enum CORINFO_InstructionSet
 {
     InstructionSet_ILLEGAL = 0,
-    InstructionSet_NONE = 63,
+    InstructionSet_NONE = 41,
 #ifdef TARGET_ARM64
     InstructionSet_ArmBase=1,
     InstructionSet_AdvSimd=2,
@@ -128,41 +128,72 @@ enum CORINFO_InstructionSet
 struct CORINFO_InstructionSetFlags
 {
 private:
-    uint64_t _flags = 0;
+    uint64_t _flags[1] = {};
 public:
+    static const int FlagsArrSize = 1;
+
+
     void AddInstructionSet(CORINFO_InstructionSet instructionSet)
     {
-        _flags = _flags | (((uint64_t)1) << instructionSet);
+        int arrayIdx = instructionSet / 64;
+        int bit = instructionSet % 64;
+        _flags[arrayIdx] = _flags[arrayIdx] | (((uint64_t)1) << bit);
     }
 
     void RemoveInstructionSet(CORINFO_InstructionSet instructionSet)
     {
-        _flags = _flags & ~(((uint64_t)1) << instructionSet);
+        int arrayIdx = instructionSet / 64;
+        int bit = instructionSet % 64;
+        _flags[arrayIdx] = _flags[arrayIdx] & ~(((uint64_t)1) << bit);
     }
 
     bool HasInstructionSet(CORINFO_InstructionSet instructionSet) const
     {
-        return _flags & (((uint64_t)1) << instructionSet);
+        int arrayIdx = instructionSet / 64;
+        int bit = instructionSet % 64;
+        return _flags[arrayIdx] & (((uint64_t)1) << bit);
     }
 
     bool Equals(CORINFO_InstructionSetFlags other) const
     {
-        return _flags == other._flags;
+        for (int i = 0; i < FlagsArrSize; i++)
+        {
+            if (_flags[i] != other._flags[i])
+            {
+                return false;
+            }
+
+        }
+        return true;
     }
 
     void Add(CORINFO_InstructionSetFlags other)
     {
-        _flags |= other._flags;
+        for (int i = 0; i < FlagsArrSize; i++)
+        {
+            _flags[i] |= other._flags[i];
+        }
     }
 
     bool IsEmpty() const
     {
-        return _flags == 0;
+        for (int i = 0; i < FlagsArrSize; i++)
+        {
+            if (_flags[i] != 0)
+            {
+                return false;
+            }
+
+        }
+        return true;
     }
 
     void Reset()
     {
-        _flags = 0;
+        for (int i = 0; i < FlagsArrSize; i++)
+        {
+            _flags[i] = 0; 
+        }
     }
 
     void Set64BitInstructionSetVariants()
@@ -230,14 +261,17 @@ public:
 
     }
 
-    uint64_t GetFlagsRaw()
+    uint64_t* GetFlagsRaw()
     {
         return _flags;
     }
 
-    void SetFromFlagsRaw(uint64_t flags)
+    void SetFromFlagsRaw(uint64_t* flags)
     {
-        _flags = flags;
+        for (int i = 0; i < FlagsArrSize; i++)
+        {
+            _flags[i] = flags[i];
+        }
     }
 };
 

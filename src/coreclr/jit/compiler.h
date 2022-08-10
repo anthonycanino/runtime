@@ -8794,7 +8794,9 @@ private:
     bool compIsaSupportedDebugOnly(CORINFO_InstructionSet isa) const
     {
 #if defined(TARGET_XARCH) || defined(TARGET_ARM64)
-        return (opts.compSupportsISA & (1ULL << isa)) != 0;
+        int      arrayIdx = isa / 64;
+        uint64_t isaBit   = isa % 64;
+        return (opts.compSupportsISA[arrayIdx] & (1ULL << isaBit)) != 0;
 #else
         return false;
 #endif
@@ -8809,14 +8811,15 @@ private:
     bool compExactlyDependsOn(CORINFO_InstructionSet isa) const
     {
 #if defined(TARGET_XARCH) || defined(TARGET_ARM64)
-        uint64_t isaBit = (1ULL << isa);
-        if ((opts.compSupportsISAReported & isaBit) == 0)
+        uint64_t isaBit   = (1ULL << (isa % 64));
+        int      arrayIdx = isa / 64;
+        if ((opts.compSupportsISAReported[arrayIdx] & isaBit) == 0)
         {
-            if (notifyInstructionSetUsage(isa, (opts.compSupportsISA & isaBit) != 0))
-                ((Compiler*)this)->opts.compSupportsISAExactly |= isaBit;
-            ((Compiler*)this)->opts.compSupportsISAReported |= isaBit;
+            if (notifyInstructionSetUsage(isa, (opts.compSupportsISA[arrayIdx] & isaBit) != 0))
+                ((Compiler*)this)->opts.compSupportsISAExactly[arrayIdx] |= isaBit;
+            ((Compiler*)this)->opts.compSupportsISAReported[arrayIdx] |= isaBit;
         }
-        return (opts.compSupportsISAExactly & isaBit) != 0;
+        return (opts.compSupportsISAExactly[arrayIdx] & isaBit) != 0;
 #else
         return false;
 #endif
@@ -8838,7 +8841,9 @@ private:
     // If the result is false, then the target machine may have support for the instruction.
     bool compOpportunisticallyDependsOn(CORINFO_InstructionSet isa) const
     {
-        if ((opts.compSupportsISA & (1ULL << isa)) != 0)
+        int      arrayIdx = isa / 64;
+        uint64_t isaBit   = isa % 64;
+        if ((opts.compSupportsISA[arrayIdx] & (1ULL << isaBit)) != 0)
         {
             return compExactlyDependsOn(isa);
         }
@@ -8852,8 +8857,10 @@ private:
     bool compHWIntrinsicDependsOn(CORINFO_InstructionSet isa) const
     {
         // Report intent to use the ISA to the EE
+        int      arrayIdx = isa / 64;
+        uint64_t isaBit   = isa % 64;
         compExactlyDependsOn(isa);
-        return ((opts.compSupportsISA & (1ULL << isa)) != 0);
+        return ((opts.compSupportsISA[arrayIdx] & (1ULL << isaBit)) != 0);
     }
 
     bool canUseVexEncoding() const
@@ -8958,19 +8965,23 @@ public:
         JitFlags* jitFlags; // all flags passed from the EE
 
         // The instruction sets that the compiler is allowed to emit.
-        uint64_t compSupportsISA;
+        uint64_t compSupportsISA[CORINFO_InstructionSetFlags::FlagsArrSize];
         // The instruction sets that were reported to the VM as being used by the current method. Subset of
         // compSupportsISA.
-        uint64_t compSupportsISAReported;
+        uint64_t compSupportsISAReported[CORINFO_InstructionSetFlags::FlagsArrSize];
         // The instruction sets that the compiler is allowed to take advantage of implicitly during optimizations.
         // Subset of compSupportsISA.
         // The instruction sets available in compSupportsISA and not available in compSupportsISAExactly can be only
         // used via explicit hardware intrinsics.
-        uint64_t compSupportsISAExactly;
+        uint64_t compSupportsISAExactly[CORINFO_InstructionSetFlags::FlagsArrSize];
 
         void setSupportedISAs(CORINFO_InstructionSetFlags isas)
         {
-            compSupportsISA = isas.GetFlagsRaw();
+            uint64_t* flags = isas.GetFlagsRaw();
+            for (int i = 0; i < CORINFO_InstructionSetFlags::FlagsArrSize; i++)
+            {
+                compSupportsISA[i] = flags[i];
+            }
         }
 
         unsigned compFlags; // method attributes
