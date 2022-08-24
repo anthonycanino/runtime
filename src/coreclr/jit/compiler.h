@@ -8923,6 +8923,15 @@ private:
 #endif
     }
 
+    bool canUseEvexEncoding() const
+    {
+#ifdef TARGET_XARCH
+        return compOpportunisticallyDependsOn(InstructionSet_AVX512F);
+#else
+        return false;
+#endif
+    }
+
     /*
     XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
     XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
