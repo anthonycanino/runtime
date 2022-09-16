@@ -39,7 +39,7 @@ struct CnsVal
 };
 
 UNATIVE_OFFSET emitInsSize(code_t code, bool includeRexPrefixSize);
-UNATIVE_OFFSET emitInsSizeSV(code_t code, int var, int dsp);
+UNATIVE_OFFSET emitInsSizeSVCalcDisp(instrDesc* id, code_t code, int var, int dsp);
 UNATIVE_OFFSET emitInsSizeSV(instrDesc* id, code_t code, int var, int dsp);
 UNATIVE_OFFSET emitInsSizeSV(instrDesc* id, code_t code, int var, int dsp, int val);
 UNATIVE_OFFSET emitInsSizeRR(instrDesc* id, code_t code);
@@ -168,7 +168,6 @@ code_t AddVexPrefixIfNeededAndNotPresent(instruction ins, code_t code, emitAttr 
     return code;
 }
 
-// TODO-XArch-AVX512: Explore adding this as a flag to instr table.
 bool IsWEvexOpcodeExtension(instruction ins)
 {
     if (!TakesEvexPrefix(ins))
@@ -431,6 +430,12 @@ void SetUseEVEXEncoding(bool value)
     useEVEXEncodings = value;
 }
 
+bool UseSIMDEncoding() const
+{
+    return UseVEXEncoding() || UseEVEXEncoding();
+}
+
+
 // 4-byte EVEX prefix starts with byte 0x62
 #define EVEX_PREFIX_MASK 0xFF00000000000000ULL
 #define EVEX_PREFIX_CODE 0x6200000000000000ULL
@@ -456,16 +461,35 @@ code_t AddSIMDPrefixIfNeeded(instruction ins, code_t code, emitAttr size)
     return code;
 }
 
+code_t AddSIMDPrefixIfNeededAndNotPresent(instruction ins, code_t code, emitAttr size)
+{
+    if (TakesEvexPrefix(ins))
+    {
+        code = !hasEvexPrefix(code) ? AddEvexPrefix(ins, code, size) : code;
+    }
+    else if (TakesVexPrefix(ins))
+    {
+        code = !hasVexPrefix(code) ? AddVexPrefix(ins, code, size) : code;
+    }
+    return code;
+}
+
+bool TakesSIMDPrefix(instruction ins) const;
+
 bool hasSIMDPrefix(code_t code)
 {
     return (hasVexPrefix(code) || hasEvexPrefix(code));
 }
+
+ssize_t AdjustDispForEvex(instrDesc* id, ssize_t dsp, bool *dspInByte);
 
 // Temporary check to use when adding EVEX codepaths
 bool codeEvexMigrationCheck(code_t code)
 {
     return hasEvexPrefix(code);
 }
+
+ssize_t GetInputSizeInBytes(instrDesc* id);
 
 bool containsAVXInstruction = false;
 bool ContainsAVX()
@@ -884,6 +908,12 @@ inline bool emitIsUncondJump(instrDesc* jmp)
     assert(jmp->idInsFmt() == IF_LABEL);
 
     return (ins == INS_jmp);
+}
+
+// TODO-AVX512: Add eventual check on the instrDesc
+inline bool HasEmbeddedBroadcast(instrDesc* id)
+{
+    return false;
 }
 
 #endif // TARGET_XARCH
