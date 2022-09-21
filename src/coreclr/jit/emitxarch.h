@@ -178,6 +178,7 @@ bool IsWEvexOpcodeExtension(instruction ins)
 
     switch (ins)
     {
+        case INS_movq:
         case INS_addpd:
         case INS_addsd:
         case INS_movsd:
@@ -208,6 +209,8 @@ bool IsWEvexOpcodeExtension(instruction ins)
         case INS_cvtsd2ss:
         case INS_cvtpd2dq:
         case INS_cvttpd2dq:
+        case INS_comisd:
+        case INS_ucomisd:
         case INS_paddq:
         case INS_psubq:
         case INS_pmuludq:
@@ -265,6 +268,7 @@ bool IsWEvexOpcodeExtension(instruction ins)
         {
             return true; // W1
         }
+        case INS_movd:
         case INS_punpckldq:
         case INS_movntdq:
         case INS_movntps:
@@ -302,6 +306,8 @@ bool IsWEvexOpcodeExtension(instruction ins)
         case INS_cvtps2dq:
         case INS_cvttps2dq:
         case INS_cvtdq2pd:
+        case INS_comiss:
+        case INS_ucomiss:
         case INS_paddd:
         case INS_psubd:
         case INS_pslld:
