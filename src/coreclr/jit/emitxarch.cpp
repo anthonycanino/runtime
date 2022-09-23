@@ -3232,11 +3232,21 @@ inline UNATIVE_OFFSET emitter::emitInsSizeSVCalcDisp(instrDesc *id, code_t code,
 //  printf("lcl = %04X, tmp = %04X, stk = %04X, offs = %04X\n",
 //         emitLclSize, emitMaxTmpSize, emitCurStackLvl, offs);
 
+    bool useSmallEncoding = false;
+    if (TakesEvexPrefix(id->idIns()))
+    {
+        AdjustDispForEvex(id, ssize_t(offs), &useSmallEncoding);
+    }
+    else
+    {
 #ifdef TARGET_AMD64
-    bool useSmallEncoding = (SCHAR_MIN <= (int)offs) && ((int)offs <= SCHAR_MAX);
+    useSmallEncoding = (SCHAR_MIN <= (int)offs) && ((int)offs <= SCHAR_MAX);
 #else
-    bool useSmallEncoding = (offs <= size_t(SCHAR_MAX));
+    useSmallEncoding = (offs <= size_t(SCHAR_MAX));
 #endif
+    }
+
+    
 
     // If it is ESP based, and the offset is zero, we will not encode the disp part.
     if (!EBPbased && offs == 0)
@@ -14495,7 +14505,6 @@ ssize_t emitter::AdjustDispForEvex(instrDesc* id, ssize_t dsp, bool *dspInByte)
 
     // Only handling non-broadcast forms right now
     ssize_t vectorLength = EA_SIZE_IN_BYTES(id->idOpSize());
-    assert(vectorLength > EA_8BYTE);
 
     ssize_t inputSize = GetInputSizeInBytes(id);
 
