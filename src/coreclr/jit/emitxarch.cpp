@@ -1125,6 +1125,18 @@ emitter::code_t emitter::AddRexRPrefix(instruction ins, code_t code)
 
 emitter::code_t emitter::AddRexXPrefix(instruction ins, code_t code)
 {
+    if (UseEVEXEncoding() && IsAVX512Instruction(ins))
+    {
+        if (TakesEvexPrefix(ins))
+        {
+            // X-bit is available in 4-byte EVEX prefix that starts with byte 62.
+            assert(hasEvexPrefix(code));
+
+            // X-bit is added in bit-inverted form.
+            return code & 0xFFBFFFFFFFFFFFFFULL;
+        }
+    }
+
     if (UseVEXEncoding() && IsAVXInstruction(ins))
     {
         if (TakesVexPrefix(ins))

@@ -187,10 +187,9 @@ INST3(movmskpd,         "movmskpd",         IUM_WR, BAD_CODE,     BAD_CODE,     
 // TODO-AVX512-Cleanup: How does input size affect movd/movq
 INST3(movd,             "movd",             IUM_WR, PCKDBL(0x7E), BAD_CODE,     PCKDBL(0x6E),                            INS_TT_NONE,    INS_FLAGS_None)    // Move Double/Quadword between mm regs <-> memory/r32/r64 regs, cleanup https://github.com/dotnet/runtime/issues/47943
 INST3(movq,             "movq",             IUM_WR, PCKDBL(0xD6), BAD_CODE,     SSEFLT(0x7E),                            INS_TT_NONE,    INS_FLAGS_None)    // Move Quadword between memory/mm <-> regs, cleanup https://github.com/dotnet/runtime/issues/47943
-INST3(movsdsse2,        "movsd",            IUM_WR, SSEDBL(0x11), BAD_CODE,     SSEDBL(0x10),                            INS_TT_NONE,    INS_Flags_IsDstSrcSrcAVXInstruction)
+INST3(movsdsse2,        "movsd",            IUM_WR, SSEDBL(0x11), BAD_CODE,     SSEDBL(0x10),                            INS_TT_TUPLE1_SCALAR,    Input_64Bit | INS_Flags_IsDstSrcSrcAVXInstruction)
 
-// TODO-AVX512-Cleanup: How does input size affect punpckldq
-INST3(punpckldq,        "punpckldq",        IUM_WR, BAD_CODE,     BAD_CODE,     PCKDBL(0x62),                            INS_TT_NONE,    INS_Flags_IsDstDstSrcAVXInstruction)
+INST3(punpckldq,        "punpckldq",        IUM_WR, BAD_CODE,     BAD_CODE,     PCKDBL(0x62),                            INS_TT_FULL,    Input_32Bit | INS_Flags_IsDstDstSrcAVXInstruction)
 
 INST3(xorps,            "xorps",            IUM_WR, BAD_CODE,     BAD_CODE,     PCKFLT(0x57),                            INS_TT_FULL,    Input_32Bit | INS_Flags_IsDstDstSrcAVXInstruction)    // XOR packed singles
 
@@ -225,8 +224,7 @@ INST3(maskmovdqu,       "maskmovdqu",       IUM_WR, BAD_CODE,     BAD_CODE,     
 INST3(shufps,           "shufps",           IUM_WR, BAD_CODE,     BAD_CODE,     PCKFLT(0xC6),                            INS_TT_FULL,    Input_32Bit | INS_Flags_IsDstDstSrcAVXInstruction)
 INST3(shufpd,           "shufpd",           IUM_WR, BAD_CODE,     BAD_CODE,     PCKDBL(0xC6),                            INS_TT_FULL,    Input_64Bit | INS_Flags_IsDstDstSrcAVXInstruction)
 
-// TODO-AVX512-Cleanup: How does input size affect punpckhdq
-INST3(punpckhdq,        "punpckhdq",        IUM_WR, BAD_CODE,     BAD_CODE,     PCKDBL(0x6A),                            INS_TT_NONE,    INS_Flags_IsDstDstSrcAVXInstruction)
+INST3(punpckhdq,        "punpckhdq",        IUM_WR, BAD_CODE,     BAD_CODE,     PCKDBL(0x6A),                            INS_TT_FULL,    Input_32Bit | INS_Flags_IsDstDstSrcAVXInstruction)
 
 INST3(lfence,           "lfence",           IUM_RD, 0x000FE8AE,   BAD_CODE,     BAD_CODE,                                INS_TT_NONE,    INS_FLAGS_None)
 INST3(mfence,           "mfence",           IUM_RD, 0x000FF0AE,   BAD_CODE,     BAD_CODE,                                INS_TT_NONE,    INS_FLAGS_None)
