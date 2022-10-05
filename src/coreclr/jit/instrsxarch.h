@@ -619,6 +619,7 @@ INST3(FIRST_AVX512_INSTRUCTION, "FIRST_AVX512_INSTRUCTION", IUM_WR, BAD_CODE, BA
 
 INST3(vcvtqq2pd,          "cvtqq2pd",          IUM_WR, BAD_CODE,     BAD_CODE,     PACK3(0xF3, 0x0F, 0xE6),               INS_FLAGS_None)    // cvt packed quad word to double
 INST3(vcvtuqq2pd,         "cvtuqq2pd",         IUM_WR, BAD_CODE,     BAD_CODE,     PACK3(0xF3, 0x0F, 0x7A),               INS_FLAGS_None)    // cvt packed unsigned quad word to double
+INST3(vcvtpd2qq,          "cvtpd2qq",          IUM_WR, BAD_CODE,     BAD_CODE,     PACK3(0x66, 0x0F, 0x7B),               INS_FLAGS_None)    // cvt packed quad word to double
 
 
 INST3(LAST_AVX512_INSTRUCTION, "LAST_AVX512_INSTRUCTION", IUM_WR, BAD_CODE, BAD_CODE, BAD_CODE, INS_FLAGS_None)
