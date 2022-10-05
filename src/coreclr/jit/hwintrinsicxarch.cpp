@@ -876,10 +876,23 @@ GenTree* Compiler::impBaseIntrinsic(NamedIntrinsic        intrinsic,
             break;
         }
 
-        case NI_Vector128_ConvertToUInt32:
-        case NI_Vector256_ConvertToUInt32:
         case NI_Vector128_ConvertToUInt64:
         case NI_Vector256_ConvertToUInt64:
+        {
+            assert(sig->numArgs == 1);
+            assert(simdBaseType == TYP_DOUBLE);
+
+            intrinsic = (simdSize == 32) ? NI_AVX512DQ_VL_ConvertToVector256UInt64
+                                         : NI_AVX512DQ_VL_ConvertToVector128UInt64;
+
+            op1     = impSIMDPopStack(retType);
+            retNode = gtNewSimdHWIntrinsicNode(retType, op1, intrinsic, simdBaseJitType, simdSize);
+
+            break;
+        }
+
+        case NI_Vector128_ConvertToUInt32:
+        case NI_Vector256_ConvertToUInt32:
         {
             assert(sig->numArgs == 1);
             // TODO-XARCH-CQ: These intrinsics should be accelerated

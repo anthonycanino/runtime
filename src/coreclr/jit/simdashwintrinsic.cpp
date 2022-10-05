@@ -410,8 +410,6 @@ GenTree* Compiler::impSimdAsHWIntrinsicSpecial(NamedIntrinsic       intrinsic,
 #if defined(TARGET_XARCH)
         case NI_VectorT128_ConvertToUInt32:
         case NI_VectorT256_ConvertToUInt32:
-        case NI_VectorT128_ConvertToUInt64:
-        case NI_VectorT256_ConvertToUInt64:
         {
             // TODO-XARCH-CQ: These intrinsics should be accelerated
             return nullptr;
@@ -826,6 +824,17 @@ GenTree* Compiler::impSimdAsHWIntrinsicSpecial(NamedIntrinsic       intrinsic,
                     assert(simdBaseType == TYP_FLOAT);
                     NamedIntrinsic convert = (simdSize == 32) ? NI_AVX_ConvertToVector256Int32WithTruncation
                                                               : NI_SSE2_ConvertToVector128Int32WithTruncation;
+                    return gtNewSimdHWIntrinsicNode(retType, op1, convert, simdBaseJitType, simdSize,
+                                                    /* isSimdAsHWIntrinsic */ true);
+                }
+
+                case NI_VectorT128_ConvertToUInt64:
+                case NI_VectorT256_ConvertToUInt64:
+                {
+                    assert(sig->numArgs == 1);
+                    assert(simdBaseType == TYP_DOUBLE);
+                    NamedIntrinsic convert = (simdSize == 32) ? NI_AVX512DQ_VL_ConvertToVector256UInt64
+                                                : NI_AVX512DQ_VL_ConvertToVector128UInt64;
                     return gtNewSimdHWIntrinsicNode(retType, op1, convert, simdBaseJitType, simdSize,
                                                     /* isSimdAsHWIntrinsic */ true);
                 }

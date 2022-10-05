@@ -270,6 +270,7 @@ bool IsWEvexOpcodeExtension(instruction ins)
         case INS_vcvtqq2pd:
         case INS_vcvtuqq2pd:
         case INS_vcvtpd2qq:
+        case INS_vcvtpd2uqq:
         {
             return true; // W1
         }
