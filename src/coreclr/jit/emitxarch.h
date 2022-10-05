@@ -385,9 +385,13 @@ bool IsWEvexOpcodeExtension(instruction ins)
         case INS_vpdpbusds:
         case INS_vpdpwssds:
         case INS_vpermilpsvar:
+
+        // New AVX512 ins
+        case INS_vcvtps2udq:
         {
             return false; // W0
         }
+
         default:
         {
             return false; // WIG
