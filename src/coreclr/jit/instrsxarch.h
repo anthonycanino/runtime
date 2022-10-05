@@ -615,6 +615,14 @@ INST3(LAST_BMI_INSTRUCTION, "LAST_BMI_INSTRUCTION", IUM_WR, BAD_CODE, BAD_CODE, 
 
 INST3(LAST_AVX_INSTRUCTION, "LAST_AVX_INSTRUCTION", IUM_WR, BAD_CODE, BAD_CODE, BAD_CODE, INS_FLAGS_None)
 
+INST3(FIRST_AVX512_INSTRUCTION, "FIRST_AVX512_INSTRUCTION", IUM_WR, BAD_CODE, BAD_CODE, BAD_CODE, INS_FLAGS_None)
+
+INST3(vcvtqq2pd,          "cvtqq2pd",          IUM_WR, BAD_CODE,     BAD_CODE,     PACK3(0xF3, 0x0F, 0xE6),               INS_FLAGS_None)    // cvt packed quad word to double
+INST3(vcvtuqq2pd,         "cvtuqq2pd",         IUM_WR, BAD_CODE,     BAD_CODE,     PACK3(0xF3, 0x0F, 0x7A),               INS_FLAGS_None)    // cvt packed unsigned quad word to double
+
+
+INST3(LAST_AVX512_INSTRUCTION, "LAST_AVX512_INSTRUCTION", IUM_WR, BAD_CODE, BAD_CODE, BAD_CODE, INS_FLAGS_None)
+
 // Scalar instructions in SSE4.2
 INST3(crc32,            "crc32",            IUM_WR, BAD_CODE,     BAD_CODE,     PACK4(0xF2, 0x0F, 0x38, 0xF0),           INS_FLAGS_None)
 

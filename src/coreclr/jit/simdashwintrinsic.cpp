@@ -408,8 +408,6 @@ GenTree* Compiler::impSimdAsHWIntrinsicSpecial(NamedIntrinsic       intrinsic,
     switch (intrinsic)
     {
 #if defined(TARGET_XARCH)
-        case NI_VectorT128_ConvertToDouble:
-        case NI_VectorT256_ConvertToDouble:
         case NI_VectorT128_ConvertToInt64:
         case NI_VectorT256_ConvertToInt64:
         case NI_VectorT128_ConvertToUInt32:
@@ -800,6 +798,17 @@ GenTree* Compiler::impSimdAsHWIntrinsicSpecial(NamedIntrinsic       intrinsic,
                 case NI_VectorT256_Abs:
                 {
                     return gtNewSimdAbsNode(retType, op1, simdBaseJitType, simdSize, /* isSimdAsHWIntrinsic */ true);
+                }
+
+                case NI_VectorT128_ConvertToDouble:
+                case NI_VectorT256_ConvertToDouble:
+                {
+                    assert(sig->numArgs == 1);
+                    assert(simdBaseType == TYP_LONG || simdBaseType == TYP_ULONG);
+                    NamedIntrinsic convert = (simdSize == 32) ? NI_AVX512DQ_VL_ConvertToVector128Double
+                                                : NI_AVX512DQ_VL_ConvertToVector128Double;
+                    return gtNewSimdHWIntrinsicNode(retType, op1, convert, simdBaseJitType, simdSize,
+                                                    /* isSimdAsHWIntrinsic */ true);
                 }
 
                 case NI_VectorT128_ConvertToInt32:

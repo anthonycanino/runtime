@@ -6370,7 +6370,9 @@ void Lowering::ContainCheckHWIntrinsic(GenTreeHWIntrinsic* node)
                            (intrinsicId == NI_AVX2_BroadcastScalarToVector256) ||
                            (intrinsicId == NI_AVX2_ConvertToVector256Int16) ||
                            (intrinsicId == NI_AVX2_ConvertToVector256Int32) ||
-                           (intrinsicId == NI_AVX2_ConvertToVector256Int64));
+                           (intrinsicId == NI_AVX2_ConvertToVector256Int64) ||
+                           (intrinsicId == NI_AVX512DQ_VL_ConvertToVector128Double) ||
+                           (intrinsicId == NI_AVX512DQ_VL_ConvertToVector256Double));
 
                     ContainCheckHWIntrinsicAddr(node, op1);
                 }
