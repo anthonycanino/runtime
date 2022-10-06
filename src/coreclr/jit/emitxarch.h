@@ -265,9 +265,16 @@ bool IsWEvexOpcodeExtension(instruction ins)
         case INS_vfnmsub231sd:
         case INS_unpcklpd:
         case INS_vpermilpdvar:
+
+        // New AVX512 ins
+        case INS_vcvtqq2pd:
+        case INS_vcvtuqq2pd:
+        case INS_vcvtpd2qq:
+        case INS_vcvtpd2uqq:
         {
             return true; // W1
         }
+
         case INS_movd:
         case INS_punpckldq:
         case INS_movntdq:
@@ -378,9 +385,14 @@ bool IsWEvexOpcodeExtension(instruction ins)
         case INS_vpdpbusds:
         case INS_vpdpwssds:
         case INS_vpermilpsvar:
+
+        // New AVX512 ins
+        case INS_vcvtps2udq:
+        case INS_vcvtudq2ps:
         {
             return false; // W0
         }
+
         default:
         {
             return false; // WIG

@@ -848,15 +848,61 @@ GenTree* Compiler::impBaseIntrinsic(NamedIntrinsic        intrinsic,
 
         case NI_Vector128_ConvertToDouble:
         case NI_Vector256_ConvertToDouble:
+        {
+            assert(sig->numArgs == 1);
+            assert(simdBaseType == TYP_LONG || simdBaseType == TYP_ULONG);
+
+            intrinsic = (simdSize == 32) ? NI_AVX512DQ_VL_ConvertToVector256Double
+                                         : NI_AVX512DQ_VL_ConvertToVector128Double;
+
+            op1     = impSIMDPopStack(retType);
+            retNode = gtNewSimdHWIntrinsicNode(retType, op1, intrinsic, simdBaseJitType, simdSize);
+
+            break;
+        }
+
         case NI_Vector128_ConvertToInt64:
         case NI_Vector256_ConvertToInt64:
-        case NI_Vector128_ConvertToUInt32:
-        case NI_Vector256_ConvertToUInt32:
+        {
+            assert(sig->numArgs == 1);
+            assert(simdBaseType == TYP_DOUBLE);
+
+            intrinsic = (simdSize == 32) ? NI_AVX512DQ_VL_ConvertToVector256Int64
+                                         : NI_AVX512DQ_VL_ConvertToVector128Int64;
+
+            op1     = impSIMDPopStack(retType);
+            retNode = gtNewSimdHWIntrinsicNode(retType, op1, intrinsic, simdBaseJitType, simdSize);
+
+            break;
+        }
+
         case NI_Vector128_ConvertToUInt64:
         case NI_Vector256_ConvertToUInt64:
         {
             assert(sig->numArgs == 1);
-            // TODO-XARCH-CQ: These intrinsics should be accelerated
+            assert(simdBaseType == TYP_DOUBLE);
+
+            intrinsic = (simdSize == 32) ? NI_AVX512DQ_VL_ConvertToVector256UInt64
+                                         : NI_AVX512DQ_VL_ConvertToVector128UInt64;
+
+            op1     = impSIMDPopStack(retType);
+            retNode = gtNewSimdHWIntrinsicNode(retType, op1, intrinsic, simdBaseJitType, simdSize);
+
+            break;
+        }
+
+        case NI_Vector128_ConvertToUInt32:
+        case NI_Vector256_ConvertToUInt32:
+        {
+            assert(sig->numArgs == 1);
+            assert(simdBaseType == TYP_FLOAT);
+
+            intrinsic = (simdSize == 32) ? NI_AVX512F_VL_ConvertToVector256UInt32
+                                         : NI_AVX512F_VL_ConvertToVector128UInt32;
+
+            op1     = impSIMDPopStack(retType);
+            retNode = gtNewSimdHWIntrinsicNode(retType, op1, intrinsic, simdBaseJitType, simdSize);
+
             break;
         }
 
@@ -886,10 +932,16 @@ GenTree* Compiler::impBaseIntrinsic(NamedIntrinsic        intrinsic,
                 op1     = impSIMDPopStack(retType);
                 retNode = gtNewSimdHWIntrinsicNode(retType, op1, intrinsic, simdBaseJitType, simdSize);
             }
+            else if (simdBaseType == TYP_UINT)
+            {
+                intrinsic = (simdSize == 32) ? NI_AVX512F_VL_ConvertToVector256Single : NI_AVX512F_VL_ConvertToVector128Single;
+
+                op1     = impSIMDPopStack(retType);
+                retNode = gtNewSimdHWIntrinsicNode(retType, op1, intrinsic, simdBaseJitType, simdSize);
+            }
             else
             {
-                // TODO-XARCH-CQ: These intrinsics should be accelerated
-                assert(simdBaseType == TYP_UINT);
+                unreached();
             }
             break;
         }
