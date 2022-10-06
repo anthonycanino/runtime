@@ -17187,6 +17187,7 @@ emitter::insExecutionCharacteristics emitter::getInsExecutionCharacteristics(ins
         case INS_vcvtpd2qq:
         case INS_vcvtpd2uqq:
         case INS_vcvtps2udq:
+        case INS_vcvtudq2ps:
         {
             // TODO-XARCH-AVX512: fill these proper
             result.insLatency += PERFSCORE_LATENCY_1C;

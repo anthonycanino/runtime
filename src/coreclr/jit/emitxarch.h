@@ -388,6 +388,7 @@ bool IsWEvexOpcodeExtension(instruction ins)
 
         // New AVX512 ins
         case INS_vcvtps2udq:
+        case INS_vcvtudq2ps:
         {
             return false; // W0
         }
