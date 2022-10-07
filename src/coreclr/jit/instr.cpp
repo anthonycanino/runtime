@@ -1819,6 +1819,7 @@ instruction CodeGen::ins_MathOp(genTreeOps oper, var_types type)
 instruction CodeGen::ins_FloatConv(var_types to, var_types from, emitAttr attr)
 {
     // AVX: For now we support only conversion from Int/Long -> float
+    // TODO-XARCH-AVX512: We can support not with additional instructions
 
     switch (from)
     {
@@ -1879,6 +1880,8 @@ instruction CodeGen::ins_FloatConv(var_types to, var_types from, emitAttr attr)
                     return INS_cvttsd2si;
                 case TYP_LONG:
                     return INS_cvttsd2si;
+                case TYP_ULONG:
+                    return INS_vcvttsd2usi;
                 case TYP_FLOAT:
                     return INS_cvtsd2ss;
                 case TYP_DOUBLE:
@@ -1887,6 +1890,16 @@ instruction CodeGen::ins_FloatConv(var_types to, var_types from, emitAttr attr)
                     unreached();
             }
             break;
+
+        case TYP_ULONG:
+            switch (to)
+            {
+                case TYP_DOUBLE:
+                    return INS_vcvtusi2sd;
+                default:
+                    unreached();
+            }
+
 
         default:
             unreached();
@@ -1989,6 +2002,7 @@ instruction CodeGen::ins_FloatConv(var_types to, var_types from)
                     unreached();
             }
             break;
+        
         default:
             unreached();
     }
