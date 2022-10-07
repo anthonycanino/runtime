@@ -37,7 +37,7 @@ bool emitter::IsSSEOrAVXInstruction(instruction ins)
 bool emitter::IsSSEOrAVXorAVX512Instruction(instruction ins)
 {
     // TODO-XArch-AVX512: Fix check once AVX512 instructions are added.
-    return (ins >= INS_FIRST_SSE_INSTRUCTION) && (ins <= INS_LAST_AVX_INSTRUCTION);
+    return (ins >= INS_FIRST_SSE_INSTRUCTION) && (ins <= INS_LAST_AVX512_INSTRUCTION);
 }
 
 bool emitter::IsAVXOnlyInstruction(instruction ins)
@@ -47,7 +47,7 @@ bool emitter::IsAVXOnlyInstruction(instruction ins)
 
 bool emitter::IsAVX512OnlyInstruction(instruction ins)
 {
-    return false; // TODO-XArch-AVX512: Fix check once AVX512 instructions are added.
+    return (ins >= INS_FIRST_AVX512_INSTRUCTION) && (ins <= INS_LAST_AVX512_INSTRUCTION);
 }
 
 bool emitter::IsFMAInstruction(instruction ins)
@@ -13073,10 +13073,6 @@ BYTE* emitter::emitOutputRR(BYTE* dst, instrDesc* id)
     regNumber   reg1 = id->idReg1();
     regNumber   reg2 = id->idReg2();
     emitAttr    size = id->idOpSize();
-    if ((ins == INS_movq) || (ins == INS_movd))
-    {
-        emitDispIns(id, false, false, false);
-    }
 
     if (IsSSEOrAVXorAVX512Instruction(ins))
     {
@@ -17185,6 +17181,17 @@ emitter::insExecutionCharacteristics emitter::getInsExecutionCharacteristics(ins
             break;
         }
 #endif
+
+        case INS_vcvtsd2usi:
+        case INS_vcvttsd2usi:
+        case INS_vcvtusi2sd:
+        {
+            // TODO-XARCH-AVX512: fill these proper
+            result.insLatency += PERFSCORE_LATENCY_1C;
+            result.insThroughput = PERFSCORE_THROUGHPUT_2X;
+            break;
+        }
+
         default:
             // unhandled instruction insFmt combination
             perfScoreUnhandledInstruction(id, &result);

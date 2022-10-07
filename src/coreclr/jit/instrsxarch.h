@@ -615,6 +615,15 @@ INST3(LAST_BMI_INSTRUCTION, "LAST_BMI_INSTRUCTION", IUM_WR, BAD_CODE, BAD_CODE, 
 
 INST3(LAST_AVX_INSTRUCTION, "LAST_AVX_INSTRUCTION", IUM_WR, BAD_CODE, BAD_CODE, BAD_CODE, INS_FLAGS_None)
 
+
+INST3(FIRST_AVX512_INSTRUCTION, "FIRST_AVX512_INSTRUCTION", IUM_WR, BAD_CODE, BAD_CODE, BAD_CODE, INS_FLAGS_None)
+
+INST3(vcvtsd2usi,         "cvtsd2usi",         IUM_WR, BAD_CODE,     BAD_CODE,     PACK3(0xF2, 0x0f, 0x79),              INS_FLAGS_None)    
+INST3(vcvttsd2usi,        "cvttsd2usi",        IUM_WR, BAD_CODE,     BAD_CODE,     PACK3(0xF2, 0x0f, 0x78),              INS_FLAGS_None)    
+INST3(vcvtusi2sd,         "cvttusi2sd",        IUM_WR, BAD_CODE,     BAD_CODE,     PACK3(0xF2, 0x0f, 0x7b),              INS_FLAGS_None)    
+
+INST3(LAST_AVX512_INSTRUCTION, "FIRST_AVX512_INSTRUCTION", IUM_WR, BAD_CODE, BAD_CODE, BAD_CODE, INS_FLAGS_None)
+
 // Scalar instructions in SSE4.2
 INST3(crc32,            "crc32",            IUM_WR, BAD_CODE,     BAD_CODE,     PACK4(0xF2, 0x0F, 0x38, 0xF0),           INS_FLAGS_None)
 
