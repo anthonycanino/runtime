@@ -268,6 +268,7 @@ bool IsWEvexOpcodeExtension(instruction ins)
 
         // AVX512
         case INS_vcvttss2usi_r64:
+        case INS_vcvtusi2ss_r64:
         {
             return true; // W1
         }
@@ -387,6 +388,7 @@ bool IsWEvexOpcodeExtension(instruction ins)
         case INS_vcvttsd2usi:
         case INS_vcvtusi2sd:
         case INS_vcvttss2usi_r32:
+        case INS_vcvtusi2ss_r32:
         {
             return false; // W0
         }

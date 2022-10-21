@@ -694,7 +694,7 @@ void Lowering::LowerCast(GenTree* tree)
     //   srcType = uint                            castToType = float/double
     //       Reason: uint -> float/double = uint -> long -> float/double
     //   srcType = ulong                           castToType = float
-    //       Reason: ulong -> float = ulong -> double -> float
+    //       Reason: ulong -> float = ulong -> double -> float unless we have AVX512F
     if (srcType == TYP_FLOAT && !comp->compOpportunisticallyDependsOn(InstructionSet_AVX512F))
     {
         noway_assert(!tree->gtOverflow());
@@ -704,7 +704,7 @@ void Lowering::LowerCast(GenTree* tree)
     {
         noway_assert(!varTypeIsFloating(castToType));
     }
-    else if (srcType == TYP_ULONG)
+    else if (srcType == TYP_ULONG && !comp->compOpportunisticallyDependsOn(InstructionSet_AVX512F))
     {
         noway_assert(castToType != TYP_FLOAT);
     }

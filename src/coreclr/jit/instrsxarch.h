@@ -620,7 +620,11 @@ INST3(FIRST_AVX512_INSTRUCTION, "FIRST_AVX512_INSTRUCTION", IUM_WR, BAD_CODE, BA
 
 INST3(vcvtsd2usi,         "cvtsd2usi",         IUM_WR, BAD_CODE,     BAD_CODE,     PACK3(0xF2, 0x0f, 0x79),              INS_FLAGS_None)    
 INST3(vcvttsd2usi,        "cvttsd2usi",        IUM_WR, BAD_CODE,     BAD_CODE,     PACK3(0xF2, 0x0f, 0x78),              INS_FLAGS_None)    
+
 INST3(vcvtusi2sd,         "cvttusi2sd",        IUM_WR, BAD_CODE,     BAD_CODE,     PACK3(0xF2, 0x0f, 0x7b),              INS_FLAGS_None)    
+
+INST3(vcvtusi2ss_r32,     "cvttusi2ss",        IUM_WR, BAD_CODE,     BAD_CODE,     PACK3(0xF3, 0x0f, 0x7b),              INS_FLAGS_None)    
+INST3(vcvtusi2ss_r64,     "cvttusi2ss",        IUM_WR, BAD_CODE,     BAD_CODE,     PACK3(0xF3, 0x0f, 0x7b),              INS_FLAGS_None)    
 
 INST3(vcvttss2usi_r32,    "cvttss2usi",        IUM_WR, BAD_CODE,     BAD_CODE,     PACK3(0xF3, 0x0f, 0x78),              INS_FLAGS_None)    
 INST3(vcvttss2usi_r64,    "cvttss2usi",        IUM_WR, BAD_CODE,     BAD_CODE,     PACK3(0xF3, 0x0f, 0x78),              INS_FLAGS_None)    

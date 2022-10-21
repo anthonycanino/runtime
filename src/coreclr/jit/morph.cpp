@@ -280,38 +280,6 @@ GenTree* Compiler::fgMorphExpandCast(GenTreeCast* tree)
     var_types dstType = tree->CastToType();
     unsigned  dstSize = genTypeSize(dstType);
 
-/*
-    // See if the cast can be contracted into a single optimized cast
-#if defined(TARGET_AMD64)
-    if (compOpportunisticallyDependsOn(InstructionSet_AVX512F))
-    {
-        if (oper->OperIs(GT_CAST))
-        {
-            GenTreeCast *innerCast = static_cast<GenTreeCast*>(oper);
-            GenTree* innerOper = innerCast->CastOp();
-            var_types innerSrcType = genActualType(innerOper);
-            var_types innerDstType = innerCast->CastToType();
-            unsigned  innerDstSize = genTypeSize(innerDstType);
-
-            if (innerCast->IsUnsigned())
-            {
-                innerSrcType = varTypeToUnsigned(innerSrcType);
-
-                if (innerSrcType == TYP_UINT)
-                {
-                    if (dstType == TYP_FLOAT && innerDstType == TYP_DOUBLE)
-                    {
-                        // One optimized cast here
-                        tree = gtNewCastNode(TYP_UINT, innerOper, true, TYP_FLOAT);
-                        return fgMorphTree(tree);
-                    }
-                }
-            }
-        }
-    }
-#endif
-*/
-
     // See if the cast has to be done in two steps.  R -> I
     if (varTypeIsFloating(srcType) && varTypeIsIntegral(dstType))
     {
@@ -437,6 +405,19 @@ GenTree* Compiler::fgMorphExpandCast(GenTreeCast* tree)
     }
 #endif // TARGET_ARMARCH
 
+#ifdef TARGET_AMD64
+    // AMD64 can perform similar ARM optimization above if AVX512F ISA available
+    else if ((dstType == TYP_FLOAT) && (srcType == TYP_DOUBLE) && oper->OperIs(GT_CAST) 
+            && compOpportunisticallyDependsOn(InstructionSet_AVX512F))
+    {
+        oper->gtType       = TYP_FLOAT;
+        oper->CastToType() = TYP_FLOAT;
+
+        return fgMorphTree(oper);
+    }
+#endif // TARGET_AMD64
+
+
 #ifdef TARGET_ARM
     // converts long/ulong --> float/double casts into helper calls.
     else if (varTypeIsFloating(dstType) && varTypeIsLong(srcType))
@@ -475,7 +456,7 @@ GenTree* Compiler::fgMorphExpandCast(GenTreeCast* tree)
 
         if (srcType == TYP_ULONG)
         {
-            if (dstType == TYP_FLOAT)
+            if (dstType == TYP_FLOAT && !compOpportunisticallyDependsOn(InstructionSet_AVX512F))
             {
                 // Codegen can handle U8 -> R8 conversion.
                 // U8 -> R4 =  U8 -> R8 -> R4
@@ -491,20 +472,13 @@ GenTree* Compiler::fgMorphExpandCast(GenTreeCast* tree)
         }
         else if (srcType == TYP_UINT)
         {
-#if defined(TARGET_AMD64)
             if (!compOpportunisticallyDependsOn(InstructionSet_AVX512F))
             {
-#endif
-            oper = gtNewCastNode(TYP_LONG, oper, true, TYP_LONG);
-            oper->gtFlags |= (tree->gtFlags & (GTF_OVERFLOW | GTF_EXCEPT));
-            tree->ClearUnsigned();
-            tree->CastOp() = oper;
-#if defined(TARGET_AMD64)
+                oper = gtNewCastNode(TYP_LONG, oper, true, TYP_LONG);
+                oper->gtFlags |= (tree->gtFlags & (GTF_OVERFLOW | GTF_EXCEPT));
+                tree->ClearUnsigned();
+                tree->CastOp() = oper;
             }
-#endif
-
-
-
         }
     }
 #endif // TARGET_AMD64
