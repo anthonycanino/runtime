@@ -17949,6 +17949,8 @@ emitter::insExecutionCharacteristics emitter::getInsExecutionCharacteristics(ins
         case INS_vcvtusi2sd:
         case INS_vcvttss2usi_r32:
         case INS_vcvttss2usi_r64:
+        case INS_vcvtusi2ss_r32:
+        case INS_vcvtusi2ss_r64:
         {
             // TODO-XARCH-AVX512: fill these proper
             result.insLatency += PERFSCORE_LATENCY_1C;

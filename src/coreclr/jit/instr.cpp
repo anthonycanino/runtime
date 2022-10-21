@@ -1898,6 +1898,8 @@ instruction CodeGen::ins_FloatConv(var_types to, var_types from, emitAttr attr)
             {
                 case TYP_DOUBLE:
                     return INS_vcvtusi2sd;
+                case TYP_FLOAT:
+                    return INS_vcvtusi2ss_r64;
                 default:
                     unreached();
             }
