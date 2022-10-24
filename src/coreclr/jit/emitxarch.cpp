@@ -3052,7 +3052,7 @@ inline UNATIVE_OFFSET emitter::emitInsSizeRR(instrDesc* id, code_t code, int val
     }
     else
     {
-        assert(!IsSSEOrAVXInstruction(ins));
+        assert(!IsAvx512OrPriorInstruction(ins));
     }
 
     return valSize + emitInsSizeRR(id, code);
@@ -3067,7 +3067,7 @@ inline UNATIVE_OFFSET emitter::emitInsSizeRR(instruction ins, regNumber reg1, re
     // This would probably be better expressed as a different format or something?
     code_t code = insCodeRM(ins);
 
-    UNATIVE_OFFSET sz = emitGetAdjustedSize(ins, size, insCodeRM(ins));
+    UNATIVE_OFFSET sz = emitGetAdjustedSizeEvexAware(ins, size, insCodeRM(ins));
 
     bool includeRexPrefixSize = true;
     // REX prefix
@@ -3083,7 +3083,7 @@ inline UNATIVE_OFFSET emitter::emitInsSizeRR(instruction ins, regNumber reg1, re
 
     if ((code & 0xFF00) != 0)
     {
-        sz += IsSSEOrAVXInstruction(ins) ? emitInsSize(code, includeRexPrefixSize) : 5;
+        sz += IsAvx512OrPriorInstruction(ins) ? emitInsSize(code, includeRexPrefixSize) : 5;
     }
     else
     {
@@ -13275,7 +13275,7 @@ BYTE* emitter::emitOutputRR(BYTE* dst, instrDesc* id)
     regNumber   reg2 = id->idReg2();
     emitAttr    size = id->idOpSize();
 
-    if (IsSSEOrAVXInstruction(ins))
+    if (IsAvx512OrPriorInstruction(ins))
     {
         assert((ins != INS_movd) || (isFloatReg(reg1) != isFloatReg(reg2)));
 
@@ -13287,10 +13287,12 @@ BYTE* emitter::emitOutputRR(BYTE* dst, instrDesc* id)
         {
             code = insCodeMR(ins);
         }
-        code = AddVexPrefixIfNeeded(ins, code, size);
+        code = AddSimdPrefixIfNeeded(ins, code, size);
         code = insEncodeRMreg(ins, code);
 
-        if (TakesRexWPrefix(ins, size))
+        // TODO-XARCH-AVX512 : Update this check once all paths have EVEX support.
+        // Explore moving IsWEvexOpcodeExtension() logic to instruction table as flag.
+        if (TakesRexWPrefix(ins, size) || (codeEvexMigrationCheck(code) && IsWEvexOpcodeExtension(ins)))
         {
             code = AddRexWPrefix(ins, code);
         }
@@ -13299,7 +13301,7 @@ BYTE* emitter::emitOutputRR(BYTE* dst, instrDesc* id)
     {
         assert(hasCodeRM(ins) && !hasCodeMI(ins) && !hasCodeMR(ins));
         code = insCodeRM(ins);
-        code = AddVexPrefixIfNeeded(ins, code, size);
+        code = AddSimdPrefixIfNeeded(ins, code, size);
         code = insEncodeRMreg(ins, code) | (int)(size == EA_2BYTE);
 #ifdef TARGET_AMD64
 
@@ -13313,7 +13315,7 @@ BYTE* emitter::emitOutputRR(BYTE* dst, instrDesc* id)
     {
         assert(hasCodeRM(ins) && !hasCodeMI(ins) && !hasCodeMR(ins));
         code = insCodeRM(ins);
-        code = AddVexPrefixIfNeeded(ins, code, size);
+        code = AddSimdPrefixIfNeeded(ins, code, size);
         code = insEncodeRMreg(ins, code);
 
 #endif // TARGET_AMD64
@@ -13344,7 +13346,7 @@ BYTE* emitter::emitOutputRR(BYTE* dst, instrDesc* id)
 #endif // FEATURE_HW_INTRINSICS
     else
     {
-        assert(!TakesVexPrefix(ins));
+        assert(!TakesSimdPrefix(ins));
         code = insCodeMR(ins);
         code = insEncodeMRreg(ins, code);
 
@@ -13416,7 +13418,7 @@ BYTE* emitter::emitOutputRR(BYTE* dst, instrDesc* id)
     unsigned regCode = insEncodeReg345(ins, regFor345Bits, size, &code);
     regCode |= insEncodeReg012(ins, regFor012Bits, size, &code);
 
-    if (TakesVexPrefix(ins))
+    if (TakesSimdPrefix(ins))
     {
         // In case of AVX instructions that take 3 operands, we generally want to encode reg1
         // as first source.  In this case, reg1 is both a source and a destination.
@@ -13438,7 +13440,7 @@ BYTE* emitter::emitOutputRR(BYTE* dst, instrDesc* id)
     }
 
     // Output the REX prefix
-    dst += emitOutputRexOrVexPrefixIfNeeded(ins, dst, code);
+    dst += emitOutputSimdPrefixIfNeeded(ins, dst, code);
 
     if (code & 0xFF000000)
     {
