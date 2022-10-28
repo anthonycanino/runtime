@@ -1050,6 +1050,18 @@ bool emitter::TakesRexWPrefix(instruction ins, emitAttr attr)
 #endif //! TARGET_AMD64
 }
 
+// Returns true if using this register will require an EVEX.R', EVEX.V' or EVEX.X bit.
+bool isHighSIMDReg(regNumber reg)
+{
+#ifdef TARGET_AMD64
+    return ((reg >= REG_XMM16) && (reg <= REG_XMM31));
+#else
+    // X86 JIT operates in 32-bit mode and hence extended reg are not available.
+    return false;
+#endif
+
+}
+
 // Returns true if using this register will require a REX.* prefix.
 // Since XMM registers overlap with YMM registers, this routine
 // can also be used to know whether a YMM register if the
@@ -1069,7 +1081,7 @@ bool IsExtendedReg(regNumber reg, emitAttr attr)
 {
 #ifdef TARGET_AMD64
     // Not a register, so doesn't need a prefix
-    if (reg > REG_XMM15)
+    if (reg > REG_XMM31)
     {
         return false;
     }
@@ -1110,10 +1122,17 @@ bool IsExtendedReg(regNumber reg, emitAttr attr)
 bool IsXMMReg(regNumber reg)
 {
 #ifdef TARGET_AMD64
-    return (reg >= REG_XMM0) && (reg <= REG_XMM15);
+    return (reg >= REG_XMM0) && (reg <= REG_XMM31);
 #else  // !TARGET_AMD64
     return (reg >= REG_XMM0) && (reg <= REG_XMM7);
 #endif // !TARGET_AMD64
+}
+
+// Returns bits to be encoded in instruction for the given register
+unsigned HighAwareRegEncoding(regNumber reg)
+{
+    static_assert((REG_XMM0 & 0x7) == 0, "bad XMMBASE");
+    return (unsigned)(reg & 0xF);
 }
 
 // Returns bits to be encoded in instruction for the given register.
@@ -1249,6 +1268,13 @@ emitter::code_t emitter::AddRexPrefix(instruction ins, code_t code)
     assert(!UseVEXEncoding() || !IsAVXInstruction(ins));
     assert(!UseEvexEncoding() || !IsAvx512Instruction(ins));
     return code | 0x4000000000ULL;
+}
+
+// Adds REX prefix (0x40) without W, R, X or B bits set
+emitter::code_t emitter::AddEvexVPrimePrefix(code_t code)
+{
+    assert(UseEvexEncoding() && hasEvexPrefix(code));
+    return emitter::code_t(code & 0xFFFFFFF7FFFFFFFFULL);
 }
 
 #endif // TARGET_AMD64
@@ -2740,15 +2766,23 @@ inline emitter::code_t emitter::insEncodeReg3456(instruction ins, regNumber reg,
     {
         regBits |= 0x08;
     }
-
-    // Both prefix encodes register operand in 1's complement form
-    assert(regBits <= 0xF);
+    
     if (UseEvexEncoding() && IsAvx512Instruction(ins))
     {
         if (TakesEvexPrefix(ins) && codeEvexMigrationCheck(code))
         {
             assert(hasEvexPrefix(code) && TakesEvexPrefix(ins));
 
+            // TODO-XARCH-AVX512 I don't like that we redefine regBits on the EVEX case.
+            // Rather see these paths cleaned up.
+            regBits = HighAwareRegEncoding(reg);
+#if defined(TARGET_AMD64)
+            if (isHighSIMDReg(reg))
+            {
+                // Have to set the EVEX V' bit
+                code = AddEvexVPrimePrefix(code);
+            }
+#endif
             // Shift count = 5-bytes of opcode + 0-2 bits for EVEX
             regBits <<= 43;
             return code ^ regBits;
@@ -2756,6 +2790,11 @@ inline emitter::code_t emitter::insEncodeReg3456(instruction ins, regNumber reg,
     }
     if (UseVEXEncoding() && IsAVXInstruction(ins))
     {
+        
+
+        // Both prefix encodes register operand in 1's complement form
+        assert(regBits <= 0xF);
+
         if (TakesVexPrefix(ins))
         {
             assert(hasVexPrefix(code));
