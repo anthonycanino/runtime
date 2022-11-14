@@ -2049,6 +2049,7 @@ int LinearScan::BuildHWIntrinsic(GenTreeHWIntrinsic* intrinsicTree, int* pDstCou
         // Determine whether this is an RMW operation where op2+ must be marked delayFree so that it
         // is not allocated the same register as the target.
         bool isRMW = intrinsicTree->isRMWHWIntrinsic(compiler);
+        bool isEvexCompatible = intrinsicTree->isEvexCompatibleHWIntrinsic(compiler);
 
         // Create internal temps, and handle any other special requirements.
         // Note that the default case for building uses will handle the RMW flag, but if the uses
@@ -2131,8 +2132,14 @@ int LinearScan::BuildHWIntrinsic(GenTreeHWIntrinsic* intrinsicTree, int* pDstCou
                 assert(!isRMW);
 
                 // MaskMove hardcodes the destination (op3) in DI/EDI/RDI
+#if defined(TARGET_AMD64)                
+                srcCount += BuildOperandUses(op1, lowSIMDRegs());
+                srcCount += BuildOperandUses(op2, lowSIMDRegs());
+#else
                 srcCount += BuildOperandUses(op1);
                 srcCount += BuildOperandUses(op2);
+#endif
+
                 srcCount += BuildOperandUses(op3, RBM_EDI);
 
                 buildUses = false;
@@ -2396,25 +2403,37 @@ int LinearScan::BuildHWIntrinsic(GenTreeHWIntrinsic* intrinsicTree, int* pDstCou
         {
             assert((numArgs > 0) && (numArgs < 4));
 
+            regMaskTP op1RegCandidates = 0ULL;
+            if (!isEvexCompatible && (varTypeIsFloating(op1->gtType) || varTypeIsSIMD(op1->gtType)))
+            {
+                op1RegCandidates = lowSIMDRegs();
+            }
+
             if (intrinsicTree->OperIsMemoryLoadOrStore())
             {
-                srcCount += BuildAddrUses(op1);
+                srcCount += BuildAddrUses(op1, op1RegCandidates);
             }
             else if (isRMW && !op1->isContained())
             {
-                tgtPrefUse = BuildUse(op1);
+                tgtPrefUse = BuildUse(op1, op1RegCandidates);
                 srcCount += 1;
             }
             else
             {
-                srcCount += BuildOperandUses(op1);
+                srcCount += BuildOperandUses(op1, op1RegCandidates);
             }
 
             if (op2 != nullptr)
             {
+                regMaskTP op2RegCandidates = 0ULL;
+                if (!isEvexCompatible && (varTypeIsFloating(op2->gtType) || varTypeIsSIMD(op2->gtType)))
+                {
+                    op2RegCandidates = lowSIMDRegs();
+                }
+
                 if (op2->OperIs(GT_HWINTRINSIC) && op2->AsHWIntrinsic()->OperIsMemoryLoad() && op2->isContained())
                 {
-                    srcCount += BuildAddrUses(op2->AsHWIntrinsic()->Op(1));
+                    srcCount += BuildAddrUses(op2->AsHWIntrinsic()->Op(1), op2RegCandidates);
                 }
                 else if (isRMW)
                 {
@@ -2423,7 +2442,7 @@ int LinearScan::BuildHWIntrinsic(GenTreeHWIntrinsic* intrinsicTree, int* pDstCou
                         // When op2 is not contained and we are commutative, we can set op2
                         // to also be a tgtPrefUse. Codegen will then swap the operands.
 
-                        tgtPrefUse2 = BuildUse(op2);
+                        tgtPrefUse2 = BuildUse(op2, op2RegCandidates);
                         srcCount += 1;
                     }
                     else if (!op2->isContained() || varTypeIsArithmetic(intrinsicTree->TypeGet()))
@@ -2431,7 +2450,7 @@ int LinearScan::BuildHWIntrinsic(GenTreeHWIntrinsic* intrinsicTree, int* pDstCou
                         // When op2 is not contained or if we are producing a scalar value
                         // we need to mark it as delay free because the operand and target
                         // exist in the same register set.
-                        srcCount += BuildDelayFreeUses(op2, op1);
+                        srcCount += BuildDelayFreeUses(op2, op1, op2RegCandidates);
                     }
                     else
                     {
@@ -2439,17 +2458,23 @@ int LinearScan::BuildHWIntrinsic(GenTreeHWIntrinsic* intrinsicTree, int* pDstCou
                         // have no concerns of overwriting op2 because they exist in different
                         // register sets.
 
-                        srcCount += BuildOperandUses(op2);
+                        srcCount += BuildOperandUses(op2, op2RegCandidates);
                     }
                 }
                 else
                 {
-                    srcCount += BuildOperandUses(op2);
+                    srcCount += BuildOperandUses(op2, op2RegCandidates);
                 }
 
                 if (op3 != nullptr)
                 {
-                    srcCount += isRMW ? BuildDelayFreeUses(op3, op1) : BuildOperandUses(op3);
+                    regMaskTP op3RegCandidates = 0ULL;
+                    if (!isEvexCompatible && (varTypeIsFloating(op3->gtType) || varTypeIsSIMD(op3->gtType)))
+                    {
+                        op3RegCandidates = lowSIMDRegs();
+                    }
+
+                    srcCount += isRMW ? BuildDelayFreeUses(op3, op1, op3RegCandidates) : BuildOperandUses(op3, op3RegCandidates);
                 }
             }
         }
@@ -2459,6 +2484,12 @@ int LinearScan::BuildHWIntrinsic(GenTreeHWIntrinsic* intrinsicTree, int* pDstCou
 
     if (dstCount == 1)
     {
+        if (!intrinsicTree->isEvexCompatibleHWIntrinsic(compiler)
+            && (varTypeIsFloating(intrinsicTree->TypeGet()) || varTypeIsSIMD(intrinsicTree->TypeGet())))
+        {
+            dstCandidates = (dstCandidates == RBM_NONE) ? lowSIMDRegs() : dstCandidates & lowSIMDRegs();
+        }
+
         BuildDef(intrinsicTree, dstCandidates);
     }
     else

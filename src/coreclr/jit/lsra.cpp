@@ -274,6 +274,15 @@ regMaskTP LinearScan::allSIMDRegs()
     return availableFloatRegs;
 }
 
+regMaskTP LinearScan::lowSIMDRegs()
+{
+#if defined(TARGET_AMD64)
+    return (availableFloatRegs & RBM_LOWFLOAT);
+#else
+    return availableFloatRegs;
+#endif
+}
+
 void LinearScan::updateNextFixedRef(RegRecord* regRecord, RefPosition* nextRefPosition)
 {
     LsraLocation nextLocation;
