@@ -909,7 +909,7 @@ regMaskTP LinearScan::getKillSetForCall(GenTreeCall* call)
     // if there is no FP used, we can ignore the FP kills
     if (!compiler->compFloatingPointUsed)
     {
-        killMask &= ~RBM_FLT_CALLEE_TRASH;
+        killMask &= ~compiler->fltCalleeTrashRegs();
     }
 #ifdef TARGET_ARM
     if (call->IsVirtualStub())
@@ -1513,7 +1513,7 @@ void LinearScan::buildUpperVectorSaveRefPositions(GenTree* tree, LsraLocation cu
     {
         // We assume that the kill set includes at least some callee-trash registers, but
         // that it doesn't include any callee-save registers.
-        assert((fpCalleeKillSet & RBM_FLT_CALLEE_TRASH) != RBM_NONE);
+        assert((fpCalleeKillSet & compiler->fltCalleeTrashRegs()) != RBM_NONE);
         assert((fpCalleeKillSet & RBM_FLT_CALLEE_SAVED) == RBM_NONE);
 
         // We only need to save the upper half of any large vector vars that are currently live.
@@ -2959,7 +2959,7 @@ void LinearScan::BuildDefsWithKills(GenTree* tree, int dstCount, regMaskTP dstCa
         // RefPositions in that case.
         // This must be done after the kills, so that we know which large vectors are still live.
         //
-        if ((killMask & RBM_FLT_CALLEE_TRASH) != RBM_NONE)
+        if ((killMask & compiler->fltCalleeTrashRegs()) != RBM_NONE)
         {
             buildUpperVectorSaveRefPositions(tree, currentLoc + 1, killMask);
         }

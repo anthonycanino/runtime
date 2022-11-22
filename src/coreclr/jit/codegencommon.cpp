@@ -3590,7 +3590,7 @@ void CodeGen::genFnPrologCalleeRegArgs(regNumber xtraReg, bool* pXtraRegClobbere
 
                 regMaskTP fpAvailMask;
 
-                fpAvailMask = RBM_FLT_CALLEE_TRASH & ~regArgMaskLive;
+                fpAvailMask = compiler->fltCalleeTrashRegs() & ~regArgMaskLive;
                 if (GlobalJitOptions::compFeatureHfa)
                 {
                     fpAvailMask &= RBM_ALLDOUBLE;
