@@ -75,9 +75,9 @@ inline regMaskTP calleeSaveRegs(RegisterType rt)
 //------------------------------------------------------------------------
 // callerSaveRegs: Get the set of caller-save registers of the given RegisterType
 //
-inline regMaskTP callerSaveRegs(RegisterType rt)
+inline regMaskTP callerSaveRegs(RegisterType rt, Compiler *compiler)
 {
-    return varTypeIsIntegralOrI(rt) ? RBM_INT_CALLEE_TRASH : RBM_FLT_CALLEE_TRASH;
+    return varTypeIsIntegralOrI(rt) ? RBM_INT_CALLEE_TRASH : compiler->fltCalleeTrashRegs();
 }
 
 //------------------------------------------------------------------------

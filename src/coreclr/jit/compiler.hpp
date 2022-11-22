@@ -4583,6 +4583,20 @@ inline bool Compiler::compCanHavePatchpoints(const char** reason)
     return whyNot == nullptr;
 }
 
+inline regMaskTP Compiler::fltCalleeTrashRegs()
+{
+#if defined(TARGET_AMD64)
+    // TODO-XARCH-AVX512 switch this to canUseEvexEncoding() once we independetly
+    // allow EVEX use from the stress flag (currently, if EVEX stress is turned off,
+    // we cannot use EVEX at all)
+    if (!DoJitStressEvexEncoding())
+    {
+        return RBM_FLT_CALLEE_TRASH & ~RBM_HIGHFLOAT;
+    }
+#endif
+    return RBM_FLT_CALLEE_TRASH;
+}
+
 /*****************************************************************************/
 #endif //_COMPILER_HPP_
 /*****************************************************************************/

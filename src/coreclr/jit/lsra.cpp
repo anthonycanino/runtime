@@ -395,7 +395,7 @@ regMaskTP LinearScan::internalFloatRegCandidates()
     }
     else
     {
-        return RBM_FLT_CALLEE_TRASH;
+        return compiler->fltCalleeTrashRegs();
     }
 }
 
@@ -11894,7 +11894,7 @@ regMaskTP LinearScan::RegisterSelection::select(Interval*    currentInterval,
     }
     else
     {
-        callerCalleePrefs = callerSaveRegs(currentInterval->registerType);
+        callerCalleePrefs = callerSaveRegs(currentInterval->registerType, linearScan->compiler);
     }
 
     // If this has a delayed use (due to being used in a rmw position of a
