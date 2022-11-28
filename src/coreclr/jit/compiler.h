@@ -1950,6 +1950,7 @@ public:
 
     // TODO-XARCH-AVX512 i don't know where to put this
     regMaskTP fltCalleeTrashRegs();
+    regMaskTP calleeTrashRegs();
 
     //-------------------------------------------------------------------------
     // The following is used for validating format of EH table
