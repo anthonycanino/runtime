@@ -4624,6 +4624,15 @@ inline regMaskTP Compiler::fltCalleeTrashRegs()
     return RBM_FLT_CALLEE_TRASH;
 }
 
+inline regMaskTP Compiler::calleeTrashRegs()
+{
+#if defined(TARGET_AMD64)
+    return RBM_INT_CALLEE_TRASH | fltCalleeTrashRegs();
+#else
+    return RBM_CALLEE_TRASH;
+#endif
+}
+
 /*****************************************************************************/
 #endif //_COMPILER_HPP_
 /*****************************************************************************/

@@ -886,7 +886,7 @@ regMaskTP LinearScan::getKillSetForModDiv(GenTreeOp* node)
 //
 regMaskTP LinearScan::getKillSetForCall(GenTreeCall* call)
 {
-    regMaskTP killMask = RBM_CALLEE_TRASH;
+    regMaskTP killMask = compiler->calleeTrashRegs();
 #ifdef TARGET_X86
     if (compiler->compFloatingPointUsed)
     {
@@ -1203,7 +1203,7 @@ bool LinearScan::buildKillPositionsForNode(GenTree* tree, LsraLocation currentLo
                     continue;
                 }
                 Interval*  interval   = getIntervalForLocalVar(varIndex);
-                const bool isCallKill = ((killMask == RBM_INT_CALLEE_TRASH) || (killMask == RBM_CALLEE_TRASH));
+                const bool isCallKill = ((killMask == RBM_INT_CALLEE_TRASH) || (killMask == compiler->calleeTrashRegs()));
 
                 if (isCallKill)
                 {
