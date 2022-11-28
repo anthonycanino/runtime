@@ -1948,6 +1948,10 @@ public:
 
     bool IsMultiRegReturnedType(CORINFO_CLASS_HANDLE hClass, CorInfoCallConvExtension callConv);
 
+    // TODO-XARCH-AVX512 i don't know where to put this
+    regMaskTP fltCalleeTrashRegs();
+    regMaskTP calleeTrashRegs();
+
     //-------------------------------------------------------------------------
     // The following is used for validating format of EH table
     //
@@ -2063,6 +2067,7 @@ public:
     unsigned ehMaxHndNestingCount;
 
 #endif // !FEATURE_EH_FUNCLETS
+
 
     static bool jitIsBetween(unsigned value, unsigned start, unsigned end);
     static bool jitIsBetweenInclusive(unsigned value, unsigned start, unsigned end);

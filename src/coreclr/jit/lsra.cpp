@@ -274,6 +274,15 @@ regMaskTP LinearScan::allSIMDRegs()
     return availableFloatRegs;
 }
 
+regMaskTP LinearScan::lowSIMDRegs()
+{
+#if defined(TARGET_AMD64)
+    return (availableFloatRegs & RBM_LOWFLOAT);
+#else
+    return availableFloatRegs;
+#endif
+}
+
 void LinearScan::updateNextFixedRef(RegRecord* regRecord, RefPosition* nextRefPosition)
 {
     LsraLocation nextLocation;
@@ -386,7 +395,7 @@ regMaskTP LinearScan::internalFloatRegCandidates()
     }
     else
     {
-        return RBM_FLT_CALLEE_TRASH;
+        return compiler->fltCalleeTrashRegs();
     }
 }
 
@@ -463,7 +472,7 @@ regMaskTP LinearScan::stressLimitRegs(RefPosition* refPosition, regMaskTP mask)
 
             case LSRA_LIMIT_CALLER:
             {
-                mask = getConstrainedRegMask(mask, RBM_CALLEE_TRASH, minRegCount);
+                mask = getConstrainedRegMask(mask, compiler->calleeTrashRegs(), minRegCount);
             }
             break;
 
@@ -477,6 +486,15 @@ regMaskTP LinearScan::stressLimitRegs(RefPosition* refPosition, regMaskTP mask)
                     mask = getConstrainedRegMask(mask, LsraLimitSmallFPSet, minRegCount);
                 }
                 break;
+
+#if defined(TARGET_AMD64)
+            case LSRA_LIMIT_UPPER_SIMD_SET:
+                if ((mask & LsraLimitUpperSimdSet) != RBM_NONE)
+                {
+                    mask = getConstrainedRegMask(mask, LsraLimitUpperSimdSet, minRegCount);
+                }
+                break;
+#endif
 
             default:
                 unreached();
@@ -688,6 +706,18 @@ LinearScan::LinearScan(Compiler* theCompiler)
         availableDoubleRegs &= ~RBM_CALLEE_SAVED;
     }
 #endif // TARGET_AMD64 || TARGET_ARM64
+
+#if defined(TARGET_AMD64)
+    // TODO-XARCH-AVX512 switch this to canUseEvexEncoding() once we independetly
+    // allow EVEX use from the stress flag (currently, if EVEX stress is turned off,
+    // we cannot use EVEX at all)
+    if (!compiler->DoJitStressEvexEncoding())
+    {
+        availableFloatRegs &= ~RBM_HIGHFLOAT;
+        availableDoubleRegs &= ~RBM_HIGHFLOAT;
+    }
+#endif
+
     compiler->rpFrameType           = FT_NOT_SET;
     compiler->rpMustCreateEBPCalled = false;
 
@@ -11865,7 +11895,7 @@ regMaskTP LinearScan::RegisterSelection::select(Interval*    currentInterval,
     }
     else
     {
-        callerCalleePrefs = callerSaveRegs(currentInterval->registerType);
+        callerCalleePrefs = callerSaveRegs(currentInterval->registerType, linearScan->compiler);
     }
 
     // If this has a delayed use (due to being used in a rmw position of a

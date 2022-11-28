@@ -3590,7 +3590,7 @@ void CodeGen::genFnPrologCalleeRegArgs(regNumber xtraReg, bool* pXtraRegClobbere
 
                 regMaskTP fpAvailMask;
 
-                fpAvailMask = RBM_FLT_CALLEE_TRASH & ~regArgMaskLive;
+                fpAvailMask = compiler->fltCalleeTrashRegs() & ~regArgMaskLive;
                 if (GlobalJitOptions::compFeatureHfa)
                 {
                     fpAvailMask &= RBM_ALLDOUBLE;
@@ -5246,7 +5246,7 @@ void CodeGen::genFinalizeFrame()
         // We always save FP.
         noway_assert(isFramePointerUsed());
 #if defined(TARGET_AMD64) || defined(TARGET_ARM64)
-        regMaskTP okRegs = (RBM_CALLEE_TRASH | RBM_FPBASE | RBM_ENC_CALLEE_SAVED);
+        regMaskTP okRegs = (compiler->calleeTrashRegs() | RBM_FPBASE | RBM_ENC_CALLEE_SAVED);
         if (RBM_ENC_CALLEE_SAVED != 0)
         {
             regSet.rsSetRegsModified(RBM_ENC_CALLEE_SAVED);
