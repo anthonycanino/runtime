@@ -7161,17 +7161,21 @@ void CodeGen::genIntToFloatCast(GenTree* treeNode)
     // Also we don't expect to see uint32 -> float/double and uint64 -> float conversions
     // here since they should have been lowered appropriately.
     // TODO-XARCH-AVX512 : These asserts change now
-    noway_assert(srcType != TYP_UINT);
     if (!compiler->compOpportunisticallyDependsOn(InstructionSet_AVX512F))
+    {
+        noway_assert(srcType != TYP_UINT);
         noway_assert((srcType != TYP_ULONG) || (dstType != TYP_FLOAT));
+    }
 
     if (compiler->compOpportunisticallyDependsOn(InstructionSet_AVX512F)) 
     {
-        if (srcType == TYP_ULONG && (dstType == TYP_DOUBLE || dstType == TYP_FLOAT))
+        // TODO-XARCH-AVX512 : Clean up
+        if ((srcType == TYP_ULONG && (dstType == TYP_DOUBLE || dstType == TYP_FLOAT)) ||
+           (srcType == TYP_UINT && (dstType == TYP_FLOAT)))
         {
             // TODO : what does this do?
             genConsumeOperands(treeNode->AsOp());
-            instruction ins = ins_FloatConv(dstType, srcType);
+            instruction ins = ins_FloatConv(dstType, srcType, emitTypeSize(srcType));
             GetEmitter()->emitInsBinary(ins, emitTypeSize(srcType), treeNode, op1);
             genProduceReg(treeNode);
             return;

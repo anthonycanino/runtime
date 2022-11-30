@@ -285,11 +285,14 @@ bool IsWEvexOpcodeExtension(const instrDesc* id)
         case INS_vpermilpdvar:
 
         // AVX512
+        case INS_vcvttsd2usi_r64:
         case INS_vcvttss2usi_r64:
         case INS_vcvtusi2ss_r64:
+        case INS_vcvtusi2sd_r64:
         {
             return true; // W1
         }
+
         case INS_movd:
         case INS_punpckldq:
         case INS_movntdq:
@@ -403,10 +406,11 @@ bool IsWEvexOpcodeExtension(const instrDesc* id)
 
         // AVX512
         case INS_vcvtsd2usi:
-        case INS_vcvttsd2usi:
-        case INS_vcvtusi2sd:
+
+        case INS_vcvttsd2usi_r32:
         case INS_vcvttss2usi_r32:
         case INS_vcvtusi2ss_r32:
+        case INS_vcvtusi2sd_r32:
         {
             return false; // W0
         }

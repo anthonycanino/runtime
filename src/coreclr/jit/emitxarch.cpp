@@ -17945,8 +17945,10 @@ emitter::insExecutionCharacteristics emitter::getInsExecutionCharacteristics(ins
 #endif
 
         case INS_vcvtsd2usi:
-        case INS_vcvttsd2usi:
-        case INS_vcvtusi2sd:
+        case INS_vcvttsd2usi_r32:
+        case INS_vcvttsd2usi_r64:
+        case INS_vcvtusi2sd_r32:
+        case INS_vcvtusi2sd_r64:
         case INS_vcvttss2usi_r32:
         case INS_vcvttss2usi_r64:
         case INS_vcvtusi2ss_r32:
