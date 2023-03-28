@@ -20386,9 +20386,7 @@ GenTree* Compiler::gtNewSimdCmpOpNode(genTreeOps  op,
             }
             else if (simdSize == 64)
             {
-                assert(compIsaSupportedDebugOnly(InstructionSet_AVX512F));
-                assert(compIsaSupportedDebugOnly(InstructionSet_AVX512BW));
-                assert(compIsaSupportedDebugOnly(InstructionSet_AVX512DQ));
+                assert(IsBaselineVector512IsaSupportedDebugOnly());
                 intrinsic = NI_AVX512F_CompareEqualSpecial;
             }
             else if (simdBaseType == TYP_FLOAT)
@@ -21021,9 +21019,7 @@ GenTree* Compiler::gtNewSimdCmpOpAllNode(genTreeOps  op,
         {
             if (simdSize == 64)
             {
-                assert(compIsaSupportedDebugOnly(InstructionSet_AVX512F));
-                assert(compIsaSupportedDebugOnly(InstructionSet_AVX512BW));
-                assert(compIsaSupportedDebugOnly(InstructionSet_AVX512DQ));
+                assert(IsBaselineVector512IsaSupportedDebugOnly());
                 intrinsic = NI_Vector512_op_Equality;
             }
             else if (simdSize == 32)
@@ -21179,9 +21175,7 @@ GenTree* Compiler::gtNewSimdCmpOpAnyNode(genTreeOps  op,
             }
             else if (simdSize == 64)
             {
-                assert(compIsaSupportedDebugOnly(InstructionSet_AVX512F));
-                assert(compIsaSupportedDebugOnly(InstructionSet_AVX512BW));
-                assert(compIsaSupportedDebugOnly(InstructionSet_AVX512DQ));
+                assert(IsBaselineVector512IsaSupportedDebugOnly());
                 intrinsic = NI_Vector512_op_Inequality;
             }
             else
@@ -21209,9 +21203,7 @@ GenTree* Compiler::gtNewSimdCmpOpAnyNode(genTreeOps  op,
         {
             if (simdSize == 64)
             {
-                assert(compIsaSupportedDebugOnly(InstructionSet_AVX512F));
-                assert(compIsaSupportedDebugOnly(InstructionSet_AVX512BW));
-                assert(compIsaSupportedDebugOnly(InstructionSet_AVX512DQ));
+                assert(IsBaselineVector512IsaSupportedDebugOnly());
                 intrinsic = NI_Vector512_op_Inequality;
             }
             else if (simdSize == 32)
