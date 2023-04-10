@@ -304,7 +304,6 @@ CONFIG_INTEGER(EnableMultiRegLocals, W("EnableMultiRegLocals"), 1) // Enable the
 #if defined(DEBUG)
 CONFIG_INTEGER(JitStressEvexEncoding, W("JitStressEvexEncoding"), 0) // Enable EVEX encoding for SIMD instructions when
                                                                      // AVX-512VL is available.
-CONFIG_INTEGER(JitForceEVEXEncoding, W("JitForceEVEXEncoding"), 0)   // Force EVEX encoding for SIMD instructions.
 #endif
 
 // clang-format off
@@ -570,6 +569,7 @@ CONFIG_STRING(JitEnablePatchpointRange, W("JitEnablePatchpointRange"))
 
 // Profile instrumentation options
 CONFIG_INTEGER(JitInterlockedProfiling, W("JitInterlockedProfiling"), 0)
+CONFIG_INTEGER(JitScalableProfiling, W("JitScalableProfiling"), 1)
 CONFIG_INTEGER(JitMinimalJitProfiling, W("JitMinimalJitProfiling"), 1)
 CONFIG_INTEGER(JitMinimalPrejitProfiling, W("JitMinimalPrejitProfiling"), 0)
 
@@ -594,6 +594,7 @@ CONFIG_INTEGER(JitRandomlyCollect64BitCounts, W("JitRandomlyCollect64BitCounts")
                                                                                      // for some methods.
 // 1: profile synthesis for root methods
 // 2: profile synthesis for root methods w/o pgo data
+// 3: profile synthesis for root methods, blend with existing PGO data
 CONFIG_INTEGER(JitSynthesizeCounts, W("JitSynthesizeCounts"), 0)
 // Check if synthesis left consistent counts
 CONFIG_INTEGER(JitCheckSynthesizedCounts, W("JitCheckSynthesizedCounts"), 0)

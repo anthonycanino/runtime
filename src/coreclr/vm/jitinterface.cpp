@@ -2893,7 +2893,6 @@ void CEEInfo::ComputeRuntimeLookupForSharedGenericToken(DictionaryEntryKind entr
             {
                 pResult->indirections = 2;
                 pResult->testForNull = 0;
-                pResult->testForFixup = 0;
                 pResult->offsets[0] = offsetof(InstantiatedMethodDesc, m_pPerInstInfo);
 
                 uint32_t data;
@@ -2933,7 +2932,6 @@ void CEEInfo::ComputeRuntimeLookupForSharedGenericToken(DictionaryEntryKind entr
             // Just use the method descriptor that was passed in!
             pResult->indirections = 0;
             pResult->testForNull = 0;
-            pResult->testForFixup = 0;
 
             return;
         }
@@ -2970,7 +2968,6 @@ void CEEInfo::ComputeRuntimeLookupForSharedGenericToken(DictionaryEntryKind entr
             {
                 pResult->indirections = 3;
                 pResult->testForNull = 0;
-                pResult->testForFixup = 0;
                 pResult->offsets[0] = MethodTable::GetOffsetOfPerInstInfo();
                 pResult->offsets[1] = sizeof(TypeHandle*) * (pContextMT->GetNumDicts() - 1);
                 uint32_t data;
@@ -2993,7 +2990,6 @@ void CEEInfo::ComputeRuntimeLookupForSharedGenericToken(DictionaryEntryKind entr
                 // Just use the vtable pointer itself!
                 pResult->indirections = 0;
                 pResult->testForNull = 0;
-                pResult->testForFixup = 0;
 
                 return;
             }
@@ -3185,7 +3181,6 @@ NoSpecialCase:
         if (DictionaryLayout::FindToken(pContextMD, pContextMD->GetLoaderAllocator(), 1, &sigBuilder, NULL, signatureSource, pResult, &slot))
         {
             pResult->testForNull = 1;
-            pResult->testForFixup = 0;
             int minDictSize = pContextMD->GetNumGenericMethodArgs() + 1 + pContextMD->GetDictionaryLayout()->GetNumInitialSlots();
             if (slot >= minDictSize)
             {
@@ -3204,7 +3199,6 @@ NoSpecialCase:
         if (DictionaryLayout::FindToken(pContextMT, pContextMT->GetLoaderAllocator(), 2, &sigBuilder, NULL, signatureSource, pResult, &slot))
         {
             pResult->testForNull = 1;
-            pResult->testForFixup = 0;
             int minDictSize = pContextMT->GetNumGenericArgs() + 1 + pContextMT->GetClass()->GetDictionaryLayout()->GetNumInitialSlots();
             if (slot >= minDictSize)
             {
@@ -3446,6 +3440,66 @@ size_t CEEInfo::getClassModuleIdForStatics(CORINFO_CLASS_HANDLE clsHnd, CORINFO_
     EE_TO_JIT_TRANSITION_LEAF();
 
     return result;
+}
+
+/*********************************************************************/
+bool CEEInfo::getIsClassInitedFlagAddress(CORINFO_CLASS_HANDLE cls, CORINFO_CONST_LOOKUP* addr, int* offset)
+{
+    CONTRACTL {
+        NOTHROW;
+        GC_NOTRIGGER;
+        MODE_PREEMPTIVE;
+    } CONTRACTL_END;
+
+    _ASSERTE(addr);
+
+    JIT_TO_EE_TRANSITION_LEAF();
+
+    TypeHandle clsTypeHandle(cls);
+    PTR_MethodTable pMT = clsTypeHandle.AsMethodTable();
+
+    // Impl is based on IsPrecomputedClassInitialized()
+    UINT32 clsIndex = 0;
+    if (pMT->IsDynamicStatics())
+    {
+        clsIndex = (UINT32)pMT->GetModuleDynamicEntryID();
+    }
+    else
+    {
+        clsIndex = (UINT32)pMT->GetClassIndex();
+    }
+
+    size_t moduleId = pMT->GetModuleForStatics()->GetModuleID();
+    addr->addr = (UINT8*)moduleId + DomainLocalModule::GetOffsetOfDataBlob() + clsIndex;
+    addr->accessType = IAT_VALUE;
+    *offset = 0;
+
+    EE_TO_JIT_TRANSITION_LEAF();
+
+    return true;
+}
+
+/*********************************************************************/
+bool CEEInfo::getStaticBaseAddress(CORINFO_CLASS_HANDLE cls, bool isGc, CORINFO_CONST_LOOKUP* addr)
+{
+    CONTRACTL {
+        NOTHROW;
+        GC_NOTRIGGER;
+        MODE_PREEMPTIVE;
+    } CONTRACTL_END;
+
+    JIT_TO_EE_TRANSITION_LEAF();
+
+    TypeHandle clsTypeHandle(cls);
+    PTR_MethodTable pMT = clsTypeHandle.AsMethodTable();
+
+    GCX_COOP();
+    addr->addr = isGc ? pMT->GetGCStaticsBasePointer() : pMT->GetNonGCStaticsBasePointer();
+    addr->accessType = IAT_VALUE;
+
+    EE_TO_JIT_TRANSITION_LEAF();
+
+    return true;
 }
 
 /*********************************************************************/
@@ -9463,6 +9517,27 @@ uint32_t CEEInfo::getLoongArch64PassStructInRegisterFlags(CORINFO_CLASS_HANDLE c
 #if defined(TARGET_LOONGARCH64)
     size = (uint32_t)MethodTable::GetLoongArch64PassStructInRegisterFlags(cls);
 #endif
+
+    EE_TO_JIT_TRANSITION_LEAF();
+
+    return size;
+}
+
+uint32_t CEEInfo::getRISCV64PassStructInRegisterFlags(CORINFO_CLASS_HANDLE cls)
+{
+    CONTRACTL {
+        NOTHROW;
+        GC_NOTRIGGER;
+        MODE_PREEMPTIVE;
+    } CONTRACTL_END;
+
+    JIT_TO_EE_TRANSITION_LEAF();
+
+    uint32_t size = STRUCT_NO_FLOAT_FIELD;
+
+#if defined(TARGET_RISCV64)
+    size = (uint32_t)MethodTable::GetRiscv64PassStructInRegisterFlags(cls);
+#endif // TARGET_RISCV64
 
     EE_TO_JIT_TRANSITION_LEAF();
 

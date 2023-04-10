@@ -233,10 +233,6 @@ namespace Internal.JitInterface
         public byte _testForNull;
         public bool testForNull { get { return _testForNull != 0; } set { _testForNull = value ? (byte)1 : (byte)0; } }
 
-        // If set, test the lowest bit and dereference if set (see code:FixupPointer)
-        public byte _testForFixup;
-        public bool testForFixup { get { return _testForFixup != 0; } set { _testForFixup = value ? (byte)1 : (byte)0; } }
-
         public ushort sizeOffset;
         public IntPtr offset0;
         public IntPtr offset1;
@@ -746,7 +742,7 @@ namespace Internal.JitInterface
         CORJIT_ALLOCMEM_FLG_RODATA_16BYTE_ALIGN = 0x00000002, // The read-only data will be 16-byte aligned
         CORJIT_ALLOCMEM_FLG_32BYTE_ALIGN   = 0x00000004, // The code will be 32-byte aligned
         CORJIT_ALLOCMEM_FLG_RODATA_32BYTE_ALIGN = 0x00000008, // The read-only data will be 32-byte aligned
-        CORJIT_ALLOCMEM_FLG_RODATA_64BYTE_ALIGN = 0x00000008, // The read-only data will be 64-byte aligned
+        CORJIT_ALLOCMEM_FLG_RODATA_64BYTE_ALIGN = 0x00000010, // The read-only data will be 64-byte aligned
     }
 
     public enum CorJitFuncKind
@@ -1202,8 +1198,8 @@ namespace Internal.JitInterface
         public byte eightByteOffsets1;
     };
 
-    // StructFloadFieldInfoFlags: used on LoongArch64 architecture by `getLoongArch64PassStructInRegisterFlags` API
-    // to convey struct argument passing information.
+    // StructFloadFieldInfoFlags: used on LoongArch64 architecture by `getLoongArch64PassStructInRegisterFlags` and
+    // `getRISCV64PassStructInRegisterFlags` API to convey struct argument passing information.
     //
     // `STRUCT_NO_FLOAT_FIELD` means structs are not passed using the float register(s).
     //
