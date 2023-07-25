@@ -1559,33 +1559,58 @@ namespace System
             }
             else if (Vector512.IsHardwareAccelerated && length >= Vector512<TValue>.Count)
             {
-                Vector512<TValue> equals, values = Vector512.Create(value);
-                ref TValue currentSearchSpace = ref searchSpace;
-                ref TValue oneVectorAwayFromEnd = ref Unsafe.Add(ref searchSpace, length - Vector512<TValue>.Count);
-
-                // Loop until either we've finished all elements or there's less than a vector's-worth remaining.
-                do
+                unsafe
                 {
-                    equals = Vector512.LoadUnsafe(ref currentSearchSpace);
-
-                    if (TNegator.NegateIfNeeded(!Vector512.EqualsAny(values, equals)))
+                    fixed (TValue* pSearchSpace = &searchSpace)
                     {
-                        currentSearchSpace = ref Unsafe.Add(ref currentSearchSpace, Vector512<TValue>.Count);
-                        continue;
-                    }
+                        Vector512<TValue> equals, current, values = Vector512.Create(value);
 
-                    return ComputeFirstIndex(ref searchSpace, ref currentSearchSpace, TNegator.NegateIfNeeded(Vector512.Equals(values, equals)));
-                }
-                while (!Unsafe.IsAddressGreaterThan(ref currentSearchSpace, ref oneVectorAwayFromEnd));
+                        TValue *pCurrentSpace = pSearchSpace;
+                        TValue *pOneVectorAwayFromEnd = pSearchSpace + (length - Vector512<TValue>.Count);
 
-                // If any elements remain, process the last vector in the search space.
-                if ((uint)length % Vector512<TValue>.Count != 0)
-                {
-                    equals = Vector512.LoadUnsafe(ref oneVectorAwayFromEnd);
+                        current = Vector512.Load(pCurrentSpace);
+                        equals = TNegator.NegateIfNeeded(Vector512.Equals(values, current));
 
-                    if (TNegator.NegateIfNeeded(Vector512.EqualsAny(values, equals)))
-                    {
-                        return ComputeFirstIndex(ref searchSpace, ref oneVectorAwayFromEnd, TNegator.NegateIfNeeded(Vector512.Equals(values, equals)));
+                        if (equals != Vector512<TValue>.Zero)
+                        {
+                            return ComputeFirstIndex(pSearchSpace, pCurrentSpace, equals);
+                        }
+
+                        //Internal.Console.WriteLine("pSearchSpace: " + ((nuint)pSearchSpace).ToString("x"));
+                        pCurrentSpace += (Vector512<TValue>.Count);
+                        //Internal.Console.WriteLine("pCurrentSpace Before Align: " + ((nuint)pCurrentSpace).ToString("x"));
+                        pCurrentSpace = (TValue*)((nuint) pCurrentSpace & ~(nuint)(Vector512.Size - 1));
+                        //Internal.Console.WriteLine("pCurrentSpace After Align: " + ((nuint)pCurrentSpace).ToString("x"));
+
+
+                        while (pCurrentSpace <= pOneVectorAwayFromEnd)
+                        {
+                            current = Vector512.LoadAligned(pCurrentSpace);
+                            equals = TNegator.NegateIfNeeded(Vector512.Equals(values, current));
+
+                            if (equals == Vector512<TValue>.Zero)
+                            {
+                                pCurrentSpace += Vector512<TValue>.Count;
+                                continue;
+                            }
+
+                            return ComputeFirstIndex(pSearchSpace, pCurrentSpace, equals);
+
+                        }
+
+                        //Internal.Console.WriteLine("pOneVectorAway: " + ((nuint)pOneVectorAwayFromEnd).ToString("x") + " with pCurrentSpace:" + ((nuint)pCurrentSpace).ToString("x"));
+
+                        // If any elements remain, process the last vector in the search space.
+                        if (pCurrentSpace != (pOneVectorAwayFromEnd + Vector512<TValue>.Count))
+                        {
+                            //Internal.Console.WriteLine("One away from end");
+                            current = Vector512.Load(pOneVectorAwayFromEnd);
+                            equals = TNegator.NegateIfNeeded(Vector512.Equals(values, current));
+                            if (equals != Vector512<TValue>.Zero)
+                            {
+                                return ComputeFirstIndex(pSearchSpace, pOneVectorAwayFromEnd, equals);
+                            }
+                        }
                     }
                 }
             }
@@ -1767,33 +1792,58 @@ namespace System
             }
             else if (Vector512.IsHardwareAccelerated && length >= Vector512<TValue>.Count)
             {
-                Vector512<TValue> equals, current, values0 = Vector512.Create(value0), values1 = Vector512.Create(value1);
-                ref TValue currentSearchSpace = ref searchSpace;
-                ref TValue oneVectorAwayFromEnd = ref Unsafe.Add(ref searchSpace, length - Vector512<TValue>.Count);
-
-                // Loop until either we've finished all elements or there's less than a vector's-worth remaining.
-                do
+                unsafe
                 {
-                    current = Vector512.LoadUnsafe(ref currentSearchSpace);
-                    equals = TNegator.NegateIfNeeded(Vector512.Equals(values0, current) | Vector512.Equals(values1, current));
-                    if (equals == Vector512<TValue>.Zero)
+                    fixed (TValue* pSearchSpace = &searchSpace)
                     {
-                        currentSearchSpace = ref Unsafe.Add(ref currentSearchSpace, Vector512<TValue>.Count);
-                        continue;
-                    }
+                        Vector512<TValue> equals, current, values0 = Vector512.Create(value0), values1 = Vector512.Create(value1);
 
-                    return ComputeFirstIndex(ref searchSpace, ref currentSearchSpace, equals);
-                }
-                while (!Unsafe.IsAddressGreaterThan(ref currentSearchSpace, ref oneVectorAwayFromEnd));
+                        TValue *pCurrentSpace = pSearchSpace;
+                        TValue *pOneVectorAwayFromEnd = pSearchSpace + (length - Vector512<TValue>.Count);
 
-                // If any elements remain, process the last vector in the search space.
-                if ((uint)length % Vector512<TValue>.Count != 0)
-                {
-                    current = Vector512.LoadUnsafe(ref oneVectorAwayFromEnd);
-                    equals = TNegator.NegateIfNeeded(Vector512.Equals(values0, current) | Vector512.Equals(values1, current));
-                    if (equals != Vector512<TValue>.Zero)
-                    {
-                        return ComputeFirstIndex(ref searchSpace, ref oneVectorAwayFromEnd, equals);
+                        current = Vector512.Load(pCurrentSpace);
+                        equals = TNegator.NegateIfNeeded(Vector512.Equals(values0, current) | Vector512.Equals(values1, current));
+
+                        if (equals != Vector512<TValue>.Zero)
+                        {
+                            return ComputeFirstIndex(pSearchSpace, pCurrentSpace, equals);
+                        }
+
+                        //Internal.Console.WriteLine("pSearchSpace: " + ((nuint)pSearchSpace).ToString("x"));
+                        pCurrentSpace += (Vector512<TValue>.Count);
+                        //Internal.Console.WriteLine("pCurrentSpace Before Align: " + ((nuint)pCurrentSpace).ToString("x"));
+                        pCurrentSpace = (TValue*)((nuint) pCurrentSpace & ~(nuint)(Vector512.Size - 1));
+                        //Internal.Console.WriteLine("pCurrentSpace After Align: " + ((nuint)pCurrentSpace).ToString("x"));
+
+
+                        while (pCurrentSpace <= pOneVectorAwayFromEnd)
+                        {
+                            current = Vector512.LoadAligned(pCurrentSpace);
+                            equals = TNegator.NegateIfNeeded(Vector512.Equals(values0, current) | Vector512.Equals(values1, current));
+
+                            if (equals == Vector512<TValue>.Zero)
+                            {
+                                pCurrentSpace += Vector512<TValue>.Count;
+                                continue;
+                            }
+
+                            return ComputeFirstIndex(pSearchSpace, pCurrentSpace, equals);
+
+                        }
+
+                        //Internal.Console.WriteLine("pOneVectorAway: " + ((nuint)pOneVectorAwayFromEnd).ToString("x") + " with pCurrentSpace:" + ((nuint)pCurrentSpace).ToString("x"));
+
+                        // If any elements remain, process the last vector in the search space.
+                        if (pCurrentSpace != (pOneVectorAwayFromEnd + Vector512<TValue>.Count))
+                        {
+                            //Internal.Console.WriteLine("One away from end");
+                            current = Vector512.Load(pOneVectorAwayFromEnd);
+                            equals = TNegator.NegateIfNeeded(Vector512.Equals(values0, current) | Vector512.Equals(values1, current));
+                            if (equals != Vector512<TValue>.Zero)
+                            {
+                                return ComputeFirstIndex(pSearchSpace, pOneVectorAwayFromEnd, equals);
+                            }
+                        }
                     }
                 }
             }
@@ -1974,33 +2024,58 @@ namespace System
             }
             else if (Vector512.IsHardwareAccelerated && length >= Vector512<TValue>.Count)
             {
-                Vector512<TValue> equals, current, values0 = Vector512.Create(value0), values1 = Vector512.Create(value1), values2 = Vector512.Create(value2);
-                ref TValue currentSearchSpace = ref searchSpace;
-                ref TValue oneVectorAwayFromEnd = ref Unsafe.Add(ref searchSpace, length - Vector512<TValue>.Count);
-
-                // Loop until either we've finished all elements or there's less than a vector's-worth remaining.
-                do
+                unsafe
                 {
-                    current = Vector512.LoadUnsafe(ref currentSearchSpace);
-                    equals = TNegator.NegateIfNeeded(Vector512.Equals(values0, current) | Vector512.Equals(values1, current) | Vector512.Equals(values2, current));
-                    if (equals == Vector512<TValue>.Zero)
+                    fixed (TValue* pSearchSpace = &searchSpace)
                     {
-                        currentSearchSpace = ref Unsafe.Add(ref currentSearchSpace, Vector512<TValue>.Count);
-                        continue;
-                    }
+                        Vector512<TValue> equals, current, values0 = Vector512.Create(value0), values1 = Vector512.Create(value1), values2 = Vector512.Create(value2);
 
-                    return ComputeFirstIndex(ref searchSpace, ref currentSearchSpace, equals);
-                }
-                while (!Unsafe.IsAddressGreaterThan(ref currentSearchSpace, ref oneVectorAwayFromEnd));
+                        TValue *pCurrentSpace = pSearchSpace;
+                        TValue *pOneVectorAwayFromEnd = pSearchSpace + (length - Vector512<TValue>.Count);
 
-                // If any elements remain, process the last vector in the search space.
-                if ((uint)length % Vector512<TValue>.Count != 0)
-                {
-                    current = Vector512.LoadUnsafe(ref oneVectorAwayFromEnd);
-                    equals = TNegator.NegateIfNeeded(Vector512.Equals(values0, current) | Vector512.Equals(values1, current) | Vector512.Equals(values2, current));
-                    if (equals != Vector512<TValue>.Zero)
-                    {
-                        return ComputeFirstIndex(ref searchSpace, ref oneVectorAwayFromEnd, equals);
+                        current = Vector512.Load(pCurrentSpace);
+                        equals = TNegator.NegateIfNeeded(Vector512.Equals(values0, current) | Vector512.Equals(values1, current) | Vector512.Equals(values2, current));
+
+                        if (equals != Vector512<TValue>.Zero)
+                        {
+                            return ComputeFirstIndex(pSearchSpace, pCurrentSpace, equals);
+                        }
+
+                        //Internal.Console.WriteLine("pSearchSpace: " + ((nuint)pSearchSpace).ToString("x"));
+                        pCurrentSpace += (Vector512<TValue>.Count);
+                        //Internal.Console.WriteLine("pCurrentSpace Before Align: " + ((nuint)pCurrentSpace).ToString("x"));
+                        pCurrentSpace = (TValue*)((nuint) pCurrentSpace & ~(nuint)(Vector512.Size - 1));
+                        //Internal.Console.WriteLine("pCurrentSpace After Align: " + ((nuint)pCurrentSpace).ToString("x"));
+
+
+                        while (pCurrentSpace <= pOneVectorAwayFromEnd)
+                        {
+                            current = Vector512.LoadAligned(pCurrentSpace);
+                            equals = TNegator.NegateIfNeeded(Vector512.Equals(values0, current) | Vector512.Equals(values1, current) | Vector512.Equals(values2, current));
+
+                            if (equals == Vector512<TValue>.Zero)
+                            {
+                                pCurrentSpace += Vector512<TValue>.Count;
+                                continue;
+                            }
+
+                            return ComputeFirstIndex(pSearchSpace, pCurrentSpace, equals);
+
+                        }
+
+                        //Internal.Console.WriteLine("pOneVectorAway: " + ((nuint)pOneVectorAwayFromEnd).ToString("x") + " with pCurrentSpace:" + ((nuint)pCurrentSpace).ToString("x"));
+
+                        // If any elements remain, process the last vector in the search space.
+                        if (pCurrentSpace != (pOneVectorAwayFromEnd + Vector512<TValue>.Count))
+                        {
+                            //Internal.Console.WriteLine("One away from end");
+                            current = Vector512.Load(pOneVectorAwayFromEnd);
+                            equals = TNegator.NegateIfNeeded(Vector512.Equals(values0, current) | Vector512.Equals(values1, current) | Vector512.Equals(values2, current));
+                            if (equals != Vector512<TValue>.Zero)
+                            {
+                                return ComputeFirstIndex(pSearchSpace, pOneVectorAwayFromEnd, equals);
+                            }
+                        }
                     }
                 }
             }
@@ -3370,6 +3445,14 @@ namespace System
             ulong notEqualsElements = equals.ExtractMostSignificantBits();
             int index = BitOperations.TrailingZeroCount(notEqualsElements);
             return index + (int)((nuint)Unsafe.ByteOffset(ref searchSpace, ref current) / (nuint)sizeof(T));
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static unsafe int ComputeFirstIndex<T>(T* searchSpace, T* current, Vector512<T> equals) where T : struct
+        {
+            ulong notEqualsElements = equals.ExtractMostSignificantBits();
+            int index = BitOperations.TrailingZeroCount(notEqualsElements);
+            return index + (int)(((nuint)current - (nuint)searchSpace) / (nuint)sizeof(T));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
