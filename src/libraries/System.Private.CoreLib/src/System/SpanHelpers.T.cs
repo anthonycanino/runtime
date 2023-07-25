@@ -1782,8 +1782,12 @@ namespace System
                             return ComputeFirstIndex(pSearchSpace, pCurrentSpace, equals);
                         }
 
+                        //Internal.Console.WriteLine("pSearchSpace: " + ((nuint)pSearchSpace).ToString("x"));
                         pCurrentSpace += (Vector512<TValue>.Count);
+                        //Internal.Console.WriteLine("pCurrentSpace Before Align: " + ((nuint)pCurrentSpace).ToString("x"));
                         pCurrentSpace = (TValue*)((nuint) pCurrentSpace & ~(nuint)(Vector512.Size - 1));
+                        //Internal.Console.WriteLine("pCurrentSpace After Align: " + ((nuint)pCurrentSpace).ToString("x"));
+
 
                         while (pCurrentSpace <= pOneVectorAwayFromEnd)
                         {
@@ -1800,9 +1804,12 @@ namespace System
 
                         }
 
+                        //Internal.Console.WriteLine("pOneVectorAway: " + ((nuint)pOneVectorAwayFromEnd).ToString("x") + " with pCurrentSpace:" + ((nuint)pCurrentSpace).ToString("x"));
+
                         // If any elements remain, process the last vector in the search space.
                         if (pCurrentSpace != (pOneVectorAwayFromEnd + Vector512<TValue>.Count))
                         {
+                            //Internal.Console.WriteLine("One away from end");
                             current = Vector512.Load(pOneVectorAwayFromEnd);
                             equals = TNegator.NegateIfNeeded(Vector512.Equals(values0, current) | Vector512.Equals(values1, current));
                             if (equals != Vector512<TValue>.Zero)
@@ -3393,7 +3400,7 @@ namespace System
         {
             ulong notEqualsElements = equals.ExtractMostSignificantBits();
             int index = BitOperations.TrailingZeroCount(notEqualsElements);
-            return index + (int)(((nuint)searchSpace - (nuint)current) / (nuint)sizeof(T));
+            return index + (int)(((nuint)current - (nuint)searchSpace) / (nuint)sizeof(T));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
