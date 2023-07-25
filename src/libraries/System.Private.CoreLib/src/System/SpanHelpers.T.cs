@@ -1563,17 +1563,15 @@ namespace System
                 {
                     fixed (TValue* pSearchSpace = &searchSpace)
                     {
-                        Vector512<TValue> equals, current, values = Vector512.Create(value);
+                        Vector512<TValue> equals, values = Vector512.Create(value);
 
                         TValue *pCurrentSpace = pSearchSpace;
                         TValue *pOneVectorAwayFromEnd = pSearchSpace + (length - Vector512<TValue>.Count);
 
-                        current = Vector512.Load(pCurrentSpace);
-                        equals = TNegator.NegateIfNeeded(Vector512.Equals(values, current));
-
-                        if (equals != Vector512<TValue>.Zero)
+                        equals = Vector512.LoadAligned(pCurrentSpace);
+                        if (TNegator.NegateIfNeeded(Vector512.EqualsAny(values, equals)))
                         {
-                            return ComputeFirstIndex(pSearchSpace, pCurrentSpace, equals);
+                            return ComputeFirstIndex(pSearchSpace, pCurrentSpace, TNegator.NegateIfNeeded(Vector512.Equals(values, equals)));
                         }
 
                         //Internal.Console.WriteLine("pSearchSpace: " + ((nuint)pSearchSpace).ToString("x"));
@@ -1581,20 +1579,18 @@ namespace System
                         //Internal.Console.WriteLine("pCurrentSpace Before Align: " + ((nuint)pCurrentSpace).ToString("x"));
                         pCurrentSpace = (TValue*)((nuint) pCurrentSpace & ~(nuint)(Vector512.Size - 1));
                         //Internal.Console.WriteLine("pCurrentSpace After Align: " + ((nuint)pCurrentSpace).ToString("x"));
-
-
                         while (pCurrentSpace <= pOneVectorAwayFromEnd)
                         {
-                            current = Vector512.LoadAligned(pCurrentSpace);
-                            equals = TNegator.NegateIfNeeded(Vector512.Equals(values, current));
 
-                            if (equals == Vector512<TValue>.Zero)
+                            equals = Vector512.LoadAligned(pCurrentSpace);
+
+                            if (TNegator.NegateIfNeeded(!Vector512.EqualsAny(values, equals)))
                             {
                                 pCurrentSpace += Vector512<TValue>.Count;
                                 continue;
                             }
 
-                            return ComputeFirstIndex(pSearchSpace, pCurrentSpace, equals);
+                            return ComputeFirstIndex(pSearchSpace, pCurrentSpace, TNegator.NegateIfNeeded(Vector512.Equals(values, equals)));
 
                         }
 
@@ -1604,11 +1600,10 @@ namespace System
                         if (pCurrentSpace != (pOneVectorAwayFromEnd + Vector512<TValue>.Count))
                         {
                             //Internal.Console.WriteLine("One away from end");
-                            current = Vector512.Load(pOneVectorAwayFromEnd);
-                            equals = TNegator.NegateIfNeeded(Vector512.Equals(values, current));
-                            if (equals != Vector512<TValue>.Zero)
+                            equals = Vector512.Load(pOneVectorAwayFromEnd);
+                            if (TNegator.NegateIfNeeded(Vector512.EqualsAny(values, equals)))
                             {
-                                return ComputeFirstIndex(pSearchSpace, pOneVectorAwayFromEnd, equals);
+                                return ComputeFirstIndex(pSearchSpace, pOneVectorAwayFromEnd, TNegator.NegateIfNeeded(Vector512.Equals(values, equals)));
                             }
                         }
                     }
