@@ -1,5 +1,12 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
+find_package(DML REQUIRED)
+if (DML_FOUND)
+    include_directories(/usr/include/dml)
+    add_compile_definitions(WITH_DML)
+endif ()
+
+
 # Needed due to the cmunged files being in the binary folders, the set(CMAKE_INCLUDE_CURRENT_DIR ON) is not enough
 include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${ARCH_SOURCES_DIR})
@@ -974,3 +981,4 @@ add_subdirectory(wks)
 if(FEATURE_PERFTRACING)
     add_subdirectory(eventing)
 endif(FEATURE_PERFTRACING)
+

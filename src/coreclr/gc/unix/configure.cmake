@@ -186,3 +186,4 @@ check_prototype_definition(
     HAVE_NON_LEGACY_STATFS)
 
 configure_file(${CMAKE_CURRENT_LIST_DIR}/config.gc.h.in ${CMAKE_CURRENT_BINARY_DIR}/config.gc.h)
+

@@ -206,6 +206,13 @@ elseif (CLR_CMAKE_TARGET_SUNOS)
      LIST(APPEND NATIVE_LIBS
          socket
      )
+elseif (CLR_CMAKE_TARGET_UNIX)
+    find_package(DML)
+    if (DML_FOUND)
+        LIST(APPEND NATIVE_LIBS
+        DML::dml
+        )
+    endif ()
 endif(CLR_CMAKE_TARGET_APPLE)
 
 # On *BSD, we always use the libunwind that's part of the OS

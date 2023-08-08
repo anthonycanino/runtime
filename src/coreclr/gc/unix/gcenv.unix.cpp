@@ -304,6 +304,11 @@ bool GCToOSInterface::Initialize()
 
     NUMASupportInitialize();
 
+#ifdef HAVE_DML
+    dml_path_t exeuction_path = DML_PATH_HW;
+#endif
+
+
     return true;
 }
 

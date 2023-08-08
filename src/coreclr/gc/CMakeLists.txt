@@ -29,6 +29,13 @@ set(GC_SOURCES
 if(CLR_CMAKE_HOST_UNIX)
   add_subdirectory(unix)
   include(unix/configure.cmake)
+
+  find_package(DML REQUIRED)
+  if (DML_FOUND)
+    add_compile_definitions(WITH_DML)
+    set (GC_LINK_LIBRARIES ${GC_LINK_LIBRARIES} DML::dml)
+    include_directories(/usr/include/dml)
+  endif ()
 else()
   add_subdirectory(windows)
   set (GC_SOURCES

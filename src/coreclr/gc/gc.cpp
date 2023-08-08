@@ -28,6 +28,10 @@
 #error this source file should not be compiled with DACCESS_COMPILE!
 #endif //DACCESS_COMPILE
 
+#ifdef WITH_DML
+#include <dml.h>
+#endif
+
 // We just needed a simple random number generator for testing.
 class gc_rand
 {
@@ -1614,6 +1618,74 @@ void memclr ( uint8_t* mem, size_t size)
     assert (sizeof(PTR_PTR) == DATA_ALIGNMENT);
     memset (mem, 0, size);
 }
+
+#define KB_1 1024
+#define KB_64 (64 * KB_1)
+
+#ifdef WITH_DML
+inline
+bool do_dsa_memclr( uint8_t* mem, size_t mem_size)
+{
+    dml_path_t execution_path = DML_PATH_HW;
+
+    uint32_t size = 0u;
+
+    dml_status_t status = dml_get_job_size(execution_path, &size);
+    if (DML_STATUS_OK != status) {
+        printf("An error (%u) occured during getting job size.\n", status);
+        return false;
+    }
+
+    dml_job_t* dml_job_ptr = (dml_job_t *)malloc(size);
+
+    status = dml_init_job(execution_path, dml_job_ptr);
+    if (DML_STATUS_OK != status) {
+        printf("An error (%u) occured during job initialization.\n", status);
+        free(dml_job_ptr);
+        return false;
+    }
+    
+    dml_job_ptr->operation              = DML_OP_FILL;
+    dml_job_ptr->destination_first_ptr  = mem;
+    dml_job_ptr->destination_length     = mem_size;
+    dml_job_ptr->pattern[0]             = 0;
+    
+    status = dml_execute_job(dml_job_ptr, DML_WAIT_MODE_BUSY_POLL);
+    if (DML_STATUS_OK != status) {
+        printf("An error (%u) occured during job execution.\n", status);
+        free(dml_job_ptr);
+        return false;
+    }
+
+    status = dml_finalize_job(dml_job_ptr);
+    if (DML_STATUS_OK != status) {
+        printf("An error (%u) occured during job finalization.\n", status);
+        free(dml_job_ptr);
+        return false;
+    }
+    free(dml_job_ptr);
+
+    return true;
+}
+
+inline
+void dsa_memclr( uint8_t* mem, size_t size)
+{
+    if (size < KB_64)
+    {
+        memclr(mem, size);
+    }
+    else
+    {
+        printf("Attempting DSA memclr\n");
+        if (!do_dsa_memclr(mem, size))
+        {
+            printf("DSA failed, falling back to memclr\n");
+            memclr(mem, size);
+        }
+    }
+}
+#endif
 
 void memcopy (uint8_t* dmem, uint8_t* smem, size_t size)
 {
@@ -16036,7 +16108,14 @@ void gc_heap::adjust_limit_clr (uint8_t* start, size_t limit_size, size_t size,
         if (clear_start < clear_limit)
         {
             dprintf(3, ("clearing memory at %p for %zd bytes", clear_start, clear_limit - clear_start));
+#ifdef COMPILE_FROM_VM
+            printf("compiled from vm");
+#endif
+#ifdef WITH_DML
+            dsa_memclr(clear_start, clear_limit - clear_start);
+#else
             memclr(clear_start, clear_limit - clear_start);
+#endif
         }
     }
     else
@@ -16056,7 +16135,11 @@ void gc_heap::adjust_limit_clr (uint8_t* start, size_t limit_size, size_t size,
             }
 
             dprintf (2, ("clearing memory before used at %p for %zd bytes", clear_start, used - clear_start));
+#ifdef WITH_DML
+            dsa_memclr (clear_start, used - clear_start);
+#else
             memclr (clear_start, used - clear_start);
+#endif
         }
     }
 
