@@ -1648,9 +1648,22 @@ bool do_dsa_memclr( uint8_t* mem, size_t mem_size)
     dml_job_ptr->operation              = DML_OP_FILL;
     dml_job_ptr->destination_first_ptr  = mem;
     dml_job_ptr->destination_length     = mem_size;
-    dml_job_ptr->pattern[0]             = 0;
+    dml_job_ptr->pattern[0] = 0;
+    dml_job_ptr->pattern[1] = 0;
+    dml_job_ptr->pattern[2] = 0;
+    dml_job_ptr->pattern[3] = 0;
+    dml_job_ptr->pattern[4] = 0;
+    dml_job_ptr->pattern[5] = 0;
+    dml_job_ptr->pattern[6] = 0;
+    dml_job_ptr->pattern[7] = 0;
+    dml_job_ptr->flags != DML_FLAG_BLOCK_ON_FAULT;
     
     status = dml_execute_job(dml_job_ptr, DML_WAIT_MODE_BUSY_POLL);
+    if (status == DML_STATUS_PAGE_FAULT_ERROR)
+    {
+        status = dml_execute_job(dml_job_ptr, DML_WAIT_MODE_BUSY_POLL);
+    }
+
     if (DML_STATUS_OK != status) {
         printf("An error (%u) occured during job execution.\n", status);
         free(dml_job_ptr);
@@ -1677,11 +1690,14 @@ void dsa_memclr( uint8_t* mem, size_t size)
     }
     else
     {
-        printf("Attempting DSA memclr\n");
         if (!do_dsa_memclr(mem, size))
         {
             printf("DSA failed, falling back to memclr\n");
             memclr(mem, size);
+        }
+        else
+        {
+            printf("DSA succeeded\n");
         }
     }
 }
