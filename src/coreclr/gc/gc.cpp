@@ -1632,7 +1632,7 @@ bool do_dsa_memclr( uint8_t* mem, size_t mem_size)
 
     dml_status_t status = dml_get_job_size(execution_path, &size);
     if (DML_STATUS_OK != status) {
-        printf("An error (%u) occured during getting job size.\n", status);
+        dprintf(3, ("An error (%u) occured during getting job size.", status));
         return false;
     }
 
@@ -1640,7 +1640,7 @@ bool do_dsa_memclr( uint8_t* mem, size_t mem_size)
 
     status = dml_init_job(execution_path, dml_job_ptr);
     if (DML_STATUS_OK != status) {
-        printf("An error (%u) occured during job initialization.\n", status);
+        dprintf(3, ("An error (%u) occured during job initialization.", status));
         free(dml_job_ptr);
         return false;
     }
@@ -1661,18 +1661,19 @@ bool do_dsa_memclr( uint8_t* mem, size_t mem_size)
     status = dml_execute_job(dml_job_ptr, DML_WAIT_MODE_BUSY_POLL);
     if (status == DML_STATUS_PAGE_FAULT_ERROR)
     {
+        dprintf(3, ("DSA page fault, attempting again."));
         status = dml_execute_job(dml_job_ptr, DML_WAIT_MODE_BUSY_POLL);
     }
 
     if (DML_STATUS_OK != status) {
-        printf("An error (%u) occured during job execution.\n", status);
+        dprintf(3, ("An error (%u) occured during job execution.", status));
         free(dml_job_ptr);
         return false;
     }
 
     status = dml_finalize_job(dml_job_ptr);
     if (DML_STATUS_OK != status) {
-        printf("An error (%u) occured during job finalization.\n", status);
+        dprintf(3, ("An error (%u) occured during job finalization.\n", status));
         free(dml_job_ptr);
         return false;
     }
@@ -1684,22 +1685,18 @@ bool do_dsa_memclr( uint8_t* mem, size_t mem_size)
 inline
 void dsa_memclr( uint8_t* mem, size_t size)
 {
-    if (size < KB_64)
+    if (GCConfig::GetUseDML() && size >= KB_64)
     {
-        memclr(mem, size);
-    }
-    else
-    {
-        if (!do_dsa_memclr(mem, size))
+        if (do_dsa_memclr(mem, size))
         {
-            printf("DSA failed, falling back to memclr\n");
-            memclr(mem, size);
+            dprintf(3, ("DSA succeeded"));
+            return;
         }
-        else
-        {
-            printf("DSA succeeded\n");
-        }
+        dprintf(3, ("DSA failed, falling back to memclr"));
     }
+
+    // fallback to use memclear
+    memclr(mem, size);
 }
 #endif
 
@@ -16124,9 +16121,6 @@ void gc_heap::adjust_limit_clr (uint8_t* start, size_t limit_size, size_t size,
         if (clear_start < clear_limit)
         {
             dprintf(3, ("clearing memory at %p for %zd bytes", clear_start, clear_limit - clear_start));
-#ifdef COMPILE_FROM_VM
-            printf("compiled from vm");
-#endif
 #ifdef WITH_DML
             dsa_memclr(clear_start, clear_limit - clear_start);
 #else

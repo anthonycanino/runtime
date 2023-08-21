@@ -63,6 +63,7 @@ public:
 // Each one of these keys produces a method on GCConfig with the name "Get{name}", where {name}
 // is the first parameter of the *_CONFIG macros below.
 #define GC_CONFIGURATION_KEYS \
+    BOOL_CONFIG  (UseDML,                    "gcUseDML",                  NULL,                                false,              "Whether we should use DML to hanlde memclears")                                                   \
     BOOL_CONFIG  (ServerGC,                  "gcServer",                  "System.GC.Server",                  false,              "Whether we should be using Server GC")                                                   \
     BOOL_CONFIG  (ConcurrentGC,              "gcConcurrent",              "System.GC.Concurrent",              true,               "Whether we should be using Concurrent GC")                                                \
     BOOL_CONFIG  (ConservativeGC,            "gcConservative",            NULL,                                false,              "Enables/Disables conservative GC")                                                       \
