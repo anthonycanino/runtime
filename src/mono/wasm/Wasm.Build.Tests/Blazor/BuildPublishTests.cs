@@ -9,6 +9,7 @@ using Xunit;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 using Microsoft.Playwright;
+using System.Runtime.InteropServices;
 
 #nullable enable
 
@@ -37,16 +38,33 @@ public class BuildPublishTests : BlazorWasmTestBase
         await BlazorRunForPublishWithWebServer(new BlazorRunOptions() { Config = config });
     }
 
-    [Theory]
-    [InlineData("Debug")]
-    [InlineData("Release")]
-    public void DefaultTemplate_NoAOT_WithWorkload(string config)
+
+    public static TheoryData<string, bool> TestDataForDefaultTemplate_WithWorkload(bool isAot)
     {
-        // disable relinking tests for Unicode: github.com/emscripten-core/emscripten/issues/17817
-        // [ActiveIssue("https://github.com/dotnet/runtime/issues/83497")]
-        string id = config == "Release" ?
-            $"blz_no_aot_{config}_{GetRandomId()}" :
-            $"blz_no_aot_{config}_{GetRandomId()}_{s_unicodeChar}";
+        var data = new TheoryData<string, bool>();
+        data.Add("Debug", false);
+        data.Add("Release", false); // Release relinks by default
+        // [ActiveIssue("https://github.com/dotnet/runtime/issues/83497", TestPlatforms.Windows)]
+        if (!isAot || !RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            data.Add("Debug", true); // for aot:true on Windows, it fails
+        }
+
+        // [ActiveIssue("https://github.com/dotnet/runtime/issues/83497", TestPlatforms.Windows)]
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            data.Add("Release", true);
+        }
+        return data;
+    }
+
+    [Theory]
+    [MemberData(nameof(TestDataForDefaultTemplate_WithWorkload), parameters: new object[] { false })]
+    public void DefaultTemplate_NoAOT_WithWorkload(string config, bool testUnicode)
+    {
+        string id = testUnicode ?
+            $"blz_no_aot_{config}_{GetRandomId()}_{s_unicodeChar}" :
+            $"blz_no_aot_{config}_{GetRandomId()}";
         CreateBlazorWasmTemplateProject(id);
 
         BlazorBuild(new BlazorBuildOptions(id, config, NativeFilesType.FromRuntimePack));
@@ -59,6 +77,19 @@ public class BuildPublishTests : BlazorWasmTestBase
         {
             BlazorPublish(new BlazorBuildOptions(id, config, NativeFilesType.FromRuntimePack, ExpectRelinkDirWhenPublishing: true));
         }
+    }
+
+    [Theory]
+    [MemberData(nameof(TestDataForDefaultTemplate_WithWorkload), parameters: new object[] { true })]
+    public void DefaultTemplate_AOT_WithWorkload(string config, bool testUnicode)
+    {
+        string id = testUnicode ?
+            $"blz_no_aot_{config}_{GetRandomId()}_{s_unicodeChar}" :
+            $"blz_no_aot_{config}_{GetRandomId()}";
+        CreateBlazorWasmTemplateProject(id);
+
+        BlazorBuild(new BlazorBuildOptions(id, config, NativeFilesType.FromRuntimePack));
+        BlazorPublish(new BlazorBuildOptions(id, config, NativeFilesType.AOT), "-p:RunAOTCompilation=true");
     }
 
     [Theory]
@@ -99,4 +130,47 @@ public class BuildPublishTests : BlazorWasmTestBase
     //// publish again, no AOT
     //BlazorPublish(new BlazorBuildOptions(id, config, NativeFilesType.Relinked);
     //}
+
+    [Theory]
+    [InlineData("Debug")]
+    [InlineData("Release")]
+    public void DefaultTemplate_WithResources_Publish(string config)
+    {
+        string[] cultures = ["ja-JP", "es-ES"];
+        string id = $"blz_resources_{config}_{GetRandomId()}";
+        CreateBlazorWasmTemplateProject(id);
+
+        // Ensure we have the source data we rely on
+        string resxSourcePath = Path.Combine(BuildEnvironment.TestAssetsPath, "resx");
+        foreach (string culture in cultures)
+            Assert.True(File.Exists(Path.Combine(resxSourcePath, $"words.{culture}.resx")));
+
+        Utils.DirectoryCopy(resxSourcePath, Path.Combine(_projectDir!, "resx"));
+
+        // Build and assert resource dlls
+        BlazorBuild(new BlazorBuildOptions(id, config, NativeFilesType.FromRuntimePack));
+        AssertResourcesDlls(FindBlazorBinFrameworkDir(config, false));
+
+        // Publish and assert resource dlls
+        if (config == "Release")
+        {
+            // relinking in publish for Release config
+            BlazorPublish(new BlazorBuildOptions(id, config, NativeFilesType.Relinked, ExpectRelinkDirWhenPublishing: true));
+        }
+        else
+        {
+            BlazorPublish(new BlazorBuildOptions(id, config, NativeFilesType.FromRuntimePack, ExpectRelinkDirWhenPublishing: true));
+        }
+
+        AssertResourcesDlls(FindBlazorBinFrameworkDir(config, true));
+
+        void AssertResourcesDlls(string basePath)
+        {
+            foreach (string culture in cultures)
+            {
+                string resourceAssemblyPath = Path.Combine(basePath, culture, $"{id}.resources{ProjectProviderBase.WasmAssemblyExtension}");
+                Assert.True(File.Exists(resourceAssemblyPath), $"Expects to have a resource assembly at {resourceAssemblyPath}");
+            }
+        }
+    }
 }
