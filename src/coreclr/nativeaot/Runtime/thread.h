@@ -32,9 +32,10 @@ class Thread;
 # endif
 #else // HOST_64BIT
 # if defined(FEATURE_SVR_GC) || defined(KEEP_THREAD_LAYOUT_CONSTANT)
-#  define SIZEOF_ALLOC_CONTEXT 56
+//#  define SIZEOF_ALLOC_CONTEXT 64
+#  define SIZEOF_ALLOC_CONTEXT 64
 # else
-#  define SIZEOF_ALLOC_CONTEXT 40
+#  define SIZEOF_ALLOC_CONTEXT 48
 # endif
 #endif // HOST_64BIT
 

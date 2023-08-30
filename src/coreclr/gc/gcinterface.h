@@ -170,6 +170,7 @@ struct gc_alloc_context
     void*          gc_reserved_1;
     void*          gc_reserved_2;
     int            alloc_count;
+    uint8_t*       dml_ptr;
 public:
 
     void init()
@@ -183,6 +184,7 @@ public:
         gc_reserved_1 = 0;
         gc_reserved_2 = 0;
         alloc_count = 0;
+        dml_ptr = 0;
     }
 };
 

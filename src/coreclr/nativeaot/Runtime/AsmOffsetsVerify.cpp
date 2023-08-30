@@ -20,6 +20,7 @@
 
 class AsmOffsets
 {
+    static_assert(sizeof(gc_alloc_context) == 64 || sizeof(gc_alloc_context) == 48, "Assume gc_alloc_context == 56");
     static_assert(sizeof(Thread::m_rgbAllocContextBuffer) >= sizeof(gc_alloc_context), "Thread::m_rgbAllocContextBuffer is not big enough to hold a gc_alloc_context");
 
     // Some assembly helpers for arrays and strings are shared and use the fact that arrays and strings have similar layouts)

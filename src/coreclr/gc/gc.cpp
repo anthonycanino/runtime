@@ -1624,27 +1624,35 @@ void memclr ( uint8_t* mem, size_t size)
 
 #ifdef WITH_DML
 inline
-bool do_dsa_memclr( uint8_t* mem, size_t mem_size)
+bool do_dsa_memclr( uint8_t* mem, size_t mem_size, gc_alloc_context *acontext)
 {
+    dml_status_t status;
     dml_path_t execution_path = DML_PATH_HW;
 
-    uint32_t size = 0u;
+    if (acontext->dml_ptr == NULL)
+    {
+        uint32_t size = 0u;
 
-    dml_status_t status = dml_get_job_size(execution_path, &size);
-    if (DML_STATUS_OK != status) {
-        dprintf(3, ("An error (%u) occured during getting job size.", status));
-        return false;
+        status = dml_get_job_size(execution_path, &size);
+        if (DML_STATUS_OK != status) {
+            dprintf(3, ("An error (%u) occured during getting job size.", status));
+            return false;
+        }
+
+        acontext->dml_ptr = (uint8_t* )malloc(size);
+
+        //printf("DML ptr init!\n");
     }
 
-    dml_job_t* dml_job_ptr = (dml_job_t *)malloc(size);
+    dml_job_t* dml_job_ptr = ((dml_job_t*) acontext->dml_ptr);
 
     status = dml_init_job(execution_path, dml_job_ptr);
     if (DML_STATUS_OK != status) {
         dprintf(3, ("An error (%u) occured during job initialization.", status));
-        free(dml_job_ptr);
+        //free(dml_job_ptr);
         return false;
     }
-    
+
     dml_job_ptr->operation              = DML_OP_FILL;
     dml_job_ptr->destination_first_ptr  = mem;
     dml_job_ptr->destination_length     = mem_size;
@@ -1657,37 +1665,37 @@ bool do_dsa_memclr( uint8_t* mem, size_t mem_size)
     dml_job_ptr->pattern[6] = 0;
     dml_job_ptr->pattern[7] = 0;
     dml_job_ptr->flags != DML_FLAG_BLOCK_ON_FAULT;
-    
-    status = dml_execute_job(dml_job_ptr, DML_WAIT_MODE_BUSY_POLL);
+        
+    status = dml_execute_job(dml_job_ptr, DML_WAIT_MODE_UMWAIT);
+    /*
     if (status == DML_STATUS_PAGE_FAULT_ERROR)
     {
         dprintf(3, ("DSA page fault, attempting again."));
         status = dml_execute_job(dml_job_ptr, DML_WAIT_MODE_BUSY_POLL);
     }
+    */
 
     if (DML_STATUS_OK != status) {
         dprintf(3, ("An error (%u) occured during job execution.", status));
-        free(dml_job_ptr);
-        return false;
+        //return false;
     }
 
     status = dml_finalize_job(dml_job_ptr);
     if (DML_STATUS_OK != status) {
         dprintf(3, ("An error (%u) occured during job finalization.\n", status));
-        free(dml_job_ptr);
-        return false;
+        //return false;
     }
-    free(dml_job_ptr);
+    //free(dml_job_ptr);
 
     return true;
 }
 
 inline
-void dsa_memclr( uint8_t* mem, size_t size)
+void dsa_memclr( uint8_t* mem, size_t size, gc_alloc_context *acontext)
 {
     if (GCConfig::GetUseDML() && size >= KB_64)
     {
-        if (do_dsa_memclr(mem, size))
+        if (do_dsa_memclr(mem, size, acontext))
         {
             dprintf(3, ("DSA succeeded"));
             return;
@@ -15980,6 +15988,8 @@ void gc_heap::adjust_limit_clr (uint8_t* start, size_t limit_size, size_t size,
                                 alloc_context* acontext, uint32_t flags,
                                 heap_segment* seg, int align_const, int gen_number)
 {
+    gc_alloc_context* alloc_context = ((gen_number > 0) ? GCToEEInterface::GetAllocContext() : acontext);
+
     bool uoh_p = (gen_number > 0);
     GCSpinLock* msl = uoh_p ? &more_space_lock_uoh : &more_space_lock_soh;
     uint64_t& total_alloc_bytes = uoh_p ? total_alloc_bytes_uoh : total_alloc_bytes_soh;
@@ -16122,7 +16132,9 @@ void gc_heap::adjust_limit_clr (uint8_t* start, size_t limit_size, size_t size,
         {
             dprintf(3, ("clearing memory at %p for %zd bytes", clear_start, clear_limit - clear_start));
 #ifdef WITH_DML
-            dsa_memclr(clear_start, clear_limit - clear_start);
+            //printf("Clearing with context:%p dptr:%p\n", alloc_context, alloc_context->dml_ptr);
+            dsa_memclr(clear_start, clear_limit - clear_start, alloc_context);
+            //printf("Finished with context:%p dptr:%p\n", alloc_context, alloc_context->dml_ptr);
 #else
             memclr(clear_start, clear_limit - clear_start);
 #endif
@@ -16146,7 +16158,9 @@ void gc_heap::adjust_limit_clr (uint8_t* start, size_t limit_size, size_t size,
 
             dprintf (2, ("clearing memory before used at %p for %zd bytes", clear_start, used - clear_start));
 #ifdef WITH_DML
-            dsa_memclr (clear_start, used - clear_start);
+            //printf("Clearing with context:%p dptr:%p\n", alloc_context, alloc_context->dml_ptr);
+            dsa_memclr (clear_start, used - clear_start, alloc_context);
+            //printf("Finished with context:%p dptr:%p\n", alloc_context, alloc_context->dml_ptr);
 #else
             memclr (clear_start, used - clear_start);
 #endif

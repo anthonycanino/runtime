@@ -40,19 +40,19 @@ ASM_OFFSET(    4,     4, MethodTable, m_uBaseSize)
 ASM_OFFSET(   14,    18, MethodTable, m_VTable)
 
 ASM_OFFSET(    0,     0, Thread, m_rgbAllocContextBuffer)
-ASM_OFFSET(   28,    38, Thread, m_ThreadStateFlags)
-ASM_OFFSET(   2c,    40, Thread, m_pTransitionFrame)
-ASM_OFFSET(   30,    48, Thread, m_pDeferredTransitionFrame)
-ASM_OFFSET(   40,    68, Thread, m_ppvHijackedReturnAddressLocation)
-ASM_OFFSET(   44,    70, Thread, m_pvHijackedReturnAddress)
+ASM_OFFSET(   30,    40, Thread, m_ThreadStateFlags)
+ASM_OFFSET(   34,    48, Thread, m_pTransitionFrame)
+ASM_OFFSET(   38,    50, Thread, m_pDeferredTransitionFrame)
+ASM_OFFSET(   48,    70, Thread, m_ppvHijackedReturnAddressLocation)
+ASM_OFFSET(   4c,    78, Thread, m_pvHijackedReturnAddress)
 #ifdef HOST_64BIT
-ASM_OFFSET(    0,    78, Thread, m_uHijackedReturnValueFlags)
+ASM_OFFSET(    0,    80, Thread, m_uHijackedReturnValueFlags)
 #endif
-ASM_OFFSET(   48,    80, Thread, m_pExInfoStackHead)
-ASM_OFFSET(   4c,    88, Thread, m_threadAbortException)
+ASM_OFFSET(   50,    88, Thread, m_pExInfoStackHead)
+ASM_OFFSET(   54,    90, Thread, m_threadAbortException)
 
-ASM_OFFSET(   50,    90, Thread, m_pThreadLocalModuleStatics)
-ASM_OFFSET(   54,    98, Thread, m_numThreadLocalModuleStatics)
+ASM_OFFSET(   58,    98, Thread, m_pThreadLocalModuleStatics)
+ASM_OFFSET(   5c,    A0, Thread, m_numThreadLocalModuleStatics)
 
 ASM_SIZEOF(   14,    20, EHEnum)
 
