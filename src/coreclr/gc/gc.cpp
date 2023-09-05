@@ -1677,13 +1677,13 @@ bool do_dsa_memclr( uint8_t* mem, size_t mem_size, gc_alloc_context *acontext)
 
     if (DML_STATUS_OK != status) {
         dprintf(3, ("An error (%u) occured during job execution.", status));
-        //return false;
+        return false;
     }
 
     status = dml_finalize_job(dml_job_ptr);
     if (DML_STATUS_OK != status) {
         dprintf(3, ("An error (%u) occured during job finalization.\n", status));
-        //return false;
+        return false;
     }
     //free(dml_job_ptr);
 
@@ -1693,7 +1693,7 @@ bool do_dsa_memclr( uint8_t* mem, size_t mem_size, gc_alloc_context *acontext)
 inline
 void dsa_memclr( uint8_t* mem, size_t size, gc_alloc_context *acontext)
 {
-    if (GCConfig::GetUseDML() && size >= KB_64)
+    if (GCConfig::GetUseDML() && size >= LARGE_OBJECT_SIZE)
     {
         if (do_dsa_memclr(mem, size, acontext))
         {
