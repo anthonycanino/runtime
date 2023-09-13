@@ -1635,7 +1635,7 @@ bool do_dsa_memclr( uint8_t* mem, size_t mem_size, gc_alloc_context *acontext)
 
         status = dml_get_job_size(execution_path, &size);
         if (DML_STATUS_OK != status) {
-            dprintf(3, ("An error (%u) occured during getting job size.", status));
+            dprintf(3000, ("An error (%u) occured during getting job size.", status));
             return false;
         }
 
@@ -1648,7 +1648,7 @@ bool do_dsa_memclr( uint8_t* mem, size_t mem_size, gc_alloc_context *acontext)
 
     status = dml_init_job(execution_path, dml_job_ptr);
     if (DML_STATUS_OK != status) {
-        dprintf(3, ("An error (%u) occured during job initialization.", status));
+        dprintf(3000, ("An error (%u) occured during job initialization.", status));
         //free(dml_job_ptr);
         return false;
     }
@@ -1676,13 +1676,13 @@ bool do_dsa_memclr( uint8_t* mem, size_t mem_size, gc_alloc_context *acontext)
     */
 
     if (DML_STATUS_OK != status) {
-        dprintf(3, ("An error (%u) occured during job execution.", status));
+        dprintf(3000, ("An error (%u) occured during job execution.", status));
         return false;
     }
 
     status = dml_finalize_job(dml_job_ptr);
     if (DML_STATUS_OK != status) {
-        dprintf(3, ("An error (%u) occured during job finalization.\n", status));
+        dprintf(3000, ("An error (%u) occured during job finalization.\n", status));
         return false;
     }
     //free(dml_job_ptr);
@@ -1697,10 +1697,10 @@ void dsa_memclr( uint8_t* mem, size_t size, gc_alloc_context *acontext)
     {
         if (do_dsa_memclr(mem, size, acontext))
         {
-            dprintf(3, ("DSA succeeded"));
+            dprintf(3000, ("DSA succeeded"));
             return;
         }
-        dprintf(3, ("DSA failed, falling back to memclr"));
+        dprintf(3000, ("DSA failed, falling back to memclr"));
     }
 
     // fallback to use memclear
