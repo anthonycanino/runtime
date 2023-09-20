@@ -30,6 +30,9 @@
 
 #ifdef WITH_DML
 #include <dml.h>
+#if defined(TARGET_XARCH)
+#include <sys/mman.h>
+#endif
 #endif
 
 // We just needed a simple random number generator for testing.
@@ -1626,6 +1629,9 @@ void memclr ( uint8_t* mem, size_t size)
 inline
 bool do_dsa_memclr( uint8_t* mem, size_t mem_size, gc_alloc_context *acontext)
 {
+    static const bool useBusyPoll = GCConfig::GetUseBusyPollDML();
+    static const bool useDevicePF = GCConfig::GetUseDevicePF();
+
     dml_status_t status;
     dml_path_t execution_path = DML_PATH_HW;
 
@@ -1643,6 +1649,11 @@ bool do_dsa_memclr( uint8_t* mem, size_t mem_size, gc_alloc_context *acontext)
 
         //printf("DML ptr init!\n");
     }
+
+#if defined(TARGET_XARCH)
+    madvise(mem, mem_size, MADV_WILLNEED);
+#endif
+
 
     dml_job_t* dml_job_ptr = ((dml_job_t*) acontext->dml_ptr);
 
@@ -1664,17 +1675,14 @@ bool do_dsa_memclr( uint8_t* mem, size_t mem_size, gc_alloc_context *acontext)
     dml_job_ptr->pattern[5] = 0;
     dml_job_ptr->pattern[6] = 0;
     dml_job_ptr->pattern[7] = 0;
-    dml_job_ptr->flags != DML_FLAG_BLOCK_ON_FAULT;
-        
-    status = dml_execute_job(dml_job_ptr, DML_WAIT_MODE_UMWAIT);
-    /*
-    if (status == DML_STATUS_PAGE_FAULT_ERROR)
+    if (useDevicePF)
     {
-        dprintf(3, ("DSA page fault, attempting again."));
-        status = dml_execute_job(dml_job_ptr, DML_WAIT_MODE_BUSY_POLL);
+        dml_job_ptr->flags |= DML_FLAG_BLOCK_ON_FAULT;
     }
-    */
 
+    status = dml_execute_job(dml_job_ptr, useBusyPoll ? DML_WAIT_MODE_BUSY_POLL : DML_WAIT_MODE_UMWAIT);
+    //status = dml_execute_job(dml_job_ptr, DML_WAIT_MODE_BUSY_POLL);
+    
     if (DML_STATUS_OK != status) {
         dprintf(3000, ("An error (%u) occured during job execution.", status));
         return false;
@@ -1693,11 +1701,22 @@ bool do_dsa_memclr( uint8_t* mem, size_t mem_size, gc_alloc_context *acontext)
 inline
 void dsa_memclr( uint8_t* mem, size_t size, gc_alloc_context *acontext)
 {
+    // touch some pages to reduce page faults
+    static const bool touchClear = GCConfig::GetTouchClear();
+    if (touchClear)
+    {
+        const size_t pageSize = 4096;
+        const size_t numPages = size / pageSize;
+        for (size_t i = 0; i < numPages; i++)
+        {
+            mem[i * pageSize] = 0;
+        }
+    }
+
     if (GCConfig::GetUseDML() && size >= LARGE_OBJECT_SIZE)
     {
         if (do_dsa_memclr(mem, size, acontext))
         {
-            dprintf(3000, ("DSA succeeded"));
             return;
         }
         dprintf(3000, ("DSA failed, falling back to memclr"));
