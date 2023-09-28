@@ -41,6 +41,7 @@ iosnativeaot=false
 runtimetype=""
 iosllvmbuild=""
 iosstripsymbols=""
+hybridglobalization=""
 maui_version=""
 use_local_commit_time=false
 only_sanity=false
@@ -188,6 +189,10 @@ while (($# > 0)); do
       iosstripsymbols=$2
       shift 2
       ;;
+    --hybridglobalization)
+      hybridglobalization=$2
+      shift 2
+      ;;
     --mauiversion)
       maui_version=$2
       shift 2
@@ -238,6 +243,7 @@ while (($# > 0)); do
       echo "  --iosnativeaot                 Set for ios Native AOT runs"
       echo "  --iosllvmbuild                 Set LLVM for iOS Mono/Maui runs"
       echo "  --iosstripsymbols              Set STRIP_DEBUG_SYMBOLS for iOS Mono/Maui runs"
+      echo "  --hybridglobalization          Set hybrid globalization for iOS Mono/Maui/Wasm runs"
       echo "  --mauiversion                  Set the maui version for Mono/Maui runs"
       echo "  --uselocalcommittime           Pass local runtime commit time to the setup script"
       echo "  --nodynamicpgo                 Set for No dynamic PGO runs"
@@ -270,7 +276,7 @@ benchmark_directory=$payload_directory/BenchmarkDotNet
 workitem_directory=$source_directory/workitem
 extra_benchmark_dotnet_arguments="--iterationCount 1 --warmupCount 0 --invocationCount 1 --unrollFactor 1 --strategy ColdStart --stopOnFirstError true"
 perflab_arguments=
-queue=Ubuntu.1804.Amd64.Open
+queue=Ubuntu.2204.Amd64.Open
 creator=$BUILD_DEFINITIONNAME
 helix_source_prefix="pr"
 
@@ -285,7 +291,7 @@ if [[ "$internal" == true ]]; then
     elif [[ "$logical_machine" == "perfampere" ]]; then
         queue=Ubuntu.2004.Arm64.Perf
     elif [[ "$logical_machine" == "cloudvm" ]]; then
-        queue=Ubuntu.1804.Amd64
+        queue=Ubuntu.2204.Amd64
     elif [[ "$architecture" == "arm64" ]]; then
         queue=Ubuntu.1804.Arm64.Perf
     else
@@ -305,7 +311,7 @@ else
     if [[ "$architecture" == "arm64" ]]; then
         queue=ubuntu.1804.armarch.open
     else
-        queue=Ubuntu.1804.Amd64.Open
+        queue=Ubuntu.2204.Amd64.Open
     fi
 
     if [[ "$alpine" == "true" ]]; then
@@ -362,6 +368,10 @@ fi
 
 if [[ "$physicalpromotion" == "true" ]]; then
     configurations="$configurations PhysicalPromotionType=physicalpromotion"
+fi
+
+if [[ "${hybridglobalization,,}" == "true" ]]; then # convert to lowercase to test
+    configurations="$configurations HybridGlobalization=True" # Force True for consistency
 fi
 
 
@@ -430,7 +440,7 @@ if [[ -n "$wasm_bundle_directory" ]]; then
     fi
 
     # Workaround: escaping the quotes around `--wasmArgs=..` so they get retained for the actual command line
-    extra_benchmark_dotnet_arguments="$extra_benchmark_dotnet_arguments --wasmEngine $javascript_engine_path --wasmArgs \\\"$wasm_args\\\" --cli \$HELIX_CORRELATION_PAYLOAD/dotnet/dotnet --wasmDataDir \$HELIX_CORRELATION_PAYLOAD/wasm-data"
+    extra_benchmark_dotnet_arguments="$extra_benchmark_dotnet_arguments --wasmEngine $javascript_engine_path \\\"--wasmArgs=$wasm_args\\\" --cli \$HELIX_CORRELATION_PAYLOAD/dotnet/dotnet --wasmDataDir \$HELIX_CORRELATION_PAYLOAD/wasm-data"
     if [[ "$wasmaot" == "true" ]]; then
         extra_benchmark_dotnet_arguments="$extra_benchmark_dotnet_arguments --aotcompilermode wasm --buildTimeout 3600"
     fi
@@ -512,6 +522,7 @@ Write-PipelineSetVariable -name "MonoDotnet" -value "$using_mono" -is_multi_job_
 Write-PipelineSetVariable -name "WasmDotnet" -value "$using_wasm" -is_multi_job_variable false
 Write-PipelineSetVariable -Name 'iOSLlvmBuild' -Value "$iosllvmbuild" -is_multi_job_variable false
 Write-PipelineSetVariable -Name 'iOSStripSymbols' -Value "$iosstripsymbols" -is_multi_job_variable false
+Write-PipelineSetVariable -Name 'hybridGlobalization' -Value "$hybridglobalization" -is_multi_job_variable false
 Write-PipelineSetVariable -Name 'RuntimeType' -Value "$runtimetype" -is_multi_job_variable false
 Write-PipelineSetVariable -name "OnlySanityCheck" -value "$only_sanity" -is_multi_job_variable false
 Write-PipelineSetVariable -name "V8Version" -value "$v8_version" -is_multi_job_variable false

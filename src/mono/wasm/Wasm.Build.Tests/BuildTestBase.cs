@@ -345,6 +345,7 @@ namespace Wasm.Build.Tests
             Directory.CreateDirectory(dir);
             File.WriteAllText(Path.Combine(dir, "Directory.Build.props"), s_buildEnv.DirectoryBuildPropsContents);
             File.WriteAllText(Path.Combine(dir, "Directory.Build.targets"), s_buildEnv.DirectoryBuildTargetsContents);
+            File.Copy(BuildEnvironment.WasmOverridePacksTargetsPath, Path.Combine(dir, Path.GetFileName(BuildEnvironment.WasmOverridePacksTargetsPath)), overwrite: true);
 
             string targetNuGetConfigPath = Path.Combine(dir, "nuget.config");
             if (addNuGetSourceForLocalPackages)
@@ -598,8 +599,8 @@ namespace Wasm.Build.Tests
         }
 
         protected static string GetSkiaSharpReferenceItems()
-            => @"<PackageReference Include=""SkiaSharp"" Version=""2.88.4-preview.76"" />
-                <PackageReference Include=""SkiaSharp.NativeAssets.WebAssembly"" Version=""2.88.4-preview.76"" />
+            => @"<PackageReference Include=""SkiaSharp"" Version=""2.88.6"" />
+                <PackageReference Include=""SkiaSharp.NativeAssets.WebAssembly"" Version=""2.88.6"" />
                 <NativeFileReference Include=""$(SkiaSharpStaticLibraryPath)\3.1.34\st\*.a"" />";
 
         protected static string s_mainReturns42 = @"
