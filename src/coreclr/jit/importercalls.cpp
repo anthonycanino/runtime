@@ -10350,6 +10350,20 @@ NamedIntrinsic Compiler::lookupNamedIntrinsic(CORINFO_METHOD_HANDLE method)
                     break;
                 }
 
+#if defined(TARGET_XARCH) && defined(FEATURE_SIMD)
+                case 'H':
+                {
+                    if (strcmp(className, "Half") == 0)
+                    {
+                        CORINFO_SIG_INFO sig;
+                        info.compCompHnd->getMethodSig(method, &sig);
+
+                        result = HWIntrinsicInfo::lookupId(this, &sig, className, methodName, enclosingClassName);
+                    }
+                    break;
+                }
+#endif
+
                 case 'I':
                 {
                     if ((strcmp(className, "Int32") == 0) || (strcmp(className, "Int64") == 0) ||

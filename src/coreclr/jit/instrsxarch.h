@@ -1129,6 +1129,9 @@ INST3(vmovw_simd,       "vmovw",            IUM_WR, SSEFLTMAP(0x05, 0x7E),  BAD_
 INST3(vmpsadbw,         "vmpsadbw",         IUM_WR, BAD_CODE,               BAD_CODE,     AVX3A(0x42),                   4C,                2C,         INS_TT_FULL_MEM,                                      KMask_Base8     | REX_W0                       | Encoding_EVEX                                                    | INS_Flags_IsDstDstSrcAVXInstruction)                                         // Compute Multiple Packed Sums of Absolute Difference
 INST3(vucomxsd,         "vucomxsd",         IUM_RD, BAD_CODE,               BAD_CODE,     SSEFLT(0x2f),                  3C,                1C,         INS_TT_TUPLE1_SCALAR,                Input_64Bit                      | REX_W1                       | Encoding_EVEX    | Writes_OF | Writes_SF | Writes_ZF | Writes_PF | Writes_CF | Resets_AF)                                                       // Perform an unordered compare of double precision floating point values and set flags
 INST3(vucomxss,         "vucomxss",         IUM_RD, BAD_CODE,               BAD_CODE,     SSEDBL(0x2E),                  3C,                1C,         INS_TT_TUPLE1_SCALAR,                Input_32Bit                      | REX_W0                       | Encoding_EVEX    | Writes_OF | Writes_SF | Writes_ZF | Writes_PF | Writes_CF | Resets_AF)                                                       // Perform an unordered compare of single precision floating point values and set flags
+
+INST3(vcvtss2sh,        "vcvtss2sh",        IUM_WR, BAD_CODE,               BAD_CODE,     SSEFLTMAP(0x05, 0x1D),         ILLEGAL,           ILLEGAL,    INS_TT_TUPLE1_SCALAR,                                    Input_32Bit                      | REX_W0                       | Encoding_EVEX  | INS_Flags_IsDstSrcSrcAVXInstruction)                                                                                           // Permute Packed Byte Elements
+
 #define LAST_AVX512_INSTRUCTION INS_vucomxss
 
 //    id                nm                  um      mr            mi            rm                                       lat                tp          tt              flags
@@ -1357,3 +1360,4 @@ INST0(data16,           "data16",           IUM_RD, 0x000066,                   
 /*****************************************************************************/
 
 // clang-format on
+// AVX512FP16

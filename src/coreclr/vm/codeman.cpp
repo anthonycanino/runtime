@@ -1321,6 +1321,11 @@ void EEJitManager::SetCpuInfo()
     {
         CPUCompileFlags.Set(InstructionSet_X86Serialize);
     }
+
+    // TODO(anthony): Hacking in AVX512FP16 and Half
+    CPUCompileFlags.Set(InstructionSet_AVX512FP16);
+    CPUCompileFlags.Set(InstructionSet_AVX512FP16_VL);
+
 #elif defined(TARGET_ARM64)
     CPUCompileFlags.Set(InstructionSet_VectorT128);
 

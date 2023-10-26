@@ -1981,6 +1981,13 @@ void Compiler::compSetProcessor()
     {
         instructionSetFlags.AddInstructionSet(InstructionSet_Vector512);
     }
+
+    if (instructionSetFlags.HasInstructionSet(InstructionSet_AVX512FP16))
+    {
+        instructionSetFlags.AddInstructionSet(InstructionSet_Half);
+    }
+
+    opts.preferredVectorByteLength = preferredVectorByteLength;
 #elif defined(TARGET_ARM64)
     // Ensure required baseline ISAs are supported in JIT code, even if not passed in by the VM.
     instructionSetFlags.AddInstructionSet(InstructionSet_ArmBase);

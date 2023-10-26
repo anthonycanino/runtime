@@ -316,6 +316,13 @@ CORINFO_InstructionSet Compiler::lookupInstructionSet(const char* className)
             return InstructionSet_GFNI;
         }
     }
+    else if (className[0] == 'H')
+    {
+        if (strcmp(className, "Half") == 0)
+        {
+            return InstructionSet_Half;
+        }
+    }
     else if (className[0] == 'L')
     {
         if (strcmp(className + 1, "zcnt") == 0)
@@ -1247,6 +1254,20 @@ GenTree* Compiler::impSpecialIntrinsic(NamedIntrinsic        intrinsic,
 
     switch (intrinsic)
     {
+        case NI_Half_op_Explicit:
+        {
+            assert(sig->numArgs == 1);
+
+            if (compOpportunisticallyDependsOn(InstructionSet_AVX512FP16))
+            {
+                StackEntry se   = impPopStack();
+                op1     = se.val;
+                retNode = gtNewSimdHWIntrinsicNode(retType, op1, NI_AVX512FP16_ConvertFloatToHalf, simdBaseJitType, simdSize);
+            }
+
+            break;
+        }
+
         case NI_Vector128_Abs:
         case NI_Vector256_Abs:
         case NI_Vector512_Abs:

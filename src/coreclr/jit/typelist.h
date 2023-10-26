@@ -63,6 +63,8 @@ DEF_TP(SIMD16   ,"simd16" , TYP_SIMD16,  16,16, 16,   4,16, VTR_FLOAT, available
 #if defined(TARGET_XARCH)
 DEF_TP(SIMD32   ,"simd32" , TYP_SIMD32,  32,32, 32,   8,16, VTR_FLOAT, availableDoubleRegs, RBM_FLT_CALLEE_SAVED,    RBM_FLT_CALLEE_TRASH,    VTF_S|VTF_VEC)
 DEF_TP(SIMD64   ,"simd64" , TYP_SIMD64,  64,64, 64,  16,16, VTR_FLOAT, availableDoubleRegs, RBM_FLT_CALLEE_SAVED,    RBM_FLT_CALLEE_TRASH,    VTF_S|VTF_VEC)
+DEF_TP(HALF     ,"half"   , TYP_HALF,     2, 2,  2,   1, 4, VTR_FLOAT, availableFloatRegs,  RBM_FLT_CALLEE_SAVED,    RBM_FLT_CALLEE_TRASH,    VTF_FLT)
+DEF_TP(MASK     ,"mask"   , TYP_MASK,     8, 8,  8,   2, 8, VTR_MASK,  availableMaskRegs,   RBM_MSK_CALLEE_SAVED,    RBM_MSK_CALLEE_TRASH,    VTF_S)
 #endif // TARGET_XARCH
 #if defined(FEATURE_MASKED_HW_INTRINSICS)
 DEF_TP(MASK     ,"mask"   , TYP_MASK,     8, 8,  8,   2, 8, VTR_MASK,  availableMaskRegs,   RBM_MSK_CALLEE_SAVED,    RBM_MSK_CALLEE_TRASH,    VTF_S)
