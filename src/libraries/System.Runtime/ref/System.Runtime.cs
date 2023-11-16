@@ -1136,7 +1136,9 @@ namespace System
         public static byte[] FromBase64CharArray(char[] inArray, int offset, int length) { throw null; }
         public static byte[] FromBase64String(string s) { throw null; }
         public static byte[] FromHexString(System.ReadOnlySpan<char> chars) { throw null; }
+        public static System.Buffers.OperationStatus FromHexString(System.ReadOnlySpan<char> source, Span<byte> destination, out int charsConsumed, out int bytesWritten) { throw null; }
         public static byte[] FromHexString(string s) { throw null; }
+        public static System.Buffers.OperationStatus FromHexString(string source, Span<byte> destination, out int charsConsumed, out int bytesWritten) { throw null; }
         public static System.TypeCode GetTypeCode(object? value) { throw null; }
         public static bool IsDBNull([System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] object? value) { throw null; }
         public static int ToBase64CharArray(byte[] inArray, int offsetIn, int length, char[] outArray, int offsetOut) { throw null; }
@@ -1282,6 +1284,7 @@ namespace System
         public static string ToHexString(byte[] inArray) { throw null; }
         public static string ToHexString(byte[] inArray, int offset, int length) { throw null; }
         public static string ToHexString(System.ReadOnlySpan<byte> bytes) { throw null; }
+        public static bool TryToHexString(System.ReadOnlySpan<byte> source, System.Span<char> destination, out int charsWritten) { throw null; }
         public static short ToInt16(bool value) { throw null; }
         public static short ToInt16(byte value) { throw null; }
         public static short ToInt16(char value) { throw null; }
@@ -12440,10 +12443,10 @@ namespace System.Runtime
         private object _dummy;
         private int _dummyPrimitive;
         public DependentHandle(object? target, object? dependent) { throw null; }
-        public object? Dependent { get { throw null; } set { } }
-        public bool IsAllocated { get { throw null; } }
-        public object? Target { get { throw null; } set { } }
-        public (object? Target, object? Dependent) TargetAndDependent { get { throw null; } }
+        public object? Dependent { readonly get { throw null; } set { } }
+        public readonly bool IsAllocated { get { throw null; } }
+        public object? Target { readonly get { throw null; } set { } }
+        public readonly (object? Target, object? Dependent) TargetAndDependent { get { throw null; } }
         public void Dispose() { }
     }
     public enum GCLargeObjectHeapCompactionMode
@@ -12902,7 +12905,6 @@ namespace System.Runtime.CompilerServices
         public InterpolatedStringHandlerAttribute() { }
     }
     [System.AttributeUsageAttribute(System.AttributeTargets.Struct, AllowMultiple = false)]
-    [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)]
     public sealed partial class InlineArrayAttribute : System.Attribute
     {
         public InlineArrayAttribute(int length) { }
@@ -13467,16 +13469,16 @@ namespace System.Runtime.InteropServices
     public partial struct GCHandle : System.IEquatable<System.Runtime.InteropServices.GCHandle>
     {
         private int _dummyPrimitive;
-        public bool IsAllocated { get { throw null; } }
-        public object? Target { get { throw null; } set { } }
-        public System.IntPtr AddrOfPinnedObject() { throw null; }
+        public readonly bool IsAllocated { get { throw null; } }
+        public object? Target { readonly get { throw null; } set { } }
+        public readonly System.IntPtr AddrOfPinnedObject() { throw null; }
         public static System.Runtime.InteropServices.GCHandle Alloc(object? value) { throw null; }
         public static System.Runtime.InteropServices.GCHandle Alloc(object? value, System.Runtime.InteropServices.GCHandleType type) { throw null; }
-        public override bool Equals([System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] object? o) { throw null; }
-        public bool Equals(System.Runtime.InteropServices.GCHandle other) { throw null; }
+        public override readonly bool Equals([System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] object? o) { throw null; }
+        public readonly bool Equals(System.Runtime.InteropServices.GCHandle other) { throw null; }
         public void Free() { }
         public static System.Runtime.InteropServices.GCHandle FromIntPtr(System.IntPtr value) { throw null; }
-        public override int GetHashCode() { throw null; }
+        public override readonly int GetHashCode() { throw null; }
         public static bool operator ==(System.Runtime.InteropServices.GCHandle a, System.Runtime.InteropServices.GCHandle b) { throw null; }
         public static explicit operator System.Runtime.InteropServices.GCHandle (System.IntPtr value) { throw null; }
         public static explicit operator System.IntPtr (System.Runtime.InteropServices.GCHandle value) { throw null; }
@@ -15067,6 +15069,22 @@ namespace System.Threading
         None = 0,
         PublicationOnly = 1,
         ExecutionAndPublication = 2,
+    }
+    [System.Runtime.Versioning.RequiresPreviewFeaturesAttribute]
+    public sealed partial class Lock
+    {
+        public Lock() { }
+        public void Enter() { }
+        public System.Threading.Lock.Scope EnterScope() { throw null; }
+        public void Exit() { }
+        public bool IsHeldByCurrentThread { get { throw null; } }
+        public bool TryEnter() { throw null; }
+        public bool TryEnter(int millisecondsTimeout) { throw null; }
+        public bool TryEnter(System.TimeSpan timeout) { throw null; }
+        public ref struct Scope
+        {
+            public void Dispose() { }
+        }
     }
     public sealed partial class PeriodicTimer : System.IDisposable
     {
