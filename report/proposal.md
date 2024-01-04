@@ -14,7 +14,7 @@ Opens:
 
 1. JIT currently encodes an ISA (and available instructions) as a singular unit, i.e., if `AVX512VL` is available, an internal variable is set `X86_AVX512VL_ISA` to which all dependencies are check (can I use `AVX512VL` when compling `Vector`, can I use an `AVX512VL` instruction in emit etc.). `AVX10` decouples vector length from available instructions.
 
-- We need to either introduce some feature that lets one query for available vector length, or we will have to have separate `AVX10_1_256_ISA`, `AVX10_1_512_ISA` to encode what is available for the compiler to target. 
+    - We need to either introduce some feature that lets one query for available vector length, or we will have to have separate `AVX10_1_256_ISA`, `AVX10_1_512_ISA` to encode what is available for the compiler to target. 
 
 2. Will we need to create a dependency on AVX512VL etc? I believe `AVX10` is meant to expose same instruction but exist in isolation from an ISA availability perspective.
 
@@ -97,23 +97,25 @@ Open:
 
 1. We need to make sure those _few notable exceptions_ stated in the AVX10 are not any of the instructions that are used by `Vector512` lowerings.
 
+Summary: Likely a big chunk of work, not in terms of complexity, but in terms of adding additional code paths and testing.
+
 ### 6. Utilize new `AVX10` operations instructions for .NET optimizations
 
 Task:
 
 - AVX10.2 introduces several new _classes_ of instructions, i.e., new acclerated operations not present in AVX512 (that apply to .NET as it stands):
 
-1. AVX10 Compare Scalar FP with Enhanced Eflags Instructions
+    1. AVX10 Compare Scalar FP with Enhanced Eflags Instructions
 
-2. AVX10 Minmax Instructions
+    2. AVX10 Minmax Instructions
 
-3. AVX10 Saturating Convert Instructions
+    3. AVX10 Saturating Convert Instructions
 
-  - Well known that these will be used as an optimization on the work Khushal is doing to implement saturating float/double conversions in .NET.
+        - Well known that these will be used as an optimization on the work Khushal is doing to implement saturating float/double conversions in .NET.
 
-4. AVX10 Zero-Clearing FP Register Move Instructions
+    4. AVX10 Zero-Clearing FP Register Move Instructions
 
-  - Move a double from one `xmm` register to another and clear upper 64 bits. `vmovsd` will clear upper 64 bits of `xmm` register when moving from a memory location. Might be cases where .NET has to conservatively clear upper bits of a `xmm` when copying or moving a double value.
+        - Move a double from one `xmm` register to another and clear upper 64 bits. `vmovsd` will clear upper 64 bits of `xmm` register when moving from a memory location. Might be cases where .NET has to conservatively clear upper bits of a `xmm` when copying or moving a double value.
 
 Open:
 
@@ -129,6 +131,9 @@ Open:
 
 - NONE
 
+Summary: Straightforward adjustments to the backend emitter, Ruihan would likely be able to make these changes quickly.
+
+
 ### 8. Enable existing `AVX512` optimizations to `Vector256`.
 
 Task:
@@ -138,7 +143,6 @@ Task:
 Open:
 
 - Study the initial PR https://github.com/dotnet/runtime/pull/89059 and see how the optimizations are done. 
-
 
 ### General Questions 
 
