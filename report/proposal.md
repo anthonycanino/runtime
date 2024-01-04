@@ -71,7 +71,9 @@ Task:
 
   - Right now, the JIT compiler will add `MM16` - `MM32` to the available set of float registers if `AVX512` is present. For `AVX10.2`, we cant simply add to this register set, as V128 would get assigned registers that are not available to be encoded.
 
-  - This might hint that V256 should actually be transformed into AVX10_2 intrinsics, not AVX intrinsics. 
+  - This might hint that V256 should actually be transformed into AVX10_2 intrinsics, not AVX intrinsics. We would need a way to recognize that there exists an EVEX encoding for AVX10/256.
+
+- Adjust `AVX512 ISA` codegen checks (`compOpportunisticallyDependsOn`) in relevant codepaths to allow for AVX10.1, AVX10.2 etc.
 
 Open:
 
@@ -81,32 +83,64 @@ Summary:
 
 This will depend on the open question above, but regardless, will require a bit of work as the set of available registers on AVX10/256 is limited to 256 vector instructions only, which means we will have to somehow limit this.
 
-### 5. Enhance `Vector256` codegen with `AVX10` instructions.
+### 5. Use new `AVX10` instruction forms of existing instructions for `Vector256` codegen
 
 Task:
 
-- (Map Vector256 to AVX10_2_256 intrinsics instead of AVX2 intrinsics)
+- Even though `vaddpd` will serve as the same vectorized add instruction for both `AVX2` and `AVX10/256`, there will exist two separate intrinsics nodes, `AVX2_Add_NI` and `AVX10_256_Add_NI`. Right now, as `Vector256` operations are imported in `hwintrinsicxarch.cpp`, they will get transformed into an `AVX` or `AVX2` intrinsic (or sequence of intrinsics). We will likely have to add additional code paths to transform the operations into `AVX10_2_256` intrinsics, particularly for register allocation purposes.
+
+- We can likely import `Vector512` as `AVX512` on `AVX10/512` processors, as `AVX512` ISA has been frozen and it is covered by `AVX10/512`, _with a few notable exceptions_.
+
+- Adjust `AVX512 ISA` codegen checks (`compOpportunisticallyDependsOn`) in relevant codepaths to allow for AVX10.1, AVX10.2 etc.
+
+Open:
+
+1. We need to make sure those _few notable exceptions_ stated in the AVX10 are not any of the instructions that are used by `Vector512` lowerings.
+
+### 6. Utilize new `AVX10` operations instructions for .NET optimizations
+
+Task:
+
+- AVX10.2 introduces several new _classes_ of instructions, i.e., new acclerated operations not present in AVX512 (that apply to .NET as it stands):
+
+1. AVX10 Compare Scalar FP with Enhanced Eflags Instructions
+
+2. AVX10 Minmax Instructions
+
+3. AVX10 Saturating Convert Instructions
+
+  - Well known that these will be used as an optimization on the work Khushal is doing to implement saturating float/double conversions in .NET.
+
+4. AVX10 Zero-Clearing FP Register Move Instructions
+
+  - Move a double from one `xmm` register to another and clear upper 64 bits. `vmovsd` will clear upper 64 bits of `xmm` register when moving from a memory location. Might be cases where .NET has to conservatively clear upper bits of a `xmm` when copying or moving a double value.
+
+Open:
+
+1. Investigate use cases for (1) and (2) above.
+
+### 7. Enable embedded rounding for `ymm` and adjust EVEX encoding.
+
+Task:
+
+- AVX10.2 allows for additional registers and embedded rounding for existing instructions (mostly overlaps with AVX512VL). For the embedded rounding on `ymm`, there are some EVEX encoding changes as stated in the AVX10 HAS doc (there is no embedded rounding for ymm in AVX512VL). Task is to make necessary adjustments in the emitter `emitxarch.cpp` and likely the `instrDesc` structure if needed.
+
+Open:
+
+- NONE
+
+### 8. Enable existing `AVX512` optimizations to `Vector256`.
+
+Task:
+
+- Using additional `ymm` registers will likely force an `AVX10/256` form for some operations, i.e., `Vector256` comparisons. This will mean we have to use `kmask` registers, which had problems before Tanner introduced optimizations for them. Make sure the optimizations still/will apply. 
+
+Open:
+
+- Study the initial PR https://github.com/dotnet/runtime/pull/89059 and see how the optimizations are done. 
+
 
 ### General Questions 
 
+1. In `AVX10/256`, `kmask` registers are 32 bit values, not 64. Does this lack of backward compatibility affect `Vector256`? I think the answer is no, but we have to double check.
 
-(Edits finish here)
-
-======
-
-
-
-
-
-
-
-
-0. Hardware running environment for MSFT to accept changes into repo when hardware not available.
-4. Adjust codegen checks for AVX512 to check for AVX10.1/AVX10.2
-9. KMask register lack of compatibility
-6. Allow embedded rounding for YMM                       
-7. Convert remaining AVX2 implementations to Vector256   
-8. Allow AVX512 optimizations for AVX10 (ymm)            
-
-
-#
