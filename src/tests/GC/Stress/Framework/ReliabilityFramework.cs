@@ -535,11 +535,13 @@ public class ReliabilityFramework
     }
     internal static void MyDebugBreak(string extraData)
     {
+#if WINDOWS
         if (IsDebuggerPresent())
         {
             Console.WriteLine(string.Format("DebugBreak: {0}", extraData));
             DebugBreak();
         }
+#endif
         {
             // We need to stop the process now,
             // but all the threads are still running

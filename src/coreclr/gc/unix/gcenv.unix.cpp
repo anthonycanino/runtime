@@ -1508,3 +1508,8 @@ void CLRCriticalSection::Leave()
 {
     pthread_mutex_unlock(&m_cs.mutex);
 }
+
+int CLRCriticalSection::Try()
+{
+    return pthread_mutex_trylock(&m_cs.mutex);
+}

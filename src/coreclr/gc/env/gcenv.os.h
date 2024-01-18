@@ -33,6 +33,9 @@ public:
 
     // Leave the critical section
     void Leave();
+
+    // Leave the critical section
+    int Try();
 };
 
 // Flags for the GCToOSInterface::VirtualReserve method

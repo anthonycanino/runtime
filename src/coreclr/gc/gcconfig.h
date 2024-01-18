@@ -63,10 +63,10 @@ public:
 // Each one of these keys produces a method on GCConfig with the name "Get{name}", where {name}
 // is the first parameter of the *_CONFIG macros below.
 #define GC_CONFIGURATION_KEYS \
-    BOOL_CONFIG  (UseDML,                    "gcUseDML",                  NULL,                                false,              "Whether we should use DML to hanlde memclears")                                                   \
-    BOOL_CONFIG  (UseBusyPollDML,            "gcUseBusyPollDML",          NULL,                                true,              "Whether we should use busy poll or umwait for DML")                                                   \
-    BOOL_CONFIG  (TouchClear,                "gcTouchClear",              NULL,                                false,              "Whether we should use busy poll or umwait for DML")                                                   \
-    BOOL_CONFIG  (UseDevicePF,               "gcUseDevicePF",             NULL,                                false,              "Whether we should use busy poll or umwait for DML")                                                   \
+    BOOL_CONFIG  (UseDML,                    "gcUseDML",                  NULL,                                false,              "Whether we should use DML to hanlde memclears")                                          \
+    BOOL_CONFIG  (TouchClear,                "gcTouchClear",              NULL,                                false,              "Whether we should touch all pages for DML")                                              \
+    BOOL_CONFIG  (UseDevicePF,               "gcUseDevicePF",             NULL,                                false,              "Whether we let DSA handle page faults")                                                  \
+    BOOL_CONFIG  (DMLSmall,                  "gcDMLSmall",                NULL,                                false,              "Whether we should send small objects to DSA")                                            \
     BOOL_CONFIG  (ServerGC,                  "gcServer",                  "System.GC.Server",                  false,              "Whether we should be using Server GC")                                                   \
     BOOL_CONFIG  (ConcurrentGC,              "gcConcurrent",              "System.GC.Concurrent",              true,               "Whether we should be using Concurrent GC")                                                \
     BOOL_CONFIG  (ConservativeGC,            "gcConservative",            NULL,                                false,              "Enables/Disables conservative GC")                                                       \

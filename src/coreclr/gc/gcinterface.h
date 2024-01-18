@@ -173,6 +173,8 @@ struct gc_alloc_context
     uint8_t*       dml_ptr;
 public:
 
+    static uint64_t tid;
+
     void init()
     {
         LIMITED_METHOD_CONTRACT;

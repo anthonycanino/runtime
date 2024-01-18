@@ -17,6 +17,10 @@
 #include "gc.h"
 #include "gcrecord.h"
 
+#if defined(WITH_DML) && defined(TARGET_AMD)  && defined(TARGET_UNIX)
+#include <pthread.h>
+#endif
+
 // The per heap and global fields are separated into the following categories -
 // 
 // Used in GC and needs to be maintained, ie, next GC can be using this field so it needs to have the right value.
@@ -3563,6 +3567,7 @@ private:
     // PER_HEAP_FIELD_ALLOC fields //
     /*******************************/
 
+
     // Note that for Server GC we do release this lock on the heap#0 GC thread after we are done with the GC work.
     PER_HEAP_FIELD_ALLOC GCSpinLock more_space_lock_soh; //lock while allocating more space for soh
 
@@ -3581,6 +3586,10 @@ private:
     /***********************************/
     // PER_HEAP_FIELD_INIT_ONLY fields //
     /***********************************/
+
+#if defined(WITH_DML) 
+    PER_HEAP_FIELD_INIT_ONLY CLRCriticalSection dsa_cs;
+#endif
 
     // TODO: for regions we should be able to just get rid of these - they don't change and
     // we can just use g_gc_lowest_address/g_gc_highest_address instead

@@ -30,9 +30,6 @@
 
 #ifdef WITH_DML
 #include <dml.h>
-#if defined(TARGET_XARCH)
-#include <sys/mman.h>
-#endif
 #endif
 
 // We just needed a simple random number generator for testing.
@@ -1629,8 +1626,8 @@ void memclr ( uint8_t* mem, size_t size)
 inline
 bool do_dsa_memclr( uint8_t* mem, size_t mem_size, gc_alloc_context *acontext)
 {
-    static const bool useBusyPoll = GCConfig::GetUseBusyPollDML();
     static const bool useDevicePF = GCConfig::GetUseDevicePF();
+    static const bool touchClear = GCConfig::GetTouchClear();
 
     dml_status_t status;
     dml_path_t execution_path = DML_PATH_HW;
@@ -1649,11 +1646,6 @@ bool do_dsa_memclr( uint8_t* mem, size_t mem_size, gc_alloc_context *acontext)
 
         //printf("DML ptr init!\n");
     }
-
-#if defined(TARGET_XARCH)
-    madvise(mem, mem_size, MADV_WILLNEED);
-#endif
-
 
     dml_job_t* dml_job_ptr = ((dml_job_t*) acontext->dml_ptr);
 
@@ -1680,11 +1672,27 @@ bool do_dsa_memclr( uint8_t* mem, size_t mem_size, gc_alloc_context *acontext)
         dml_job_ptr->flags |= DML_FLAG_BLOCK_ON_FAULT;
     }
 
-    status = dml_execute_job(dml_job_ptr, useBusyPoll ? DML_WAIT_MODE_BUSY_POLL : DML_WAIT_MODE_UMWAIT);
-    //status = dml_execute_job(dml_job_ptr, DML_WAIT_MODE_BUSY_POLL);
-    
+#if defined(TARGET_AMD64) && defined(TARGET_UNIX)
+    if (touchClear)
+    {
+        const size_t pageSize = 4096;
+        const size_t numPages = mem_size / pageSize;
+        for (size_t i = 1; i < numPages; i += 1)
+        {
+            mem[i * pageSize] = 0;
+        }
+    }
+#endif
+
+    status = dml_submit_job(dml_job_ptr);
     if (DML_STATUS_OK != status) {
-        dprintf(3000, ("An error (%u) occured during job execution.", status));
+        dprintf(3000, ("An error (%u) occured during job submission.", status));
+        return false;
+    }
+
+    status = dml_wait_job(dml_job_ptr, DML_WAIT_MODE_UMWAIT);
+    if (DML_STATUS_OK != status) {
+        dprintf(3000, ("An error (%u) occured during job wait.", status));
         return false;
     }
 
@@ -1693,27 +1701,43 @@ bool do_dsa_memclr( uint8_t* mem, size_t mem_size, gc_alloc_context *acontext)
         dprintf(3000, ("An error (%u) occured during job finalization.\n", status));
         return false;
     }
+
+
     //free(dml_job_ptr);
 
     return true;
 }
 
+#if defined(TARGET_AMD64) && defined(TARGET_UNIX)
+inline
+void dsa_memclr( uint8_t* mem, size_t size, gc_alloc_context *acontext, CLRCriticalSection *dsa_cs)
+{
+    static const bool sendSmallObjects = GCConfig::GetDMLSmall();
+
+    if (GCConfig::GetUseDML() && (sendSmallObjects || size >= LARGE_OBJECT_SIZE))
+    {
+        //if (!dsa_cs->Try())
+        //{
+            if (do_dsa_memclr(mem, size, acontext))
+            {
+                //dsa_cs->Leave();
+                return;
+            }
+            //dsa_cs->Leave();
+            dprintf(3000, ("DSA failed, falling back to memclr"));
+        //}
+    }
+
+    // fallback to use memclear
+    memclr(mem, size);
+}
+#else
 inline
 void dsa_memclr( uint8_t* mem, size_t size, gc_alloc_context *acontext)
 {
-    // touch some pages to reduce page faults
-    static const bool touchClear = GCConfig::GetTouchClear();
-    if (touchClear)
-    {
-        const size_t pageSize = 4096;
-        const size_t numPages = size / pageSize;
-        for (size_t i = 0; i < numPages; i++)
-        {
-            mem[i * pageSize] = 0;
-        }
-    }
+    static const bool sendSmallObjects = GCConfig::GetDMLSmall();
 
-    if (GCConfig::GetUseDML() && size >= LARGE_OBJECT_SIZE)
+    if (GCConfig::GetUseDML() && (sendSmallObjects || size >= LARGE_OBJECT_SIZE))
     {
         if (do_dsa_memclr(mem, size, acontext))
         {
@@ -1725,6 +1749,8 @@ void dsa_memclr( uint8_t* mem, size_t size, gc_alloc_context *acontext)
     // fallback to use memclear
     memclr(mem, size);
 }
+#endif
+
 #endif
 
 void memcopy (uint8_t* dmem, uint8_t* smem, size_t size)
@@ -2567,6 +2593,10 @@ uint8_t*    gc_heap::highest_address;
 short*      gc_heap::brick_table;
 
 uint32_t*   gc_heap::card_table;
+
+#if defined(WITH_DML) 
+CLRCriticalSection gc_heap::dsa_cs;
+#endif
 
 #ifdef CARD_BUNDLE
 uint32_t*   gc_heap::card_bundle_table;
@@ -14515,6 +14545,10 @@ gc_heap::init_gc_heap (int h_number)
     highest_address = card_table_highest_address (ct);
     lowest_address = card_table_lowest_address (ct);
 
+#if defined(WITH_DML) 
+    dsa_cs.Initialize();
+#endif
+
 #ifdef CARD_BUNDLE
     card_bundle_table = translate_card_bundle_table (card_table_card_bundle_table (ct), g_gc_lowest_address);
     assert (&card_bundle_table [card_bundle_word (cardw_card_bundle (card_word (card_of (g_gc_lowest_address))))] ==
@@ -16152,7 +16186,11 @@ void gc_heap::adjust_limit_clr (uint8_t* start, size_t limit_size, size_t size,
             dprintf(3, ("clearing memory at %p for %zd bytes", clear_start, clear_limit - clear_start));
 #ifdef WITH_DML
             //printf("Clearing with context:%p dptr:%p\n", alloc_context, alloc_context->dml_ptr);
+#if defined(TARGET_AMD64)  && defined(TARGET_UNIX)
+            dsa_memclr(clear_start, clear_limit - clear_start, alloc_context, &dsa_cs);
+#else
             dsa_memclr(clear_start, clear_limit - clear_start, alloc_context);
+#endif
             //printf("Finished with context:%p dptr:%p\n", alloc_context, alloc_context->dml_ptr);
 #else
             memclr(clear_start, clear_limit - clear_start);
@@ -16178,7 +16216,11 @@ void gc_heap::adjust_limit_clr (uint8_t* start, size_t limit_size, size_t size,
             dprintf (2, ("clearing memory before used at %p for %zd bytes", clear_start, used - clear_start));
 #ifdef WITH_DML
             //printf("Clearing with context:%p dptr:%p\n", alloc_context, alloc_context->dml_ptr);
+#if defined(TARGET_AMD64)  && defined(TARGET_UNIX)
+            dsa_memclr (clear_start, used - clear_start, alloc_context, &dsa_cs);
+#else
             dsa_memclr (clear_start, used - clear_start, alloc_context);
+#endif
             //printf("Finished with context:%p dptr:%p\n", alloc_context, alloc_context->dml_ptr);
 #else
             memclr (clear_start, used - clear_start);
