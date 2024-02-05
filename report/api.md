@@ -10,7 +10,21 @@ The following feature highlights are relevant to this API proposal:
 
 2. AVX10 supports _multiple vector lengths_, where CPUID exposes the max vector length for a processor.
 
-3. AVX10 version 1 will support `AVX512` and all of its extensions for vector lengths 128, 256, and 512 bits. On future P-core processors, maximum vector length will be 512-bit, while on E-core processors it will be 256-bit.
+3. AVX10 version 1 will support `AVX512` and the following extensions for vector lengths 128, 256, and 512 bits. On future P-core processors, maximum vector length will be 512-bit, while on E-core processors it will be 256-bit:
+
+- `AVX512F`, `AVX512BW`, `AVX512DQ`, and `AVX512CD`
+
+- `AVX512_VBMI`, `AVX512_IFMA`
+
+- `AVX512_VNNI`
+
+- `AVX512_BF16`
+
+- `AVX512_VPOPCNTDQ,`, `AVX512_VBMI2`, `VAES`, `GFNI`, `VPCLMULQDQ`, `AVX512_BITALG`
+
+- `AVX512_FP16`
+
+
 
 ## API Proposal
 
@@ -54,40 +68,18 @@ class Avx10 {
 
 ## AVX10 and AVX512 
 
-As `AVX10` represents a convergence of Intel's SIMD ISAs, there is overlap with existing `AVX512` functionality. With the presence of the two APIs, developers would have to write something along the lines of the following to properly program for both platforms:
+As `AVX10` represents a convergence of Intel's SIMD ISAs, there is overlap with existing `AVX512` functionality. `AVX10/512` implies `512-bit` support which encapsulates support for `AVX512` extensions. We propose that if `AVX10.V512.IsSupported()` returns true, then the corresponding `AVX512` APIs for the aforementioned extensions can safely be used:
 
 ```C#
-Vector256<long> v1 = Vector256.Create((long)someParam);
-if (Avx10.IsSupported()) {
-  Vector256<ulong> v2 = Avx10.V256.Abs(v1);
-  // ...
-
-} else if (Avx512F.VL.IsSupported()) {
-  Vector256<ulong> v2 = Avx512F.VL.Abs(v1);
-  // ...
-
-} else {
-  // slower fallback  
-
+Vector512<long> v1 = Vector512.Create((long)someParam);
+if (Avx10.V512.IsSupported()) {
+  Vector512<ulong> v2 = Avx512F.Abs(v1);
+  Vector512<double> v3 = Avx512DQ.ConvertToVector512Double(v2);
+  // etc
 }
 ```
 
-To capture the spirit of the converged ISA, we propose a new `IsEmulated` method, which will return `true` if the JIT is capable of emulating `Avx10` APIs with `AVX512` APIs. This would allow developers to collapse the above code into:
-
-
-```C#
-Vector256<long> v1 = Vector256.Create((long)someParam);
-if (Avx10v1.IsSupported() || Avx10v1.IsEmulated()) {
-  Vector256<ulong> v2 = Avx10.V256.Abs(v1);
-  // ...
-
-} else {
-  // slower fallback  
-
-}
-```
-
-`IsSupported` continues the trend of reflecting the exact CPUID information read from the processor.
+For `AVX10/256`, the subset of VL instructions for 128-bit and 256-bit vectors is supported; however, existing `AVX512VL` implies 512-bit support which is not the case here. This requires to create additional APIs under the `V256` class as it is possible to have `AVX10.V256.IsSupported() == true` but `AVX512F.IsSupported() == false`.
 
 ### Avx10v1 API
 
@@ -113,13 +105,31 @@ class Avx10v1 {
     }
 
     class V512 {
+      // no changes, place holder for future versions
 
     }
 
 }
 ```
 
+This includes the `VL` subsets for the following extensions:
+
+- `AVX512F`, `AVX512BW`, `AVX512DQ`, and `AVX512CD`
+
+- `AVX512_VBMI`, `AVX512_IFMA`
+
+- `AVX512_VNNI`
+
+- `AVX512_BF16`
+
+- `AVX512_VPOPCNTDQ,`, `AVX512_VBMI2`, `VAES`, `GFNI`, `VPCLMULQDQ`, `AVX512_BITALG`
+
+- `AVX512_FP16`
+
+
 ## Alternative Designs
+
+### Alternative Versioning
 
 One alternative design we are considering is to expose all Avx10 methods under a single class and provide a form of versioning --- defined via method attributes --- on the API:
 
@@ -161,5 +171,10 @@ if (Avx10.VersionIsAtLeast(2))
 ```
 
 To help developers ensure they are using the API correctly, we propose to create an analyzer that will ensure that a proper version check is in place for all methods used, and flag a warning if a method is used outside of a proper version check.
+
+
+### V512 Surface Area
+
+For developer ease-of-us, one alternative design is to duplicate the `AVX512` 512-bit API surface in the `V512` class, so the developer does not have to explicitly reference existing `AVX512` APIs. Note that this requires duplicating a large amount of API surface.
 
 ## Risks
