@@ -1258,11 +1258,11 @@ GenTree* Compiler::impSpecialIntrinsic(NamedIntrinsic        intrinsic,
         {
             assert(sig->numArgs == 1);
 
-            if (compOpportunisticallyDependsOn(InstructionSet_AVX512FP16))
+            if (compOpportunisticallyDependsOn(InstructionSet_AVX10v1))
             {
                 StackEntry se   = impPopStack();
                 op1     = se.val;
-                retNode = gtNewSimdHWIntrinsicNode(retType, op1, NI_AVX512FP16_ConvertFloatToHalf, simdBaseJitType, simdSize);
+                retNode = gtNewSimdHWIntrinsicNode(retType, op1, NI_AVX10v1_ConvertFloatToHalf, simdBaseJitType, simdSize);
             }
 
             break;

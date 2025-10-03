@@ -442,6 +442,10 @@ HARDWARE_INTRINSIC(Vector512,       op_UnaryPlus,                               
 HARDWARE_INTRINSIC(Vector512,       op_UnsignedRightShift,                      64,             2,      {INS_invalid,           INS_invalid,            INS_invalid,            INS_invalid,            INS_invalid,            INS_invalid,            INS_invalid,            INS_invalid,            INS_invalid,            INS_invalid},           HW_Category_Helper,                 HW_Flag_InvalidNodeId)
 #define LAST_NI_Vector512           NI_Vector512_op_UnsignedRightShift
 
+#define FIRST_NI_Half             NI_Half_op_Explicit
+HARDWARE_INTRINSIC(Half,            op_Explicit,                                16,             1,      {INS_invalid,           INS_invalid,            INS_invalid,            INS_invalid,            INS_invalid,            INS_invalid,            INS_invalid,            INS_invalid,            INS_invalid,            INS_invalid},           HW_Category_Helper,                 HW_Flag_SpecialImport|HW_Flag_NoCodeGen)
+#define LAST_NI_Half              NI_Half_op_Explicit
+
 // ***************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************
 //                 ISA              Function name                               SIMD size       NumArg                                                                                                                            Instructions                                                                                                                  Category                            Flags
 //                                                                                                      {TYP_BYTE,              TYP_UBYTE,              TYP_SHORT,              TYP_USHORT,             TYP_INT,                TYP_UINT,               TYP_LONG,               TYP_ULONG,              TYP_FLOAT,              TYP_DOUBLE}
@@ -1069,6 +1073,9 @@ HARDWARE_INTRINSIC(AVX512v3,        Expand,                                     
 HARDWARE_INTRINSIC(AVX512v3,        ExpandLoad,                                 -1,              3,     {INS_invalid,           INS_invalid,            INS_invalid,            INS_invalid,            INS_invalid,            INS_invalid,            INS_invalid,            INS_invalid,            INS_invalid,            INS_invalid},           HW_Category_MemoryLoad,             HW_Flag_InvalidNodeId)
 #define LAST_NI_AVX512v3            NI_AVX512v3_ExpandLoad
 
+#define FIRST_NI_AVX10v1            NI_AVX10v1_ConvertFloatToHalf
+HARDWARE_INTRINSIC(AVX10v1,         ConvertFloatToHalf,                         0,              1,     {INS_invalid,            INS_invalid,             INS_invalid,            INS_invalid,            INS_invalid,            INS_invalid,            INS_invalid,            INS_invalid,           INS_vcvtss2sh,          INS_invalid},           HW_Category_SimpleSIMD,             HW_Flag_SpecialImport)
+#define LAST_NI_AVX10v1             NI_AVX10v1_ConvertFloatToHalf
 
 
 // ***************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************
@@ -1252,9 +1259,7 @@ HARDWARE_INTRINSIC(AVX512,          ShiftRightMask,                             
 HARDWARE_INTRINSIC(AVX512,          XorMask,                                    -1,              2,     {INS_invalid,           INS_invalid,            INS_invalid,            INS_invalid,            INS_invalid,            INS_invalid,            INS_invalid,            INS_invalid,            INS_invalid,            INS_invalid},           HW_Category_Special,                HW_Flag_NoContainment|HW_Flag_Commutative|HW_Flag_ReturnsPerElementMask)
 HARDWARE_INTRINSIC(AVX512,          XnorMask,                                   -1,              2,     {INS_invalid,           INS_invalid,            INS_invalid,            INS_invalid,            INS_invalid,            INS_invalid,            INS_invalid,            INS_invalid,            INS_invalid,            INS_invalid},           HW_Category_Special,                HW_Flag_NoContainment|HW_Flag_Commutative|HW_Flag_ReturnsPerElementMask)
 
-HARDWARE_INTRINSIC(Half,            op_Explicit,                                16,             1,      false,  {INS_invalid,           INS_invalid,            INS_invalid,            INS_invalid,            INS_invalid,            INS_invalid,            INS_invalid,            INS_invalid,            INS_invalid,            INS_invalid},           HW_Category_Helper,                 HW_Flag_SpecialImport|HW_Flag_NoCodeGen)
 
-HARDWARE_INTRINSIC(AVX512FP16,      ConvertFloatToHalf,                         0,              1,     false,  {INS_invalid,            INS_invalid,             INS_invalid,            INS_invalid,            INS_invalid,            INS_invalid,            INS_invalid,            INS_invalid,           INS_vcvtss2sh,          INS_invalid},           HW_Category_SimpleSIMD,             HW_Flag_SpecialImport)0
 
 #endif // FEATURE_HW_INTRINSIC
 

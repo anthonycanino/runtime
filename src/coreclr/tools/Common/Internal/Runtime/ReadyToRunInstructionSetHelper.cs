@@ -116,10 +116,6 @@ namespace Internal.ReadyToRunConstants
                             case InstructionSet.X64_VectorT512: return ReadyToRunInstructionSet.VectorT512;
                             case InstructionSet.X64_AVXVNNIINT: return ReadyToRunInstructionSet.AvxVnniInt8;
                             case InstructionSet.X64_AVXVNNIINT_V512: return ReadyToRunInstructionSet.AvxVnniInt8_V512;
-                            case InstructionSet.X64_AVX512FP16: return ReadyToRunInstructionSet.Avx512FP16;
-                            case InstructionSet.X64_AVX512FP16_X64: return ReadyToRunInstructionSet.Avx512FP16;
-                            case InstructionSet.X64_AVX512FP16_VL: return ReadyToRunInstructionSet.Avx512FP16_VL;
-                            case InstructionSet.X64_AVX512FP16_VL_X64: return ReadyToRunInstructionSet.Avx512FP16_VL;
                             case InstructionSet.X64_Half: return null;
 
                             default: throw new Exception("Unknown instruction set");
@@ -175,10 +171,6 @@ namespace Internal.ReadyToRunConstants
                             case InstructionSet.X86_VectorT512: return ReadyToRunInstructionSet.VectorT512;
                             case InstructionSet.X86_AVXVNNIINT: return ReadyToRunInstructionSet.AvxVnniInt8;
                             case InstructionSet.X86_AVXVNNIINT_V512: return ReadyToRunInstructionSet.AvxVnniInt8_V512;
-                            case InstructionSet.X86_AVX512FP16: return ReadyToRunInstructionSet.Avx512FP16;
-                            case InstructionSet.X86_AVX512FP16_X64: return null;
-                            case InstructionSet.X86_AVX512FP16_VL: return ReadyToRunInstructionSet.Avx512FP16_VL;
-                            case InstructionSet.X86_AVX512FP16_VL_X64: return null;
                             case InstructionSet.X86_Half: return null;
 
                             default: throw new Exception("Unknown instruction set");
