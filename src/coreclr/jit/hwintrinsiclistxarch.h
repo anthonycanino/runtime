@@ -1074,7 +1074,7 @@ HARDWARE_INTRINSIC(AVX512v3,        ExpandLoad,                                 
 #define LAST_NI_AVX512v3            NI_AVX512v3_ExpandLoad
 
 #define FIRST_NI_AVX10v1            NI_AVX10v1_ConvertFloatToHalf
-HARDWARE_INTRINSIC(AVX10v1,         ConvertFloatToHalf,                         0,              1,     {INS_invalid,            INS_invalid,             INS_invalid,            INS_invalid,            INS_invalid,            INS_invalid,            INS_invalid,            INS_invalid,           INS_vcvtss2sh,          INS_invalid},           HW_Category_SimpleSIMD,             HW_Flag_SpecialImport)
+HARDWARE_INTRINSIC(AVX10v1,         ConvertFloatToHalf,                         -1,              1,     {INS_invalid,            INS_invalid,             INS_invalid,            INS_invalid,            INS_invalid,            INS_invalid,            INS_invalid,            INS_invalid,           INS_vcvtss2sh,          INS_invalid},           HW_Category_SimpleSIMD,             HW_Flag_BaseTypeFromFirstArg)
 #define LAST_NI_AVX10v1             NI_AVX10v1_ConvertFloatToHalf
 
 

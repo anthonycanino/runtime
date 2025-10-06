@@ -397,6 +397,19 @@ CorInfoType Compiler::getBaseJitTypeAndSizeOfSIMDType(CORINFO_CLASS_HANDLE typeH
             }
 
 #if defined(TARGET_XARCH)
+            case 2:
+            {
+                if (strcmp(className, "Half") != 0)
+                {
+                    return CORINFO_TYPE_UNDEF;
+                }
+
+                // todo-xarch-half (we need to defined a proper half type in the CIL runtime)
+                simdBaseJitType = CORINFO_TYPE_HALF;
+
+                break;
+            }
+
             case 32:
             {
                 if (strcmp(className, "Vector256`1") != 0)

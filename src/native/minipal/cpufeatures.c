@@ -447,6 +447,14 @@ int minipal_getcpufeatures(void)
             }
         }
     }
+
+    // todo-xarch-half (hacking Avx10v1 on)
+    result |= XArchIntrinsicConstants_Avx512;
+    result |= XArchIntrinsicConstants_Avx512v2;
+    result |= XArchIntrinsicConstants_Avx512v3;
+    result |= XArchIntrinsicConstants_Avx10v1;
+    hasAvx10v1Dependencies = true;
+
 #endif // HOST_X86 || HOST_AMD64
 
 #if defined(HOST_ARM64)

@@ -1262,7 +1262,7 @@ GenTree* Compiler::impSpecialIntrinsic(NamedIntrinsic        intrinsic,
             {
                 StackEntry se   = impPopStack();
                 op1     = se.val;
-                retNode = gtNewSimdHWIntrinsicNode(retType, op1, NI_AVX10v1_ConvertFloatToHalf, simdBaseJitType, simdSize);
+                retNode = gtNewScalarHWIntrinsicNode(retType, op1, NI_AVX10v1_ConvertFloatToHalf);
             }
 
             break;

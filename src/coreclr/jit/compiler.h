@@ -9315,6 +9315,11 @@ public:
             simdType = TYP_SIMD16;
         }
 #if defined(TARGET_XARCH)
+        else if (size == 2)
+        {
+            // todo-xarch-half: I think this is the wrong approach, come back to refactor
+            simdType = TYP_HALF;
+        }
         else if (size == 32)
         {
             simdType = TYP_SIMD32;

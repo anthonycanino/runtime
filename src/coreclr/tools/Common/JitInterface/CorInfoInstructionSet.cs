@@ -418,7 +418,6 @@ namespace Internal.JitInterface
                 case InstructionSet.X64_Vector128: return InstructionSet.X64_X86Base;
                 case InstructionSet.X64_Vector256: return InstructionSet.X64_AVX;
                 case InstructionSet.X64_Vector512: return InstructionSet.X64_AVX512;
-                case InstructionSet.X64_Half: return InstructionSet.X64_AVX10v1;
                 }
                 break;
             case TargetArchitecture.X86:
@@ -427,7 +426,6 @@ namespace Internal.JitInterface
                 case InstructionSet.X86_Vector128: return InstructionSet.X86_X86Base;
                 case InstructionSet.X86_Vector256: return InstructionSet.X86_AVX;
                 case InstructionSet.X86_Vector512: return InstructionSet.X86_AVX512;
-                case InstructionSet.X86_Half: return InstructionSet.X86_AVX10v1;
                 }
                 break;
             }
@@ -633,6 +631,8 @@ namespace Internal.JitInterface
                         resultflags.AddInstructionSet(InstructionSet.X64_AVX2);
                     if (resultflags.HasInstructionSet(InstructionSet.X64_AVXVNNIINT_V512))
                         resultflags.AddInstructionSet(InstructionSet.X64_AVX10v2);
+                    if (resultflags.HasInstructionSet(InstructionSet.X64_Half))
+                        resultflags.AddInstructionSet(InstructionSet.X64_AVX10v1);
                     if (resultflags.HasInstructionSet(InstructionSet.X64_Vector128))
                         resultflags.AddInstructionSet(InstructionSet.X64_X86Base);
                     if (resultflags.HasInstructionSet(InstructionSet.X64_Vector256))
@@ -645,8 +645,6 @@ namespace Internal.JitInterface
                         resultflags.AddInstructionSet(InstructionSet.X64_AVX2);
                     if (resultflags.HasInstructionSet(InstructionSet.X64_VectorT512))
                         resultflags.AddInstructionSet(InstructionSet.X64_AVX512);
-                    if (resultflags.HasInstructionSet(InstructionSet.X64_Half))
-                        resultflags.AddInstructionSet(InstructionSet.X64_AVX10v1);
                     break;
 
                 case TargetArchitecture.X86:
@@ -700,6 +698,8 @@ namespace Internal.JitInterface
                         resultflags.AddInstructionSet(InstructionSet.X86_AVX2);
                     if (resultflags.HasInstructionSet(InstructionSet.X86_AVXVNNIINT_V512))
                         resultflags.AddInstructionSet(InstructionSet.X86_AVX10v2);
+                    if (resultflags.HasInstructionSet(InstructionSet.X86_Half))
+                        resultflags.AddInstructionSet(InstructionSet.X86_AVX10v1);
                     if (resultflags.HasInstructionSet(InstructionSet.X86_Vector128))
                         resultflags.AddInstructionSet(InstructionSet.X86_X86Base);
                     if (resultflags.HasInstructionSet(InstructionSet.X86_Vector256))
@@ -712,8 +712,6 @@ namespace Internal.JitInterface
                         resultflags.AddInstructionSet(InstructionSet.X86_AVX2);
                     if (resultflags.HasInstructionSet(InstructionSet.X86_VectorT512))
                         resultflags.AddInstructionSet(InstructionSet.X86_AVX512);
-                    if (resultflags.HasInstructionSet(InstructionSet.X86_Half))
-                        resultflags.AddInstructionSet(InstructionSet.X86_AVX10v1);
                     break;
                 }
             } while (!oldflags.Equals(resultflags));
@@ -873,6 +871,8 @@ namespace Internal.JitInterface
                         resultflags.AddInstructionSet(InstructionSet.X64_AVXVNNIINT);
                     if (resultflags.HasInstructionSet(InstructionSet.X64_AVX10v2))
                         resultflags.AddInstructionSet(InstructionSet.X64_AVXVNNIINT_V512);
+                    if (resultflags.HasInstructionSet(InstructionSet.X64_AVX10v1))
+                        resultflags.AddInstructionSet(InstructionSet.X64_Half);
                     if (resultflags.HasInstructionSet(InstructionSet.X64_X86Base))
                         resultflags.AddInstructionSet(InstructionSet.X64_Vector128);
                     if (resultflags.HasInstructionSet(InstructionSet.X64_AVX))
@@ -885,8 +885,6 @@ namespace Internal.JitInterface
                         resultflags.AddInstructionSet(InstructionSet.X64_VectorT256);
                     if (resultflags.HasInstructionSet(InstructionSet.X64_AVX512))
                         resultflags.AddInstructionSet(InstructionSet.X64_VectorT512);
-                    if (resultflags.HasInstructionSet(InstructionSet.X64_AVX10v1))
-                        resultflags.AddInstructionSet(InstructionSet.X64_Half);
                     break;
 
                 case TargetArchitecture.X86:
@@ -940,6 +938,8 @@ namespace Internal.JitInterface
                         resultflags.AddInstructionSet(InstructionSet.X86_AVXVNNIINT);
                     if (resultflags.HasInstructionSet(InstructionSet.X86_AVX10v2))
                         resultflags.AddInstructionSet(InstructionSet.X86_AVXVNNIINT_V512);
+                    if (resultflags.HasInstructionSet(InstructionSet.X86_AVX10v1))
+                        resultflags.AddInstructionSet(InstructionSet.X86_Half);
                     if (resultflags.HasInstructionSet(InstructionSet.X86_X86Base))
                         resultflags.AddInstructionSet(InstructionSet.X86_Vector128);
                     if (resultflags.HasInstructionSet(InstructionSet.X86_AVX))
@@ -952,8 +952,6 @@ namespace Internal.JitInterface
                         resultflags.AddInstructionSet(InstructionSet.X86_VectorT256);
                     if (resultflags.HasInstructionSet(InstructionSet.X86_AVX512))
                         resultflags.AddInstructionSet(InstructionSet.X86_VectorT512);
-                    if (resultflags.HasInstructionSet(InstructionSet.X86_AVX10v1))
-                        resultflags.AddInstructionSet(InstructionSet.X86_Half);
                     break;
                 }
             } while (!oldflags.Equals(resultflags));
@@ -1103,7 +1101,7 @@ namespace Internal.JitInterface
                     yield return new InstructionSetInfo("avxvnniint_v512", "AvxVnniInt8_V512", InstructionSet.X64_AVXVNNIINT_V512, true);
                     yield return new InstructionSetInfo("avxvnniint", "AvxVnniInt16", InstructionSet.X64_AVXVNNIINT, true);
                     yield return new InstructionSetInfo("avxvnniint_v512", "AvxVnniInt16_V512", InstructionSet.X64_AVXVNNIINT_V512, true);
-                    yield return new InstructionSetInfo("Half", "", InstructionSet.X64_Half, false);
+                    yield return new InstructionSetInfo("half", "Half", InstructionSet.X64_Half, true);
                     break;
 
                 case TargetArchitecture.X86:
@@ -1177,7 +1175,7 @@ namespace Internal.JitInterface
                     yield return new InstructionSetInfo("avxvnniint_v512", "AvxVnniInt8_V512", InstructionSet.X86_AVXVNNIINT_V512, true);
                     yield return new InstructionSetInfo("avxvnniint", "AvxVnniInt16", InstructionSet.X86_AVXVNNIINT, true);
                     yield return new InstructionSetInfo("avxvnniint_v512", "AvxVnniInt16_V512", InstructionSet.X86_AVXVNNIINT_V512, true);
-                    yield return new InstructionSetInfo("Half", "", InstructionSet.X86_Half, false);
+                    yield return new InstructionSetInfo("half", "Half", InstructionSet.X86_Half, true);
                     break;
             }
         }
@@ -1771,6 +1769,9 @@ namespace Internal.JitInterface
                         else
                         { return InstructionSet.X64_AVXVNNIINT; }
 
+                    case "Half":
+                        { return InstructionSet.X64_Half; }
+
                 }
                 break;
 
@@ -1954,6 +1955,9 @@ namespace Internal.JitInterface
                         { return InstructionSet.X86_AVXVNNIINT_V512; }
                         else
                         { return InstructionSet.X86_AVXVNNIINT; }
+
+                    case "Half":
+                        { return InstructionSet.X86_Half; }
 
                 }
                 break;

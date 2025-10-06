@@ -501,6 +501,8 @@ inline CORINFO_InstructionSetFlags EnsureInstructionSetFlagsAreValid(CORINFO_Ins
             resultflags.RemoveInstructionSet(InstructionSet_AVXVNNIINT);
         if (resultflags.HasInstructionSet(InstructionSet_AVXVNNIINT_V512) && !resultflags.HasInstructionSet(InstructionSet_AVX10v2))
             resultflags.RemoveInstructionSet(InstructionSet_AVXVNNIINT_V512);
+        if (resultflags.HasInstructionSet(InstructionSet_Half) && !resultflags.HasInstructionSet(InstructionSet_AVX10v1))
+            resultflags.RemoveInstructionSet(InstructionSet_Half);
         if (resultflags.HasInstructionSet(InstructionSet_Vector128) && !resultflags.HasInstructionSet(InstructionSet_X86Base))
             resultflags.RemoveInstructionSet(InstructionSet_Vector128);
         if (resultflags.HasInstructionSet(InstructionSet_Vector256) && !resultflags.HasInstructionSet(InstructionSet_AVX))
@@ -513,8 +515,6 @@ inline CORINFO_InstructionSetFlags EnsureInstructionSetFlagsAreValid(CORINFO_Ins
             resultflags.RemoveInstructionSet(InstructionSet_VectorT256);
         if (resultflags.HasInstructionSet(InstructionSet_VectorT512) && !resultflags.HasInstructionSet(InstructionSet_AVX512))
             resultflags.RemoveInstructionSet(InstructionSet_VectorT512);
-        if (resultflags.HasInstructionSet(InstructionSet_Half) && !resultflags.HasInstructionSet(InstructionSet_AVX10v1))
-            resultflags.RemoveInstructionSet(InstructionSet_Half);
 #endif // TARGET_AMD64
 #ifdef TARGET_X86
         if (resultflags.HasInstructionSet(InstructionSet_AVX) && !resultflags.HasInstructionSet(InstructionSet_X86Base))
@@ -567,6 +567,8 @@ inline CORINFO_InstructionSetFlags EnsureInstructionSetFlagsAreValid(CORINFO_Ins
             resultflags.RemoveInstructionSet(InstructionSet_AVXVNNIINT);
         if (resultflags.HasInstructionSet(InstructionSet_AVXVNNIINT_V512) && !resultflags.HasInstructionSet(InstructionSet_AVX10v2))
             resultflags.RemoveInstructionSet(InstructionSet_AVXVNNIINT_V512);
+        if (resultflags.HasInstructionSet(InstructionSet_Half) && !resultflags.HasInstructionSet(InstructionSet_AVX10v1))
+            resultflags.RemoveInstructionSet(InstructionSet_Half);
         if (resultflags.HasInstructionSet(InstructionSet_Vector128) && !resultflags.HasInstructionSet(InstructionSet_X86Base))
             resultflags.RemoveInstructionSet(InstructionSet_Vector128);
         if (resultflags.HasInstructionSet(InstructionSet_Vector256) && !resultflags.HasInstructionSet(InstructionSet_AVX))
@@ -579,8 +581,6 @@ inline CORINFO_InstructionSetFlags EnsureInstructionSetFlagsAreValid(CORINFO_Ins
             resultflags.RemoveInstructionSet(InstructionSet_VectorT256);
         if (resultflags.HasInstructionSet(InstructionSet_VectorT512) && !resultflags.HasInstructionSet(InstructionSet_AVX512))
             resultflags.RemoveInstructionSet(InstructionSet_VectorT512);
-        if (resultflags.HasInstructionSet(InstructionSet_Half) && !resultflags.HasInstructionSet(InstructionSet_AVX10v1))
-            resultflags.RemoveInstructionSet(InstructionSet_Half);
 #endif // TARGET_X86
 
     } while (!oldflags.Equals(resultflags));
@@ -923,6 +923,7 @@ inline CORINFO_InstructionSet InstructionSetFromR2RInstructionSet(ReadyToRunInst
         case READYTORUN_INSTRUCTION_AvxVnniInt8_V512: return InstructionSet_AVXVNNIINT_V512;
         case READYTORUN_INSTRUCTION_AvxVnniInt16: return InstructionSet_AVXVNNIINT;
         case READYTORUN_INSTRUCTION_AvxVnniInt16_V512: return InstructionSet_AVXVNNIINT_V512;
+        case READYTORUN_INSTRUCTION_Half: return InstructionSet_Half;
 #endif // TARGET_AMD64
 #ifdef TARGET_X86
         case READYTORUN_INSTRUCTION_X86Base: return InstructionSet_X86Base;
@@ -992,6 +993,7 @@ inline CORINFO_InstructionSet InstructionSetFromR2RInstructionSet(ReadyToRunInst
         case READYTORUN_INSTRUCTION_AvxVnniInt8_V512: return InstructionSet_AVXVNNIINT_V512;
         case READYTORUN_INSTRUCTION_AvxVnniInt16: return InstructionSet_AVXVNNIINT;
         case READYTORUN_INSTRUCTION_AvxVnniInt16_V512: return InstructionSet_AVXVNNIINT_V512;
+        case READYTORUN_INSTRUCTION_Half: return InstructionSet_Half;
 #endif // TARGET_X86
 
         default:

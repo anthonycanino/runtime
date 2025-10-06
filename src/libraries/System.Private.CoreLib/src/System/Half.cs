@@ -8,6 +8,7 @@ using System.Globalization;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Runtime.Intrinsics;
 
 namespace System
 {
@@ -16,6 +17,7 @@ namespace System
     /// <summary>
     /// Represents a half-precision floating-point number.
     /// </summary>
+    [Intrinsic]
     [StructLayout(LayoutKind.Sequential)]
     public readonly struct Half
         : IComparable,
