@@ -403,6 +403,7 @@ RELEASE_CONFIG_INTEGER(EnableAVX512v3,              "EnableAVX512v3",           
 RELEASE_CONFIG_INTEGER(EnableAVX10v1,               "EnableAVX10v1",             1) // Allows AVX10v1 and depdendent hardware intrinsics to be disabled
 RELEASE_CONFIG_INTEGER(EnableAVX10v2,               "EnableAVX10v2",             0) // Allows AVX10v2 and depdendent hardware intrinsics to be disabled
 RELEASE_CONFIG_INTEGER(EnableAPX,                   "EnableAPX",                 0) // Allows APX and dependent features to be disabled
+RELEASE_CONFIG_INTEGER(EnableHalf,                  "EnableHalf",                0) // Allows Half and dependent hardware intrinsics to be disabled
 
 RELEASE_CONFIG_INTEGER(EnableAES,                   "EnableAES",                 1) // Allows AES, PCLMULQDQ, and dependent hardware intrinsics to be disabled
 RELEASE_CONFIG_INTEGER(EnableAVX512VP2INTERSECT,    "EnableAVX512VP2INTERSECT",  1) // Allows AVX512VP2INTERSECT and dependent hardware intrinsics to be disabled

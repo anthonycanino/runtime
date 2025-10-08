@@ -1875,7 +1875,7 @@ GenTree* Compiler::impFixupCallStructReturn(GenTreeCall* call, CORINFO_CLASS_HAN
     var_types simdReturnType = impNormStructType(call->gtRetClsHnd);
     if (simdReturnType != call->TypeGet())
     {
-        assert(varTypeIsSIMD(simdReturnType));
+        assert(varTypeIsSIMD(simdReturnType) || simdReturnType == TYP_HALF);
         JITDUMP("changing the type of a call [%06u] from %s to %s\n", dspTreeID(call), varTypeName(call->TypeGet()),
                 varTypeName(simdReturnType));
         call->ChangeType(simdReturnType);

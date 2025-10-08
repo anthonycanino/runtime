@@ -5905,6 +5905,14 @@ void Lowering::LowerCallStruct(GenTreeCall* call)
                     break;
                 }
 #endif // FEATURE_SIMD
+#if defined(TARGET_XARCH)
+                // todo-xarch-half: come back and check the hack
+                if (user->TypeGet() == TYP_HALF)
+                {
+                    user->ChangeType(returnType);
+                    break;
+                }
+#endif
        // importer has a separate mechanism to retype calls to helpers,
        // keep it for now.
                 assert(user->TypeIs(TYP_REF) || (user->TypeIs(TYP_I_IMPL) && comp->IsTargetAbi(CORINFO_NATIVEAOT_ABI)));
@@ -9530,6 +9538,12 @@ bool Lowering::TryRemoveBitCast(GenTreeUnOp* node)
         return false;
     }
 
+    // todo-xarch-half: come back to handle
+    if (node->TypeIs(TYP_HALF))
+    {
+        return false;
+    }
+
     GenTree* op = node->gtGetOp1();
     assert(genTypeSize(node) == genTypeSize(genActualType(op)));
 
@@ -11382,6 +11396,12 @@ void Lowering::TryRetypingFloatingPointStoreToIntegerStore(GenTree* store)
     assert(store->OperIsStore());
 
     if (!varTypeIsFloating(store))
+    {
+        return;
+    }
+
+    // todo-xarch-half: come back to handle
+    if (store->TypeIs(TYP_HALF))
     {
         return;
     }

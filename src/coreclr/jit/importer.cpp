@@ -1178,12 +1178,22 @@ var_types Compiler::impNormStructType(CORINFO_CLASS_HANDLE structHnd, CorInfoTyp
 #ifdef FEATURE_SIMD
     const DWORD structFlags = info.compCompHnd->getClassAttribs(structHnd);
 
+#ifdef DEBUG
+    const char *className = eeGetClassName(structHnd);
+    JITDUMP("impNormStructType: class %s, flags = %08x\n", className, structFlags);
+#endif
+
     // Don't bother if the struct contains GC references of byrefs, it can't be a SIMD type.
     if ((structFlags & (CORINFO_FLG_CONTAINS_GC_PTR | CORINFO_FLG_BYREF_LIKE)) == 0)
     {
         unsigned originalSize = info.compCompHnd->getClassSize(structHnd);
 
-        if (structSizeMightRepresentSIMDType(originalSize))
+        // todo-xarch-half: putting the originalSize == 2 here to catch half for prototyping
+        if (structSizeMightRepresentSIMDType(originalSize) 
+#if defined(TARGET_XARCH)
+        || (originalSize == 2)
+#endif
+           )
         {
             unsigned int sizeBytes;
             CorInfoType  simdBaseJitType = getBaseJitTypeAndSizeOfSIMDType(structHnd, &sizeBytes);

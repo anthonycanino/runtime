@@ -12876,12 +12876,18 @@ static CorJitResult invokeCompileMethod(EECodeGenManager *jitMgr,
     CorJitResult ret = CORJIT_SKIPPED;   // Note that CORJIT_SKIPPED is an error exit status code
     CORINFO_METHOD_INFO* methodInfo = comp->getMethodInfoInternal();
 
+#ifdef DEBUG
+    MethodDesc *pMethod = GetMethod(methodInfo->ftn);
+    LPCUTF8 methodName = pMethod->GetName();
+#endif
+
 #if defined(ALLOW_SXS_JIT)
     jitCompiler = jitMgr->GetAltCompiler();
     if (jitCompiler != NULL)
     {
         CORJIT_FLAGS* jitFlags = comp->getJitFlagsInternal();
         jitFlags->Set(CORJIT_FLAGS::CORJIT_FLAG_ALT_JIT);
+
 
         ret = jitCompiler->compileMethod(comp,
                                          methodInfo,

@@ -6102,6 +6102,11 @@ int Compiler::compCompile(CORINFO_MODULE_HANDLE classPtr,
             instructionSetFlags.AddInstructionSet(InstructionSet_AVX10v2);
         }
 
+        if (JitConfig.EnableHalf() != 0)
+        {
+            instructionSetFlags.AddInstructionSet(InstructionSet_Half);
+        }
+
         if (JitConfig.EnableAPX() != 0)
         {
             instructionSetFlags.AddInstructionSet(InstructionSet_APX);

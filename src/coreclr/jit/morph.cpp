@@ -2304,7 +2304,8 @@ bool Compiler::fgTryMorphStructArg(CallArg* arg)
     //
     if (newArg == nullptr)
     {
-        if (!argNode->TypeIs(TYP_STRUCT) && arg->AbiInfo.HasExactlyOneRegisterSegment())
+        // todo-xarch-half: make half be treated like struct
+        if (!argNode->TypeIs(TYP_STRUCT) && !argNode->TypeIs(TYP_HALF) && arg->AbiInfo.HasExactlyOneRegisterSegment())
         {
             // This can be treated primitively. Leave it alone.
             return true;
@@ -2326,7 +2327,7 @@ bool Compiler::fgTryMorphStructArg(CallArg* arg)
         }
         else
         {
-            assert(varTypeIsSIMD(argNode) && varTypeIsSIMD(arg->GetSignatureType()));
+            assert((varTypeIsSIMD(argNode) && varTypeIsSIMD(arg->GetSignatureType())) || (argNode->TypeIs(TYP_HALF) && arg->GetSignatureType() == TYP_HALF));
         }
 
         if (argNode->OperIsLoad())
@@ -14798,6 +14799,13 @@ PhaseStatus Compiler::fgPromoteStructs()
         {
             varDsc->lvRegStruct = true;
         }
+        // todo-xarch-half: hacking my own checks analogous to the ones above
+#if defined(TARGET_XARCH)
+        else if (varDsc->TypeGet() == TYP_HALF && varDsc->GetLayout() == NULL) 
+        {
+            varDsc->lvRegStruct = true;
+        }
+#endif
         // Don't promote if we have reached the tracking limit.
         else if (lvaHaveManyLocals())
         {

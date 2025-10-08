@@ -405,6 +405,11 @@ CorInfoType Compiler::getBaseJitTypeAndSizeOfSIMDType(CORINFO_CLASS_HANDLE typeH
                 }
 
                 // todo-xarch-half (we need to defined a proper half type in the CIL runtime)
+                if (!(this->compOpportunisticallyDependsOn(InstructionSet_Half)))
+                {
+                    return CORINFO_TYPE_UNDEF;
+                }
+
                 simdBaseJitType = CORINFO_TYPE_HALF;
 
                 break;

@@ -1025,6 +1025,7 @@ namespace System
         /// <summary>Explicitly converts a half-precision floating-point value to its nearest representable <see cref="float" /> value.</summary>
         /// <param name="value">The value to convert.</param>
         /// <returns><paramref name="value" /> converted to its nearest representable <see cref="float" /> value.</returns>
+        [Intrinsic]
         public static explicit operator float(Half value)
         {
             #region Explanation of this algorithm
@@ -1192,6 +1193,7 @@ namespace System
         //
 
         /// <inheritdoc cref="IAdditionOperators{TSelf, TOther, TResult}.op_Addition(TSelf, TOther)" />
+        [Intrinsic]
         public static Half operator +(Half left, Half right) => (Half)((float)left + (float)right);
 
         //

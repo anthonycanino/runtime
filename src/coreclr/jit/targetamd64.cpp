@@ -183,6 +183,7 @@ ABIPassingInformation WinX64Classifier::Classify(Compiler*    comp,
     ABIPassingSegment segment;
     if (m_intRegs.Count() > 0)
     {
+        // LAST: this is what needs to be changed for half
         regNumber reg = varTypeUsesFloatArgReg(type) ? m_floatRegs.Peek() : m_intRegs.Peek();
         segment       = ABIPassingSegment::InRegister(reg, 0, typeSize);
         m_intRegs.Dequeue();

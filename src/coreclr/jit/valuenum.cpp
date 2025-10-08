@@ -1729,6 +1729,13 @@ ValueNumStore::Chunk::Chunk(CompAllocator alloc, ValueNum* pNextBaseVN, var_type
 #endif // FEATURE_MASKED_HW_INTRINSICS
 #endif // FEATURE_SIMD
 
+#if defined(TARGET_XARCH)
+                case TYP_HALF:
+                {
+                    m_defs = new (alloc) Alloc<TYP_HALF>::Type[ChunkSize];
+                    break;
+                }
+#endif
                 default:
                     assert(false); // Should not reach here.
             }
@@ -1851,7 +1858,11 @@ ValueNum ValueNumStore::VNForLongCon(INT64 cnsVal)
 {
     return VnForConst(cnsVal, GetLongCnsMap(), TYP_LONG);
 }
-
+// todo-xarch-half: this wont work, but may get a compile
+ValueNum ValueNumStore::VNForHalfCon(float cnsVal)
+{
+    return VnForConst(cnsVal, GetFloatCnsMap(), TYP_HALF);
+}
 ValueNum ValueNumStore::VNForFloatCon(float cnsVal)
 {
     return VnForConst(cnsVal, GetFloatCnsMap(), TYP_FLOAT);
@@ -4540,6 +4551,7 @@ ValueNum ValueNumStore::EvalBitCastForConstantArgs(var_types dstType, ValueNum a
     double        float64  = 0;
     simd8_t       simd8    = {};
     unsigned char bytes[8] = {};
+    unsigned short float16  = 0;
 
     switch (srcType)
     {
@@ -4574,6 +4586,12 @@ ValueNum ValueNumStore::EvalBitCastForConstantArgs(var_types dstType, ValueNum a
             memcpy(bytes, &simd8, sizeof(simd8));
             break;
 #endif // FEATURE_SIMD
+#if defined(TARGET_XARCH)
+        case TYP_HALF:
+            float32 = ConstantValue<unsigned short>(arg0VN);
+            memcpy(bytes, &float32, sizeof(float32));
+            break;
+#endif
         default:
             unreached();
     }
@@ -11953,6 +11971,15 @@ void Compiler::fgValueNumberTreeConst(GenTree* tree)
 #endif // FEATURE_MASKED_HW_INTRINSICS
 #endif // FEATURE_SIMD
 
+#ifdef TARGET_XARCH
+        case TYP_HALF:
+        {
+            // todo-xarch-half: this wont work but just making the compile happen
+            float f32Cns = FloatingPointUtils::convertToSingle(tree->AsDblCon()->DconValue());
+            tree->gtVNPair.SetBoth(vnStore->VNForHalfCon(f32Cns));
+            break;
+        }
+#endif
         case TYP_FLOAT:
         {
             float f32Cns = FloatingPointUtils::convertToSingle(tree->AsDblCon()->DconValue());

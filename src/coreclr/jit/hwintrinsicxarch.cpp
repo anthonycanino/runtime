@@ -1262,7 +1262,23 @@ GenTree* Compiler::impSpecialIntrinsic(NamedIntrinsic        intrinsic,
             {
                 StackEntry se   = impPopStack();
                 op1     = se.val;
-                retNode = gtNewScalarHWIntrinsicNode(retType, op1, NI_AVX10v1_ConvertFloatToHalf);
+                retNode = gtNewSimdHWIntrinsicNode(retType, op1, NI_AVX10v1_ConvertFloatToHalf, CORINFO_TYPE_FLOAT, 2);
+            }
+
+            break;
+        }
+
+        case NI_Half_op_Addition:
+        {
+            assert(sig->numArgs == 2);
+
+            if (compOpportunisticallyDependsOn(InstructionSet_AVX10v1))
+            {
+                StackEntry se1   = impPopStack();
+                StackEntry se2   = impPopStack();
+                op1     = se1.val;
+                op2     = se2.val;
+                retNode = gtNewSimdHWIntrinsicNode(retType, op1, op2, NI_AVX10v1_HalfAdd, CORINFO_TYPE_HALF, 2);
             }
 
             break;

@@ -460,6 +460,7 @@ public:
     ValueNum VNForIntCon(INT32 cnsVal);
     ValueNum VNForIntPtrCon(ssize_t cnsVal);
     ValueNum VNForLongCon(INT64 cnsVal);
+    ValueNum VNForHalfCon(float cnsVal);
     ValueNum VNForFloatCon(float cnsVal);
     ValueNum VNForDoubleCon(double cnsVal);
     ValueNum VNForByrefCon(target_size_t byrefVal);
@@ -1291,6 +1292,9 @@ private:
             case TYP_LONG:
             case TYP_FLOAT:
             case TYP_DOUBLE:
+#if defined(TARGET_XARCH)
+            case TYP_HALF:
+#endif
                 if (c->m_attribs == CEA_Handle)
                 {
                     static_assert(offsetof(VNHandle, m_cnsVal) == 0);
@@ -2168,6 +2172,16 @@ struct ValueNumStore::VarTypConv<TYP_DOUBLE>
     typedef double Lang;
 };
 
+// todo-xarch-half: this prob wont work
+#if defined(TARGET_XARCH)
+template <>
+struct ValueNumStore::VarTypConv<TYP_HALF>
+{
+    typedef INT16 Type;
+    typedef unsigned short Lang;
+};
+#endif
+
 #if defined(FEATURE_SIMD)
 template <>
 struct ValueNumStore::VarTypConv<TYP_SIMD8>
@@ -2244,6 +2258,10 @@ FORCEINLINE T ValueNumStore::SafeGetConstantValue(Chunk* c, unsigned offset)
             return static_cast<T>(reinterpret_cast<VarTypConv<TYP_FLOAT>::Lang*>(c->m_defs)[offset]);
         case TYP_DOUBLE:
             return static_cast<T>(reinterpret_cast<VarTypConv<TYP_DOUBLE>::Lang*>(c->m_defs)[offset]);
+#if defined(TARGET_XARCH)
+        case TYP_HALF:
+            return static_cast<T>(reinterpret_cast<VarTypConv<TYP_HALF>::Lang*>(c->m_defs)[offset]);
+#endif
         default:
             assert(false);
             return (T)0;
