@@ -3102,25 +3102,25 @@ public:
 #ifdef FEATURE_HW_INTRINSICS
     GenTreeHWIntrinsic* gtNewSimdHWIntrinsicNode(var_types      type,
                                                  NamedIntrinsic hwIntrinsicID,
-                                                 CorInfoType    simdBaseJitType,
+                                                 var_types      simdBaseJitType,
                                                  unsigned       simdSize);
     GenTreeHWIntrinsic* gtNewSimdHWIntrinsicNode(var_types      type,
                                                  GenTree*       op1,
                                                  NamedIntrinsic hwIntrinsicID,
-                                                 CorInfoType    simdBaseJitType,
+                                                 var_types      simdBaseJitType,
                                                  unsigned       simdSize);
     GenTreeHWIntrinsic* gtNewSimdHWIntrinsicNode(var_types      type,
                                                  GenTree*       op1,
                                                  GenTree*       op2,
                                                  NamedIntrinsic hwIntrinsicID,
-                                                 CorInfoType    simdBaseJitType,
+                                                 var_types      simdBaseJitType,
                                                  unsigned       simdSize);
     GenTreeHWIntrinsic* gtNewSimdHWIntrinsicNode(var_types      type,
                                                  GenTree*       op1,
                                                  GenTree*       op2,
                                                  GenTree*       op3,
                                                  NamedIntrinsic hwIntrinsicID,
-                                                 CorInfoType    simdBaseJitType,
+                                                 var_types      simdBaseJitType,
                                                  unsigned       simdSize);
     GenTreeHWIntrinsic* gtNewSimdHWIntrinsicNode(var_types      type,
                                                  GenTree*       op1,
@@ -3128,25 +3128,25 @@ public:
                                                  GenTree*       op3,
                                                  GenTree*       op4,
                                                  NamedIntrinsic hwIntrinsicID,
-                                                 CorInfoType    simdBaseJitType,
+                                                 var_types      simdBaseJitType,
                                                  unsigned       simdSize);
     GenTreeHWIntrinsic* gtNewSimdHWIntrinsicNode(var_types      type,
                                                  GenTree**      operands,
                                                  size_t         operandCount,
                                                  NamedIntrinsic hwIntrinsicID,
-                                                 CorInfoType    simdBaseJitType,
+                                                 var_types      simdBaseJitType,
                                                  unsigned       simdSize);
     GenTreeHWIntrinsic* gtNewSimdHWIntrinsicNode(var_types              type,
                                                  IntrinsicNodeBuilder&& nodeBuilder,
                                                  NamedIntrinsic         hwIntrinsicID,
-                                                 CorInfoType            simdBaseJitType,
+                                                 var_types              simdBaseJitType,
                                                  unsigned               simdSize);
 
     GenTree* gtNewSimdAbsNode(
-        var_types type, GenTree* op1, CorInfoType simdBaseJitType, unsigned simdSize);
+        var_types type, GenTree* op1, var_types simdBaseJitType, unsigned simdSize);
 
 #if defined(TARGET_ARM64)
-    GenTree* gtNewSimdAllTrueMaskNode(CorInfoType simdBaseJitType);
+    GenTree* gtNewSimdAllTrueMaskNode(var_types simdBaseJitType);
     GenTree* gtNewSimdFalseMaskByteNode();
 #endif
 
@@ -3154,184 +3154,184 @@ public:
                                 var_types   type,
                                 GenTree*    op1,
                                 GenTree*    op2,
-                                CorInfoType simdBaseJitType,
+                                var_types   simdBaseJitType,
                                 unsigned    simdSize);
 
     GenTree* gtNewSimdCeilNode(
-        var_types type, GenTree* op1, CorInfoType simdBaseJitType, unsigned simdSize);
+        var_types type, GenTree* op1, var_types simdBaseJitType, unsigned simdSize);
 
     GenTree* gtNewSimdCmpOpNode(genTreeOps  op,
                                 var_types   type,
                                 GenTree*    op1,
                                 GenTree*    op2,
-                                CorInfoType simdBaseJitType,
+                                var_types   simdBaseJitType,
                                 unsigned    simdSize);
 
     GenTree* gtNewSimdCmpOpAllNode(genTreeOps  op,
                                    var_types   type,
                                    GenTree*    op1,
                                    GenTree*    op2,
-                                   CorInfoType simdBaseJitType,
+                                   var_types   simdBaseJitType,
                                    unsigned    simdSize);
 
     GenTree* gtNewSimdCmpOpAnyNode(genTreeOps  op,
                                    var_types   type,
                                    GenTree*    op1,
                                    GenTree*    op2,
-                                   CorInfoType simdBaseJitType,
+                                   var_types   simdBaseJitType,
                                    unsigned    simdSize);
 
     GenTree* gtNewSimdCndSelNode(var_types   type,
                                  GenTree*    op1,
                                  GenTree*    op2,
                                  GenTree*    op3,
-                                 CorInfoType simdBaseJitType,
+                                 var_types   simdBaseJitType,
                                  unsigned    simdSize);
 
 #if defined(FEATURE_MASKED_HW_INTRINSICS)
-    GenTree* gtNewSimdCvtMaskToVectorNode(var_types type, GenTree* op1, CorInfoType simdBaseJitType, unsigned simdSize);
+    GenTree* gtNewSimdCvtMaskToVectorNode(var_types type, GenTree* op1, var_types simdBaseJitType, unsigned simdSize);
 #endif // FEATURE_MASKED_HW_INTRINSICS
 
     GenTree* gtNewSimdCvtNode(var_types   type,
                               GenTree*    op1,
-                              CorInfoType simdTargetBaseJitType,
-                              CorInfoType simdSourceBaseJitType,
+                              var_types   simdTargetBaseJitType,
+                              var_types   simdSourceBaseJitType,
                               unsigned    simdSize);
 
     GenTree* gtNewSimdCvtNativeNode(var_types   type,
                                     GenTree*    op1,
-                                    CorInfoType simdTargetBaseJitType,
-                                    CorInfoType simdSourceBaseJitType,
+                                    var_types   simdTargetBaseJitType,
+                                    var_types   simdSourceBaseJitType,
                                     unsigned    simdSize);
 
 #if defined(FEATURE_MASKED_HW_INTRINSICS)
-    GenTree* gtNewSimdCvtVectorToMaskNode(var_types type, GenTree* op1, CorInfoType simdBaseJitType, unsigned simdSize);
+    GenTree* gtNewSimdCvtVectorToMaskNode(var_types type, GenTree* op1, var_types simdBaseJitType, unsigned simdSize);
 #endif // FEATURE_MASKED_HW_INTRINSICS
 
     GenTree* gtNewSimdCreateBroadcastNode(
-        var_types type, GenTree* op1, CorInfoType simdBaseJitType, unsigned simdSize);
+        var_types type, GenTree* op1, var_types simdBaseJitType, unsigned simdSize);
 
     GenTree* gtNewSimdCreateScalarNode(
-        var_types type, GenTree* op1, CorInfoType simdBaseJitType, unsigned simdSize);
+        var_types type, GenTree* op1, var_types simdBaseJitType, unsigned simdSize);
 
     GenTree* gtNewSimdCreateScalarUnsafeNode(
-        var_types type, GenTree* op1, CorInfoType simdBaseJitType, unsigned simdSize);
+        var_types type, GenTree* op1, var_types simdBaseJitType, unsigned simdSize);
 
     GenTree* gtNewSimdCreateSequenceNode(
-        var_types type, GenTree* op1, GenTree* op2, CorInfoType simdBaseJitType, unsigned simdSize);
+        var_types type, GenTree* op1, GenTree* op2, var_types simdBaseJitType, unsigned simdSize);
 
     GenTree* gtNewSimdDotProdNode(var_types   type,
                                   GenTree*    op1,
                                   GenTree*    op2,
-                                  CorInfoType simdBaseJitType,
+                                  var_types   simdBaseJitType,
                                   unsigned    simdSize);
 
     GenTree* gtNewSimdFloorNode(
-        var_types type, GenTree* op1, CorInfoType simdBaseJitType, unsigned simdSize);
+        var_types type, GenTree* op1, var_types simdBaseJitType, unsigned simdSize);
 
     GenTree* gtNewSimdFmaNode(var_types   type,
                               GenTree*    op1,
                               GenTree*    op2,
                               GenTree*    op3,
-                              CorInfoType simdBaseJitType,
+                              var_types   simdBaseJitType,
                               unsigned    simdSize);
 
     GenTree* gtNewSimdGetElementNode(var_types   type,
                                      GenTree*    op1,
                                      GenTree*    op2,
-                                     CorInfoType simdBaseJitType,
+                                     var_types   simdBaseJitType,
                                      unsigned    simdSize);
 
-    GenTree* gtNewSimdGetIndicesNode(var_types type, CorInfoType simdBaseJitType, unsigned simdSize);
+    GenTree* gtNewSimdGetIndicesNode(var_types type, var_types simdBaseJitType, unsigned simdSize);
 
     GenTree* gtNewSimdGetLowerNode(var_types   type,
                                    GenTree*    op1,
-                                   CorInfoType simdBaseJitType,
+                                   var_types   simdBaseJitType,
                                    unsigned    simdSize);
 
     GenTree* gtNewSimdGetUpperNode(var_types   type,
                                    GenTree*    op1,
-                                   CorInfoType simdBaseJitType,
+                                   var_types   simdBaseJitType,
                                    unsigned    simdSize);
 
     GenTree* gtNewSimdIsEvenIntegerNode(var_types   type,
                                         GenTree*    op1,
-                                        CorInfoType simdBaseJitType,
+                                        var_types   simdBaseJitType,
                                         unsigned    simdSize);
 
     GenTree* gtNewSimdIsFiniteNode(var_types   type,
                                    GenTree*    op1,
-                                   CorInfoType simdBaseJitType,
+                                   var_types   simdBaseJitType,
                                    unsigned    simdSize);
 
     GenTree* gtNewSimdIsInfinityNode(var_types   type,
                                      GenTree*    op1,
-                                     CorInfoType simdBaseJitType,
+                                     var_types   simdBaseJitType,
                                      unsigned    simdSize);
 
     GenTree* gtNewSimdIsIntegerNode(var_types   type,
                                     GenTree*    op1,
-                                    CorInfoType simdBaseJitType,
+                                    var_types   simdBaseJitType,
                                     unsigned    simdSize);
 
     GenTree* gtNewSimdIsNaNNode(var_types   type,
                                 GenTree*    op1,
-                                CorInfoType simdBaseJitType,
+                                var_types   simdBaseJitType,
                                 unsigned    simdSize);
 
     GenTree* gtNewSimdIsNegativeNode(var_types   type,
                                      GenTree*    op1,
-                                     CorInfoType simdBaseJitType,
+                                     var_types   simdBaseJitType,
                                      unsigned    simdSize);
 
     GenTree* gtNewSimdIsNegativeInfinityNode(var_types   type,
                                              GenTree*    op1,
-                                             CorInfoType simdBaseJitType,
+                                             var_types   simdBaseJitType,
                                              unsigned    simdSize);
 
     GenTree* gtNewSimdIsNormalNode(var_types   type,
                                    GenTree*    op1,
-                                   CorInfoType simdBaseJitType,
+                                   var_types   simdBaseJitType,
                                    unsigned    simdSize);
 
     GenTree* gtNewSimdIsOddIntegerNode(var_types   type,
                                        GenTree*    op1,
-                                       CorInfoType simdBaseJitType,
+                                       var_types   simdBaseJitType,
                                        unsigned    simdSize);
 
     GenTree* gtNewSimdIsPositiveNode(var_types   type,
                                      GenTree*    op1,
-                                     CorInfoType simdBaseJitType,
+                                     var_types   simdBaseJitType,
                                      unsigned    simdSize);
 
     GenTree* gtNewSimdIsPositiveInfinityNode(var_types   type,
                                              GenTree*    op1,
-                                             CorInfoType simdBaseJitType,
+                                             var_types   simdBaseJitType,
                                              unsigned    simdSize);
 
     GenTree* gtNewSimdIsSubnormalNode(var_types   type,
                                       GenTree*    op1,
-                                      CorInfoType simdBaseJitType,
+                                      var_types   simdBaseJitType,
                                       unsigned    simdSize);
 
     GenTree* gtNewSimdIsZeroNode(var_types   type,
                                  GenTree*    op1,
-                                 CorInfoType simdBaseJitType,
+                                 var_types   simdBaseJitType,
                                  unsigned    simdSize);
 
     GenTree* gtNewSimdLoadNode(
-        var_types type, GenTree* op1, CorInfoType simdBaseJitType, unsigned simdSize);
+        var_types type, GenTree* op1, var_types simdBaseJitType, unsigned simdSize);
 
     GenTree* gtNewSimdLoadAlignedNode(
-        var_types type, GenTree* op1, CorInfoType simdBaseJitType, unsigned simdSize);
+        var_types type, GenTree* op1, var_types simdBaseJitType, unsigned simdSize);
 
     GenTree* gtNewSimdLoadNonTemporalNode(
-        var_types type, GenTree* op1, CorInfoType simdBaseJitType, unsigned simdSize);
+        var_types type, GenTree* op1, var_types simdBaseJitType, unsigned simdSize);
 
     GenTree* gtNewSimdMinMaxNode(var_types   type,
                                  GenTree*    op1,
                                  GenTree*    op2,
-                                 CorInfoType simdBaseJitType,
+                                 var_types   simdBaseJitType,
                                  unsigned    simdSize,
                                  bool        isMax,
                                  bool        isMagnitude,
@@ -3340,47 +3340,47 @@ public:
     GenTree* gtNewSimdMinMaxNativeNode(var_types   type,
                                        GenTree*    op1,
                                        GenTree*    op2,
-                                       CorInfoType simdBaseJitType,
+                                       var_types   simdBaseJitType,
                                        unsigned    simdSize,
                                        bool        isMax);
 
     GenTree* gtNewSimdNarrowNode(var_types   type,
                                  GenTree*    op1,
                                  GenTree*    op2,
-                                 CorInfoType simdBaseJitType,
+                                 var_types   simdBaseJitType,
                                  unsigned    simdSize);
 
     GenTree* gtNewSimdRoundNode(
-        var_types type, GenTree* op1, CorInfoType simdBaseJitType, unsigned simdSize);
+        var_types type, GenTree* op1, var_types simdBaseJitType, unsigned simdSize);
 
     GenTree* gtNewSimdShuffleVariableNode(var_types   type,
                                           GenTree*    op1,
                                           GenTree*    op2,
-                                          CorInfoType simdBaseJitType,
+                                          var_types   simdBaseJitType,
                                           unsigned    simdSize,
                                           bool        isShuffleNative);
 
     GenTree* gtNewSimdShuffleNode(var_types   type,
                                   GenTree*    op1,
                                   GenTree*    op2,
-                                  CorInfoType simdBaseJitType,
+                                  var_types   simdBaseJitType,
                                   unsigned    simdSize,
                                   bool        isShuffleNative);
 
     GenTree* gtNewSimdSqrtNode(
-        var_types type, GenTree* op1, CorInfoType simdBaseJitType, unsigned simdSize);
+        var_types type, GenTree* op1, var_types simdBaseJitType, unsigned simdSize);
 
     GenTree* gtNewSimdStoreNode(
-        GenTree* op1, GenTree* op2, CorInfoType simdBaseJitType, unsigned simdSize);
+        GenTree* op1, GenTree* op2, var_types simdBaseJitType, unsigned simdSize);
 
     GenTree* gtNewSimdStoreAlignedNode(
-        GenTree* op1, GenTree* op2, CorInfoType simdBaseJitType, unsigned simdSize);
+        GenTree* op1, GenTree* op2, var_types simdBaseJitType, unsigned simdSize);
 
     GenTree* gtNewSimdStoreNonTemporalNode(
-        GenTree* op1, GenTree* op2, CorInfoType simdBaseJitType, unsigned simdSize);
+        GenTree* op1, GenTree* op2, var_types simdBaseJitType, unsigned simdSize);
 
     GenTree* gtNewSimdSumNode(
-        var_types type, GenTree* op1, CorInfoType simdBaseJitType, unsigned simdSize);
+        var_types type, GenTree* op1, var_types simdBaseJitType, unsigned simdSize);
 
 #if defined(TARGET_XARCH)
     GenTree* gtNewSimdTernaryLogicNode(var_types   type,
@@ -3388,48 +3388,48 @@ public:
                                        GenTree*    op2,
                                        GenTree*    op3,
                                        GenTree*    op4,
-                                       CorInfoType simdBaseJitType,
+                                       var_types   simdBaseJitType,
                                        unsigned    simdSize);
 #endif // TARGET_XARCH
 
 
     GenTree* gtNewSimdToScalarNode(var_types   type,
                                    GenTree*    op1,
-                                   CorInfoType simdBaseJitType,
+                                   var_types simdBaseJitType,
                                    unsigned    simdSize);
 
     GenTree* gtNewSimdTruncNode(
-        var_types type, GenTree* op1, CorInfoType simdBaseJitType, unsigned simdSize);
+        var_types type, GenTree* op1, var_types simdBaseJitType, unsigned simdSize);
 
     GenTree* gtNewSimdUnOpNode(genTreeOps  op,
                                var_types   type,
                                GenTree*    op1,
-                               CorInfoType simdBaseJitType,
+                               var_types   simdBaseJitType,
                                unsigned    simdSize);
 
     GenTree* gtNewSimdWidenLowerNode(
-        var_types type, GenTree* op1, CorInfoType simdBaseJitType, unsigned simdSize);
+        var_types type, GenTree* op1, var_types simdBaseJitType, unsigned simdSize);
 
     GenTree* gtNewSimdWidenUpperNode(
-        var_types type, GenTree* op1, CorInfoType simdBaseJitType, unsigned simdSize);
+        var_types type, GenTree* op1, var_types simdBaseJitType, unsigned simdSize);
 
     GenTree* gtNewSimdWithElementNode(var_types   type,
                                       GenTree*    op1,
                                       GenTree*    op2,
                                       GenTree*    op3,
-                                      CorInfoType simdBaseJitType,
+                                      var_types simdBaseJitType,
                                       unsigned    simdSize);
 
     GenTree* gtNewSimdWithLowerNode(var_types   type,
                                     GenTree*    op1,
                                     GenTree*    op2,
-                                    CorInfoType simdBaseJitType,
+                                    var_types simdBaseJitType,
                                     unsigned    simdSize);
 
     GenTree* gtNewSimdWithUpperNode(var_types   type,
                                     GenTree*    op1,
                                     GenTree*    op2,
-                                    CorInfoType simdBaseJitType,
+                                    var_types   simdBaseJitType,
                                     unsigned    simdSize);
 
     GenTreeHWIntrinsic* gtNewScalarHWIntrinsicNode(var_types type, NamedIntrinsic hwIntrinsicID);
@@ -3440,6 +3440,7 @@ public:
                                                    NamedIntrinsic hwIntrinsicID);
     GenTreeHWIntrinsic* gtNewScalarHWIntrinsicNode(
         var_types type, GenTree* op1, GenTree* op2, GenTree* op3, NamedIntrinsic hwIntrinsicID);
+    // todo-xarch-simd-basetypes: come back and check
     CorInfoType getBaseJitTypeFromArgIfNeeded(NamedIntrinsic       intrinsic,
                                               CORINFO_SIG_INFO*    sig,
                                               CorInfoType          simdBaseJitType);

@@ -6310,7 +6310,7 @@ protected:
     regNumberSmall     gtOtherReg;     // The second register for multi-reg intrinsics.
     MultiRegSpillFlags gtSpillFlags;   // Spill flags for multi-reg intrinsics.
     unsigned char  gtAuxiliaryJitType; // For intrinsics than need another type (e.g. Avx2.Gather* or SIMD (by element))
-    unsigned char  gtSimdBaseJitType;  // SIMD vector base JIT type
+    var_types      gtSimdBaseJitType;  // SIMD vector base JIT type
     unsigned char  gtSimdSize;         // SIMD vector size in bytes, use 0 for scalar intrinsics
     NamedIntrinsic gtHWIntrinsicId;
 
@@ -6416,11 +6416,13 @@ public:
 
     var_types GetAuxiliaryType() const;
 
-    CorInfoType GetSimdBaseJitType() const
+    var_types GetSimdBaseJitType() const
     {
-        return (CorInfoType)gtSimdBaseJitType;
+        return gtSimdBaseJitType;
     }
 
+    // todo-xarch-simd-type: come back to udnerstand how and when to
+    // adjust this normalization
     CorInfoType GetNormalizedSimdBaseJitType() const
     {
         CorInfoType simdBaseJitType = GetSimdBaseJitType();
@@ -6449,9 +6451,9 @@ public:
         }
     }
 
-    void SetSimdBaseJitType(CorInfoType simdBaseJitType)
+    void SetSimdBaseJitType(var_types simdBaseJitType)
     {
-        gtSimdBaseJitType = (unsigned char)simdBaseJitType;
+        gtSimdBaseJitType = simdBaseJitType;
         assert(gtSimdBaseJitType == simdBaseJitType);
     }
 
@@ -6472,14 +6474,14 @@ public:
     GenTreeJitIntrinsic(genTreeOps    oper,
                         var_types     type,
                         CompAllocator allocator,
-                        CorInfoType   simdBaseJitType,
+                        var_types     simdBaseJitType,
                         unsigned      simdSize,
                         Operands... operands)
         : GenTreeMultiOp(oper, type, allocator, gtInlineOperands DEBUGARG(false), operands...)
         , gtOtherReg(REG_NA)
         , gtSpillFlags(0)
         , gtAuxiliaryJitType(CORINFO_TYPE_UNDEF)
-        , gtSimdBaseJitType((unsigned char)simdBaseJitType)
+        , gtSimdBaseJitType(simdBaseJitType)
         , gtSimdSize((unsigned char)simdSize)
         , gtHWIntrinsicId(NI_Illegal)
     {
@@ -6498,7 +6500,7 @@ protected:
     GenTreeJitIntrinsic(genTreeOps             oper,
                         var_types              type,
                         IntrinsicNodeBuilder&& nodeBuilder,
-                        CorInfoType            simdBaseJitType,
+                        var_types              simdBaseJitType,
                         unsigned               simdSize)
         : GenTreeMultiOp(oper,
                          type,
@@ -6508,7 +6510,7 @@ protected:
         , gtOtherReg(REG_NA)
         , gtSpillFlags(0)
         , gtAuxiliaryJitType(CORINFO_TYPE_UNDEF)
-        , gtSimdBaseJitType((unsigned char)simdBaseJitType)
+        , gtSimdBaseJitType(simdBaseJitType)
         , gtSimdSize((unsigned char)simdSize)
         , gtHWIntrinsicId(NI_Illegal)
     {
@@ -6530,7 +6532,7 @@ struct GenTreeHWIntrinsic : public GenTreeJitIntrinsic
     GenTreeHWIntrinsic(var_types              type,
                        IntrinsicNodeBuilder&& nodeBuilder,
                        NamedIntrinsic         hwIntrinsicID,
-                       CorInfoType            simdBaseJitType,
+                       var_types              simdBaseJitType,
                        unsigned               simdSize)
         : GenTreeJitIntrinsic(GT_HWINTRINSIC, type, std::move(nodeBuilder), simdBaseJitType, simdSize)
     {
@@ -6541,7 +6543,7 @@ struct GenTreeHWIntrinsic : public GenTreeJitIntrinsic
     GenTreeHWIntrinsic(var_types      type,
                        CompAllocator  allocator,
                        NamedIntrinsic hwIntrinsicID,
-                       CorInfoType    simdBaseJitType,
+                       var_types      simdBaseJitType,
                        unsigned       simdSize,
                        Operands... operands)
         : GenTreeJitIntrinsic(GT_HWINTRINSIC, type, allocator, simdBaseJitType, simdSize, operands...)
