@@ -6310,7 +6310,7 @@ protected:
     regNumberSmall     gtOtherReg;     // The second register for multi-reg intrinsics.
     MultiRegSpillFlags gtSpillFlags;   // Spill flags for multi-reg intrinsics.
     unsigned char  gtAuxiliaryJitType; // For intrinsics than need another type (e.g. Avx2.Gather* or SIMD (by element))
-    var_types      gtSimdBaseJitType;  // SIMD vector base JIT type
+    unsigned char  gtSimdBaseJitType;  // SIMD vector base JIT type
     unsigned char  gtSimdSize;         // SIMD vector size in bytes, use 0 for scalar intrinsics
     NamedIntrinsic gtHWIntrinsicId;
 
@@ -6418,31 +6418,31 @@ public:
 
     var_types GetSimdBaseJitType() const
     {
-        return gtSimdBaseJitType;
+        return (var_types)gtSimdBaseJitType;
     }
 
     // todo-xarch-simd-type: come back to udnerstand how and when to
     // adjust this normalization
-    CorInfoType GetNormalizedSimdBaseJitType() const
+    var_types GetNormalizedSimdBaseJitType() const
     {
-        CorInfoType simdBaseJitType = GetSimdBaseJitType();
+        var_types simdBaseJitType = GetSimdBaseJitType();
         switch (simdBaseJitType)
         {
-            case CORINFO_TYPE_NATIVEINT:
+            case TYP_I_IMPL:
             {
 #ifdef TARGET_64BIT
-                return CORINFO_TYPE_LONG;
+                return TYP_LONG;
 #else
-                return CORINFO_TYPE_INT;
+                return TYP_INT;
 #endif
             }
 
-            case CORINFO_TYPE_NATIVEUINT:
+            case TYP_U_IMPL:
             {
 #ifdef TARGET_64BIT
-                return CORINFO_TYPE_ULONG;
+                return TYP_ULONG;
 #else
-                return CORINFO_TYPE_UINT;
+                return TYP_UINT;
 #endif
             }
 
@@ -6453,7 +6453,7 @@ public:
 
     void SetSimdBaseJitType(var_types simdBaseJitType)
     {
-        gtSimdBaseJitType = simdBaseJitType;
+        gtSimdBaseJitType = (unsigned char)simdBaseJitType;
         assert(gtSimdBaseJitType == simdBaseJitType);
     }
 

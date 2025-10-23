@@ -4698,6 +4698,26 @@ protected:
                               bool                  tailCall,
                               bool*                 isSpecial);
 
+    // todo-xarch-simd-basetypes: these are now wrappers just meant to help faciliate
+    // the transition to var_types for the base simd type during the refactoring
+    var_types getBaseTypeForPrimitiveNumericClassAsVarType(CORINFO_CLASS_HANDLE typeArgHandle);
+
+    // Get the base (element) type and size in bytes for a SIMD type. Returns CORINFO_TYPE_UNDEF
+    // if it is not a SIMD type or is an unsupported base JIT type.
+    var_types getBaseJitTypeAndSizeOfSIMDTypeAsVarType(CORINFO_CLASS_HANDLE typeHnd, unsigned* sizeBytes = nullptr);
+
+    var_types getBaseJitTypeOfSIMDTypeAsVarType(CORINFO_CLASS_HANDLE typeHnd)
+    {
+        return getBaseJitTypeAndSizeOfSIMDTypeAsVarType(typeHnd, nullptr);
+    }
+
+    var_types getVarTypeFromCorInfoType(CorInfoType corType);
+
+
+    var_types getBaseJitTypeFromArgIfNeededAsVarType(NamedIntrinsic       intrinsic,
+                                                     CORINFO_SIG_INFO*    sig,
+                                                     var_types            simdBaseJitType);
+
     NamedIntrinsic lookupPrimitiveFloatNamedIntrinsic(CORINFO_METHOD_HANDLE method, const char* methodName);
     NamedIntrinsic lookupPrimitiveIntNamedIntrinsic(CORINFO_METHOD_HANDLE method, const char* methodName);
     GenTree* impUnsupportedNamedIntrinsic(unsigned              helper,
@@ -4745,7 +4765,7 @@ protected:
                                  bool                  mustExpand);
 
     GenTree* getArgForHWIntrinsic(var_types argType, CORINFO_CLASS_HANDLE argClass);
-    GenTree* impNonConstFallback(NamedIntrinsic intrinsic, var_types simdType, CorInfoType simdBaseJitType);
+    GenTree* impNonConstFallback(NamedIntrinsic intrinsic, var_types simdType, var_types simdBaseJitType);
     GenTree* addRangeCheckIfNeeded(
         NamedIntrinsic intrinsic, GenTree* immOp, int immLowerBound, int immUpperBound);
     GenTree* addRangeCheckForHWIntrinsic(GenTree* immOp, int immLowerBound, int immUpperBound);
@@ -4756,7 +4776,7 @@ protected:
                               GenTree**         immOp2Ptr);
 
     bool CheckHWIntrinsicImmRange(NamedIntrinsic intrinsic,
-                                  CorInfoType simdBaseJitType,
+                                  var_types simdBaseJitType,
                                   GenTree* immOp,
                                   bool mustExpand,
                                   int immLowerBound,

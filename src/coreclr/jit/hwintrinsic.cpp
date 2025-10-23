@@ -932,6 +932,46 @@ CorInfoType Compiler::getBaseJitTypeFromArgIfNeeded(NamedIntrinsic    intrinsic,
     return simdBaseJitType;
 }
 
+var_types Compiler::getBaseJitTypeFromArgIfNeededAsVarType(NamedIntrinsic    intrinsic,
+                                                           CORINFO_SIG_INFO* sig,
+                                                           var_types         simdBaseJitType)
+{
+    if (HWIntrinsicInfo::BaseTypeFromSecondArg(intrinsic) || HWIntrinsicInfo::BaseTypeFromFirstArg(intrinsic))
+    {
+        CORINFO_ARG_LIST_HANDLE arg = sig->args;
+
+        if (HWIntrinsicInfo::BaseTypeFromSecondArg(intrinsic))
+        {
+            arg = info.compCompHnd->getArgNext(arg);
+        }
+
+        CORINFO_CLASS_HANDLE argClass = info.compCompHnd->getArgClass(sig, arg);
+        CorInfoType corType           = getBaseJitTypeAndSizeOfSIMDType(argClass);
+
+        if (corType == CORINFO_TYPE_UNDEF) // the argument is not a vector
+        {
+            CORINFO_CLASS_HANDLE tmpClass;
+            corType = strip(info.compCompHnd->getArgType(sig, arg, &tmpClass));
+
+            if (corType == CORINFO_TYPE_PTR)
+            {
+                corType = info.compCompHnd->getChildType(argClass, &tmpClass);
+            }
+        }
+        assert(corType != CORINFO_TYPE_UNDEF);
+
+        simdBaseJitType = getVarTypeFromCoreInfoType(corType);
+    }
+
+    return simdBaseJitType;
+}
+
+var_types Compiler::getVarTypeFromCoreInfoType(CorInfoType corType)
+{
+    // allows to check for half eventually
+    return JitType2PreciseVarType(corType);
+}
+
 struct HWIntrinsicIsaRange
 {
     NamedIntrinsic FirstId;
@@ -1676,6 +1716,37 @@ static bool isSupportedBaseType(NamedIntrinsic intrinsic, CorInfoType baseJitTyp
     return false;
 }
 
+// todo-xarch-simd-basetypes: method to faciliate refactoring, will remove
+static bool isSupportedBaseTypeFromVarType(NamedIntrinsic intrinsic, var_types baseJitType)
+{
+    if (baseJitType == TYP_UNDEF)
+    {
+        return false;
+    }
+
+    var_types baseType = baseJitType;
+
+    // We don't actually check the intrinsic outside of the false case as we expect
+    // the exposed managed signatures are either generic and support all types
+    // or they are explicit and support the type indicated.
+
+    if (varTypeIsArithmetic(baseType))
+    {
+        return true;
+    }
+
+#ifdef DEBUG
+    CORINFO_InstructionSet isa = HWIntrinsicInfo::lookupIsa(intrinsic);
+#ifdef TARGET_XARCH
+    assert((isa == InstructionSet_Vector512) || (isa == InstructionSet_Vector256) || (isa == InstructionSet_Vector128));
+#endif // TARGET_XARCH
+#ifdef TARGET_ARM64
+    assert((isa == InstructionSet_Vector64) || (isa == InstructionSet_Vector128));
+#endif // TARGET_ARM64
+#endif // DEBUG
+    return false;
+}
+
 // HWIntrinsicSignatureReader: a helper class that "reads" a list of hardware intrinsic arguments and stores
 // the corresponding argument type descriptors as the fields of the class instance.
 //
@@ -1727,22 +1798,22 @@ struct HWIntrinsicSignatureReader final
 
     var_types GetOp1Type() const
     {
-        return JITtype2varType(op1JitType);
+        return JITType2VarTypeExtended(op1JitType);
     }
 
     var_types GetOp2Type() const
     {
-        return JITtype2varType(op2JitType);
+        return JITType2VarTypeExtended(op2JitType);
     }
 
     var_types GetOp3Type() const
     {
-        return JITtype2varType(op3JitType);
+        return JITType2VarTypeExtended(op3JitType);
     }
 
     var_types GetOp4Type() const
     {
-        return JITtype2varType(op4JitType);
+        return JITType2VarTypeExtended(op4JitType);
     }
 };
 
@@ -1763,7 +1834,7 @@ struct HWIntrinsicSignatureReader final
 //    returns true if immOp is within range. Otherwise false.
 //
 bool Compiler::CheckHWIntrinsicImmRange(NamedIntrinsic intrinsic,
-                                        CorInfoType    simdBaseJitType,
+                                        var_types      simdBaseJitType,
                                         GenTree*       immOp,
                                         bool           mustExpand,
                                         int            immLowerBound,
@@ -1826,7 +1897,7 @@ bool Compiler::CheckHWIntrinsicImmRange(NamedIntrinsic intrinsic,
         else if (HWIntrinsicInfo::MaybeNoJmpTableImm(intrinsic))
         {
 #if defined(TARGET_X86)
-            var_types simdBaseType = JitType2PreciseVarType(simdBaseJitType);
+            var_types simdBaseType = simdBaseJitType;
 
             if (varTypeIsLong(simdBaseType))
             {
@@ -1886,13 +1957,13 @@ GenTree* Compiler::impHWIntrinsic(NamedIntrinsic        intrinsic,
     CORINFO_InstructionSet isa             = HWIntrinsicInfo::lookupIsa(intrinsic);
     int                    numArgs         = sig->numArgs;
     var_types              retType         = genActualType(JITtype2varType(sig->retType));
-    CorInfoType            simdBaseJitType = CORINFO_TYPE_UNDEF;
+    var_types              simdBaseJitType = TYP_UNDEF;
     GenTree*               retNode         = nullptr;
 
     if (retType == TYP_STRUCT)
     {
         unsigned int sizeBytes;
-        simdBaseJitType = getBaseJitTypeAndSizeOfSIMDType(sig->retTypeSigClass, &sizeBytes);
+        simdBaseJitType = getBaseJitTypeAndSizeOfSIMDTypeAsVarType(sig->retTypeSigClass, &sizeBytes);
 
         if (HWIntrinsicInfo::IsMultiReg(intrinsic))
         {
@@ -1902,6 +1973,7 @@ GenTree* Compiler::impHWIntrinsic(NamedIntrinsic        intrinsic,
 #ifdef TARGET_ARM64
         else if ((intrinsic == NI_AdvSimd_LoadAndInsertScalar) || (intrinsic == NI_AdvSimd_Arm64_LoadAndInsertScalar))
         {
+            // todo-xarch-simd-basetypes: come back and finish this 
             CorInfoType pSimdBaseJitType = CORINFO_TYPE_UNDEF;
             var_types   retFieldType     = impNormStructType(sig->retTypeSigClass, &pSimdBaseJitType);
 
@@ -1916,7 +1988,7 @@ GenTree* Compiler::impHWIntrinsic(NamedIntrinsic        intrinsic,
                 assert(fieldCount > 1);
                 CORINFO_FIELD_HANDLE fieldHandle = info.compCompHnd->getFieldInClass(sig->retTypeClass, 0);
                 CorInfoType          fieldType   = info.compCompHnd->getFieldType(fieldHandle, &structType);
-                simdBaseJitType                  = getBaseJitTypeAndSizeOfSIMDType(structType, &sizeBytes);
+                simdBaseJitType                  = getBaseJitTypeAndSizeOfSIMDTypeAsVarType(structType, &sizeBytes);
                 switch (fieldCount)
                 {
                     case 2:
@@ -1947,7 +2019,7 @@ GenTree* Compiler::impHWIntrinsic(NamedIntrinsic        intrinsic,
         {
             // We want to return early here for cases where retType was TYP_STRUCT as per method signature and
             // rather than deferring the decision after getting the simdBaseJitType of arg.
-            if (!isSupportedBaseType(intrinsic, simdBaseJitType))
+            if (!isSupportedBaseTypeFromVarType(intrinsic, simdBaseJitType))
             {
                 return nullptr;
             }
@@ -1957,28 +2029,28 @@ GenTree* Compiler::impHWIntrinsic(NamedIntrinsic        intrinsic,
         }
     }
 
-    simdBaseJitType   = getBaseJitTypeFromArgIfNeeded(intrinsic, sig, simdBaseJitType);
+    simdBaseJitType   = getBaseJitTypeFromArgIfNeededAsVarType(intrinsic, sig, simdBaseJitType);
     unsigned simdSize = 0;
 
-    if (simdBaseJitType == CORINFO_TYPE_UNDEF)
+    if (simdBaseJitType == TYP_UNDEF)
     {
         if ((category == HW_Category_Scalar) || (category == HW_Category_Special))
         {
-            simdBaseJitType = sig->retType;
+            simdBaseJitType = JitType2PreciseVarType(sig->retType);
 
-            if (simdBaseJitType == CORINFO_TYPE_VOID)
+            if (simdBaseJitType == TYP_VOID)
             {
-                simdBaseJitType = CORINFO_TYPE_UNDEF;
+                simdBaseJitType = TYP_UNDEF;
             }
         }
         else
         {
             unsigned int sizeBytes;
 
-            simdBaseJitType = getBaseJitTypeAndSizeOfSIMDType(clsHnd, &sizeBytes);
+            simdBaseJitType = getBaseJitTypeAndSizeOfSIMDTypeAsVarType(clsHnd, &sizeBytes);
 
 #ifdef TARGET_ARM64
-            if (simdBaseJitType == CORINFO_TYPE_UNDEF && HWIntrinsicInfo::HasScalarInputVariant(intrinsic))
+            if (simdBaseJitType == TYP_UNDEF && HWIntrinsicInfo::HasScalarInputVariant(intrinsic))
             {
                 // Did not find a valid vector type. The intrinsic has alternate scalar version. Switch to that.
 
@@ -1987,10 +2059,10 @@ GenTree* Compiler::impHWIntrinsic(NamedIntrinsic        intrinsic,
                 category  = HWIntrinsicInfo::lookupCategory(intrinsic);
                 isa       = HWIntrinsicInfo::lookupIsa(intrinsic);
 
-                simdBaseJitType = sig->retType;
-                assert(simdBaseJitType != CORINFO_TYPE_VOID);
-                assert(simdBaseJitType != CORINFO_TYPE_UNDEF);
-                assert(simdBaseJitType != CORINFO_TYPE_VALUECLASS);
+                simdBaseJitType = JitType2PreciseVarType(sig->retType);
+                assert(simdBaseJitType != TYP_VOID);
+                assert(simdBaseJitType != TYP_UNDEF);
+                assert(simdBaseJitType != TYP_STRUCT);
             }
             else
 #endif // TARGET_ARM64
@@ -2000,7 +2072,7 @@ GenTree* Compiler::impHWIntrinsic(NamedIntrinsic        intrinsic,
         }
     }
 #ifdef TARGET_ARM64
-    else if ((simdBaseJitType == CORINFO_TYPE_VALUECLASS) && (HWIntrinsicInfo::BaseTypeFromValueTupleArg(intrinsic)))
+    else if ((simdBaseJitType == TYP_STRUCT) && (HWIntrinsicInfo::BaseTypeFromValueTupleArg(intrinsic)))
     {
         // If HW_Flag_BaseTypeFromValueTupleArg is set, one of the base type position flags must be set.
         assert(HWIntrinsicInfo::BaseTypeFromFirstArg(intrinsic) || HWIntrinsicInfo::BaseTypeFromSecondArg(intrinsic));
@@ -2021,29 +2093,29 @@ GenTree* Compiler::impHWIntrinsic(NamedIntrinsic        intrinsic,
         CorInfoType          fieldType   = info.compCompHnd->getFieldType(fieldHandle, &classHnd);
         assert(isIntrinsicType(classHnd));
 
-        simdBaseJitType = getBaseJitTypeAndSizeOfSIMDType(classHnd, &simdSize);
+        simdBaseJitType = getBaseJitTypeAndSizeOfSIMDTypeAsVarType(classHnd, &simdSize);
         assert(simdSize > 0);
     }
 #endif // TARGET_ARM64
 
     // Immediately return if the category is other than scalar/special and this is not a supported base type.
     if ((category != HW_Category_Special) && (category != HW_Category_Scalar) &&
-        !isSupportedBaseType(intrinsic, simdBaseJitType))
+        !isSupportedBaseTypeFromVarType(intrinsic, simdBaseJitType))
     {
         return nullptr;
     }
 
     var_types simdBaseType = TYP_UNKNOWN;
 
-    if (simdBaseJitType != CORINFO_TYPE_UNDEF)
+    if (simdBaseJitType != TYP_UNDEF)
     {
-        simdBaseType = JitType2PreciseVarType(simdBaseJitType);
+        simdBaseType = simdBaseJitType;
 
 #ifdef TARGET_XARCH
         if (HWIntrinsicInfo::NeedsNormalizeSmallTypeToInt(intrinsic) && varTypeIsSmall(simdBaseType))
         {
-            simdBaseJitType = varTypeIsUnsigned(simdBaseType) ? CORINFO_TYPE_UINT : CORINFO_TYPE_INT;
-            simdBaseType    = JitType2PreciseVarType(simdBaseJitType);
+            CorInfoType tmpSimdBaseJitType = varTypeIsUnsigned(simdBaseType) ? CORINFO_TYPE_UINT : CORINFO_TYPE_INT;
+            simdBaseType    = JitType2PreciseVarType(tmpSimdBaseJitType);
         }
 #endif // TARGET_XARCH
     }
@@ -2276,6 +2348,8 @@ GenTree* Compiler::impHWIntrinsic(NamedIntrinsic        intrinsic,
                         // We want to be able to differentiate between them so lets
                         // just track the aux type as a ptr or undefined, depending
 
+                        // todo-xarch-simd-basetypes: not sure if we need to keep the CORINFO_TYPE_PTR encoding
+                        // as it is not representing in a var_type through the conversion
                         CorInfoType auxiliaryType = CORINFO_TYPE_UNDEF;
 
                         if (!varTypeIsSIMD(op1))
@@ -2325,7 +2399,7 @@ GenTree* Compiler::impHWIntrinsic(NamedIntrinsic        intrinsic,
                 {
                     // TODO-XArch-Cleanup: currently we use the simdBaseJitType to bring the type of the second argument
                     // to the code generator. May encode the overload info in other way.
-                    retNode->AsHWIntrinsic()->SetSimdBaseJitType(sigReader.op2JitType);
+                    retNode->AsHWIntrinsic()->SetSimdBaseJitType(sigReader.GetOp2Type());
                 }
 #elif defined(TARGET_ARM64)
                 switch (intrinsic)
@@ -2334,7 +2408,7 @@ GenTree* Compiler::impHWIntrinsic(NamedIntrinsic        intrinsic,
                     case NI_Crc32_ComputeCrc32C:
                     case NI_Crc32_Arm64_ComputeCrc32:
                     case NI_Crc32_Arm64_ComputeCrc32C:
-                        retNode->AsHWIntrinsic()->SetSimdBaseJitType(sigReader.op2JitType);
+                        retNode->AsHWIntrinsic()->SetSimdBaseJitType(sigReader.GetOp2Type());
                         break;
 
                     case NI_AdvSimd_AddWideningUpper:
@@ -2351,12 +2425,12 @@ GenTree* Compiler::impHWIntrinsic(NamedIntrinsic        intrinsic,
                     case NI_ArmBase_Arm64_MultiplyHigh:
                         if (sig->retType == CORINFO_TYPE_ULONG)
                         {
-                            retNode->AsHWIntrinsic()->SetSimdBaseJitType(CORINFO_TYPE_ULONG);
+                            retNode->AsHWIntrinsic()->SetSimdBaseJitType(TYP_ULONG);
                         }
                         else
                         {
                             assert(sig->retType == CORINFO_TYPE_LONG);
-                            retNode->AsHWIntrinsic()->SetSimdBaseJitType(CORINFO_TYPE_LONG);
+                            retNode->AsHWIntrinsic()->SetSimdBaseJitType(TYP_LONG);
                         }
                         break;
 

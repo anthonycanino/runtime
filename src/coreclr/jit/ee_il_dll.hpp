@@ -313,6 +313,20 @@ inline var_types JitType2PreciseVarType(CorInfoType type)
     return ((var_types)preciseVarTypeMap[type]);
 };
 
+// todo-xarch-simd-basetypes: Remove this function once all call sites are updated to use JitType2PreciseVarTypeExtended.
+inline var_types JitType2VarTypeExtended(CorInfoType type)
+{
+    return JITtype2varType(type);
+}
+
+// todo-xarch-simd-basetypes: Remove this function once all call sites are updated to use JitType2PreciseVarTypeExtended.
+inline var_types JitType2PreciseVarTypeExtended(CorInfoType type)
+{
+    return JitType2PreciseVarType(type);
+}
+
+
+
 inline var_types Compiler::TypeHandleToVarType(CORINFO_CLASS_HANDLE handle, ClassLayout** pLayout)
 {
     CorInfoType jitType = info.compCompHnd->asCorInfoType(handle);

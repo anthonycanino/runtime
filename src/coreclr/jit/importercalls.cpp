@@ -3028,6 +3028,33 @@ GenTree* Compiler::impCreateSpanIntrinsic(CORINFO_SIG_INFO* sig)
     return impCreateLocalNode(spanTempNum DEBUGARG(0));
 }
 
+// todo-xarch-simd-basetypes: just goruping the related methods here for now, though i
+var_types Compiler::getBaseTypeForPrimitiveNumericClassAsVarType(CORINFO_CLASS_HANDLE typeArgHandle) {
+    CorInfoType simdBaseJitType = info.compCompHnd->getTypeForPrimitiveNumericClass(typeArgHandle);
+    switch (simdBaseJitType) 
+    {
+        case CORINFO_TYPE_BYTE:
+        case CORINFO_TYPE_UBYTE:
+        case CORINFO_TYPE_SHORT:
+        case CORINFO_TYPE_USHORT:
+        case CORINFO_TYPE_INT:
+        case CORINFO_TYPE_UINT:
+        case CORINFO_TYPE_LONG:
+        case CORINFO_TYPE_ULONG:
+        case CORINFO_TYPE_FLOAT:
+        case CORINFO_TYPE_DOUBLE:
+        case CORINFO_TYPE_NATIVEINT:
+        case CORINFO_TYPE_NATIVEUINT:
+            return JitType2PreciseVarType(simdBaseJitType);
+        default:
+            break;
+    }
+
+    // todo-xarch-half: this allows us to then check for `Half` without encoding a new CORINFO half 
+
+    return TYP_UNDEF;
+}
+
 //------------------------------------------------------------------------
 // impIntrinsic: possibly expand intrinsic call into alternate IR sequence
 //
@@ -3145,25 +3172,25 @@ GenTree* Compiler::impIntrinsic(CORINFO_CLASS_HANDLE    clsHnd,
                 case NI_IsSupported_Type:
                 {
                     CORINFO_CLASS_HANDLE typeArgHnd;
-                    CorInfoType          simdBaseJitType;
+                    var_types            simdBaseJitType;
 
                     typeArgHnd      = info.compCompHnd->getTypeInstantiationArgument(clsHnd, 0);
-                    simdBaseJitType = info.compCompHnd->getTypeForPrimitiveNumericClass(typeArgHnd);
+                    simdBaseJitType = getBaseTypeForPrimitiveNumericClassAsVarType(typeArgHnd);
 
                     switch (simdBaseJitType)
                     {
-                        case CORINFO_TYPE_BYTE:
-                        case CORINFO_TYPE_UBYTE:
-                        case CORINFO_TYPE_SHORT:
-                        case CORINFO_TYPE_USHORT:
-                        case CORINFO_TYPE_INT:
-                        case CORINFO_TYPE_UINT:
-                        case CORINFO_TYPE_LONG:
-                        case CORINFO_TYPE_ULONG:
-                        case CORINFO_TYPE_FLOAT:
-                        case CORINFO_TYPE_DOUBLE:
-                        case CORINFO_TYPE_NATIVEINT:
-                        case CORINFO_TYPE_NATIVEUINT:
+                        case TYP_BYTE:
+                        case TYP_UBYTE:
+                        case TYP_SHORT:
+                        case TYP_USHORT:
+                        case TYP_INT:
+                        case TYP_UINT:
+                        case TYP_LONG:
+                        case TYP_ULONG:
+                        case TYP_FLOAT:
+                        case TYP_DOUBLE:
+                        //case TYP_I_IMPL:
+                        //case TYP_U_IMPL:
                         {
                             return gtNewIconNode(true);
                         }
@@ -3184,29 +3211,29 @@ GenTree* Compiler::impIntrinsic(CORINFO_CLASS_HANDLE    clsHnd,
                 case NI_Vector_GetCount:
                 {
                     CORINFO_CLASS_HANDLE typeArgHnd;
-                    CorInfoType          simdBaseJitType;
+                    var_types            simdBaseJitType;
                     unsigned             simdSize;
 
                     typeArgHnd      = info.compCompHnd->getTypeInstantiationArgument(clsHnd, 0);
-                    simdBaseJitType = info.compCompHnd->getTypeForPrimitiveNumericClass(typeArgHnd);
+                    simdBaseJitType = getBaseTypeForPrimitiveNumericClassAsVarType(typeArgHnd);
                     simdSize        = info.compCompHnd->getClassSize(clsHnd);
 
                     switch (simdBaseJitType)
                     {
-                        case CORINFO_TYPE_BYTE:
-                        case CORINFO_TYPE_UBYTE:
-                        case CORINFO_TYPE_SHORT:
-                        case CORINFO_TYPE_USHORT:
-                        case CORINFO_TYPE_INT:
-                        case CORINFO_TYPE_UINT:
-                        case CORINFO_TYPE_LONG:
-                        case CORINFO_TYPE_ULONG:
-                        case CORINFO_TYPE_FLOAT:
-                        case CORINFO_TYPE_DOUBLE:
-                        case CORINFO_TYPE_NATIVEINT:
-                        case CORINFO_TYPE_NATIVEUINT:
+                        case TYP_BYTE:
+                        case TYP_UBYTE:
+                        case TYP_SHORT:
+                        case TYP_USHORT:
+                        case TYP_INT:
+                        case TYP_UINT:
+                        case TYP_LONG:
+                        case TYP_ULONG:
+                        case TYP_FLOAT:
+                        case TYP_DOUBLE:
+                        //case TYP_I_IMPL:
+                        //case TYP_U_IMPL:
                         {
-                            var_types      simdBaseType = JitType2PreciseVarType(simdBaseJitType);
+                            var_types      simdBaseType = simdBaseJitType;
                             unsigned       elementSize  = genTypeSize(simdBaseType);
                             GenTreeIntCon* countNode    = gtNewIconNode(simdSize / elementSize, TYP_INT);
 
@@ -4317,14 +4344,14 @@ GenTree* Compiler::impIntrinsic(CORINFO_CLASS_HANDLE    clsHnd,
                     GenTree* op2 = impImplicitR4orR8Cast(impPopStack().val, callType);
                     GenTree* op1 = impImplicitR4orR8Cast(impPopStack().val, callType);
 
-                    op3 = gtNewSimdCreateScalarUnsafeNode(TYP_SIMD16, op3, callJitType, 16);
-                    op2 = gtNewSimdCreateScalarUnsafeNode(TYP_SIMD16, op2, callJitType, 16);
-                    op1 = gtNewSimdCreateScalarUnsafeNode(TYP_SIMD16, op1, callJitType, 16);
+                    op3 = gtNewSimdCreateScalarUnsafeNode(TYP_SIMD16, op3, callType, 16);
+                    op2 = gtNewSimdCreateScalarUnsafeNode(TYP_SIMD16, op2, callType, 16);
+                    op1 = gtNewSimdCreateScalarUnsafeNode(TYP_SIMD16, op1, callType, 16);
 
                     retNode =
-                        gtNewSimdHWIntrinsicNode(TYP_SIMD16, op1, op2, op3, NI_AVX2_MultiplyAddScalar, callJitType, 16);
+                        gtNewSimdHWIntrinsicNode(TYP_SIMD16, op1, op2, op3, NI_AVX2_MultiplyAddScalar, callType, 16);
 
-                    retNode = gtNewSimdToScalarNode(callType, retNode, callJitType, 16);
+                    retNode = gtNewSimdToScalarNode(callType, retNode, callType, 16);
                     break;
                 }
 #elif defined(TARGET_ARM64)
@@ -4961,11 +4988,11 @@ GenTree* Compiler::impIntrinsic(CORINFO_CLASS_HANDLE    clsHnd,
                 if (isNative)
                 {
                     assert(!isMagnitude && !isNumber);
-                    retNode = gtNewSimdMinMaxNativeNode(callType, op1, op2, callJitType, 0, isMax);
+                    retNode = gtNewSimdMinMaxNativeNode(callType, op1, op2, callType, 0, isMax);
                 }
                 else
                 {
-                    retNode = gtNewSimdMinMaxNode(callType, op1, op2, callJitType, 0, isMax, isMagnitude, isNumber);
+                    retNode = gtNewSimdMinMaxNode(callType, op1, op2, callType, 0, isMax, isMagnitude, isNumber);
                 }
 #endif // FEATURE_HW_INTRINSICS
 
@@ -5801,7 +5828,7 @@ GenTree* Compiler::impPrimitiveNamedIntrinsic(NamedIntrinsic        intrinsic,
                 if (hwIntrinsicId != NI_Illegal)
                 {
                     op1 = impPopStack().val;
-                    res = gtNewSimdHWIntrinsicNode(retType, op1, hwIntrinsicId, baseJitType, 16);
+                    res = gtNewSimdHWIntrinsicNode(retType, op1, hwIntrinsicId, baseType, 16);
 
                     if (varTypeIsSmall(tgtType))
                     {
@@ -5871,7 +5898,7 @@ GenTree* Compiler::impPrimitiveNamedIntrinsic(NamedIntrinsic        intrinsic,
             result = gtNewScalarHWIntrinsicNode(baseType, op1, op2, hwintrinsic);
 
             // We use the simdBaseJitType to bring the type of the second argument to codegen
-            result->AsHWIntrinsic()->SetSimdBaseJitType(baseJitType);
+            result->AsHWIntrinsic()->SetSimdBaseJitType(baseType);
 #elif defined(TARGET_ARM64)
             if (compOpportunisticallyDependsOn(InstructionSet_Crc32))
             {
@@ -10007,19 +10034,19 @@ GenTree* Compiler::impEstimateIntrinsic(CORINFO_METHOD_HANDLE method,
                     std::swap(op1, op3);
                 }
 
-                op3 = gtNewSimdCreateScalarUnsafeNode(simdType, op3, callJitType, simdSize);
-                op2 = gtNewSimdCreateScalarUnsafeNode(simdType, op2, callJitType, simdSize);
-                op1 = gtNewSimdCreateScalarUnsafeNode(simdType, op1, callJitType, simdSize);
+                op3 = gtNewSimdCreateScalarUnsafeNode(simdType, op3, callType, simdSize);
+                op2 = gtNewSimdCreateScalarUnsafeNode(simdType, op2, callType, simdSize);
+                op1 = gtNewSimdCreateScalarUnsafeNode(simdType, op1, callType, simdSize);
 
-                op1 = gtNewSimdHWIntrinsicNode(simdType, op1, op2, op3, intrinsicId, callJitType, simdSize);
+                op1 = gtNewSimdHWIntrinsicNode(simdType, op1, op2, op3, intrinsicId, callType, simdSize);
                 break;
             }
 
             case 1:
             {
                 assert(!swapOp1AndOp3);
-                op1 = gtNewSimdCreateScalarUnsafeNode(simdType, op1, callJitType, simdSize);
-                op1 = gtNewSimdHWIntrinsicNode(simdType, op1, intrinsicId, callJitType, simdSize);
+                op1 = gtNewSimdCreateScalarUnsafeNode(simdType, op1, callType, simdSize);
+                op1 = gtNewSimdHWIntrinsicNode(simdType, op1, intrinsicId, callType, simdSize);
                 break;
             }
 
@@ -10029,7 +10056,7 @@ GenTree* Compiler::impEstimateIntrinsic(CORINFO_METHOD_HANDLE method,
             }
         }
 
-        return gtNewSimdToScalarNode(callType, op1, callJitType, simdSize);
+        return gtNewSimdToScalarNode(callType, op1, callType, simdSize);
     }
 
     assert(!swapOp1AndOp3);

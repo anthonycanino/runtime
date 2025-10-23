@@ -470,6 +470,12 @@ CorInfoType Compiler::getBaseJitTypeAndSizeOfSIMDType(CORINFO_CLASS_HANDLE typeH
     return simdBaseJitType;
 }
 
+var_types Compiler::getBaseJitTypeAndSizeOfSIMDTypeAsVarType(CORINFO_CLASS_HANDLE typeHnd, unsigned* sizeBytes /*= nullptr */)
+{
+    CorInfoType jitType = getBaseJitTypeAndSizeOfSIMDType(typeHnd, sizeBytes);
+    return JitType2PreciseVarType(jitType);
+}
+
 //------------------------------------------------------------------------
 // impSIMDPopStack: Pop a SIMD value from the importer's stack.
 //
