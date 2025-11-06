@@ -116,6 +116,8 @@ var_types ABIPassingSegment::GetRegisterType() const
     {
         switch (Size)
         {
+            case 2:
+                return TYP_HALF;
             case 4:
                 return TYP_FLOAT;
             case 8:
