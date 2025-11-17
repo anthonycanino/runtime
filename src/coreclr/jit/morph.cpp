@@ -14784,10 +14784,6 @@ PhaseStatus Compiler::fgPromoteStructs()
         {
             varDsc->lvRegStruct = true;
         }
-        else if (varDsc->TypeGet() == TYP_HALF)
-        {
-            varDsc->lvRegStruct = true;
-        }
         // Don't promote if we have reached the tracking limit.
         else if (lvaHaveManyLocals())
         {
