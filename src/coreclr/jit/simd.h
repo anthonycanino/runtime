@@ -142,6 +142,7 @@ struct simd16_t
 {
     union
     {
+        uint16_t f16[8];
         float    f32[4];
         double   f64[2];
         int8_t   i8[16];
@@ -197,6 +198,7 @@ struct simd32_t
 {
     union
     {
+        uint16_t f16[16];
         float    f32[8];
         double   f64[4];
         int8_t   i8[32];
@@ -252,6 +254,7 @@ struct simd64_t
 {
     union
     {
+        uint16_t f16[32];
         float    f32[16];
         double   f64[8];
         int8_t   i8[64];
