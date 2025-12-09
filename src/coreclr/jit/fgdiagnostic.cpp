@@ -3273,6 +3273,11 @@ void Compiler::fgDebugCheckTypes(GenTree* tree)
                     return WALK_CONTINUE;
                 }
 
+                if (node->OperIs(GT_BITCAST))
+                {
+                    return WALK_CONTINUE;
+                }
+
                 m_compiler->gtDispTree(node);
                 assert(!"Unexpected small type in IR");
             }

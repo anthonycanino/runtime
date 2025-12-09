@@ -1222,6 +1222,27 @@ public:
                 assert(TopValue(1).Node() == node);
                 assert(TopValue(0).Node() == node->AsIndir()->Addr());
 
+                // Attempt to catch the half case
+                {
+                    GenTreeIndir *indir = node->AsIndir();
+                    if (indir->Addr()->OperIs(GT_FIELD_ADDR))
+                    {
+                        GenTreeFieldAddr* fieldAddr = indir->Addr()->AsFieldAddr();
+                        if (fieldAddr->GetFldObj()->OperIs(GT_LCL_VAR))
+                        {
+                            LclVarDsc* varDsc = m_compiler->lvaGetDesc(fieldAddr->GetFldObj()->AsLclVarCommon());
+                            if (varDsc->lvType == TYP_HALF)
+                            {
+                                printf("found the half field");
+                                MorphLocalIndir(use, fieldAddr->GetFldObj()->AsLclVarCommon()->GetLclNum(), 0, user);
+                                INDEBUG(TopValue(0).Consume());
+                                PopValue();
+                                break;
+                            }
+                        }
+                    }
+                }
+
                 if (node->AsIndir()->IsVolatile() || !TopValue(0).IsAddress())
                 {
                     // Volatile indirections must not be removed so the address, if any, must be escaped.
@@ -1947,6 +1968,14 @@ private:
         }
 
         LclVarDsc* varDsc = m_compiler->lvaGetDesc(lclNum);
+
+        if (indir->TypeIs(TYP_USHORT))
+        {
+            if ((offset == 0) && varDsc->TypeIs(TYP_HALF))
+            {
+                return IndirTransform::BitCast;
+            }
+        }
 
         if (!indir->TypeIs(TYP_STRUCT))
         {

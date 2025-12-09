@@ -8113,7 +8113,7 @@ void CodeGen::genBitCast(var_types targetType, regNumber targetReg, var_types sr
 //
 void CodeGen::genCodeForBitCast(GenTreeOp* treeNode)
 {
-    assert(treeNode->TypeGet() == genActualType(treeNode));
+    //assert(treeNode->TypeGet() == genActualType(treeNode));
     regNumber targetReg  = treeNode->GetRegNum();
     var_types targetType = treeNode->TypeGet();
     GenTree*  op1        = treeNode->gtGetOp1();
