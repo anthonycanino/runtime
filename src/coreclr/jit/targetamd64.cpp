@@ -65,7 +65,7 @@ ABIPassingInformation SysVX64Classifier::Classify(Compiler*    comp,
 {
     bool                                                canEnreg = false;
     SYSTEMV_AMD64_CORINFO_STRUCT_REG_PASSING_DESCRIPTOR structDesc;
-    if (varTypeIsStruct(type))
+    if (varTypeIsStruct(type) && (type != TYP_HALF))
     {
         comp->eeGetSystemVAmd64PassStructInRegisterDescriptor(structLayout->GetClassHandle(), &structDesc);
 
@@ -103,7 +103,7 @@ ABIPassingInformation SysVX64Classifier::Classify(Compiler*    comp,
     ABIPassingInformation info;
     if (canEnreg)
     {
-        if (varTypeIsStruct(type))
+        if (varTypeIsStruct(type) && (type != TYP_HALF))
         {
             info = ABIPassingInformation(comp, structDesc.eightByteCount);
 
@@ -124,7 +124,7 @@ ABIPassingInformation SysVX64Classifier::Classify(Compiler*    comp,
     else
     {
         assert((m_stackArgSize % TARGET_POINTER_SIZE) == 0);
-        unsigned size = type == TYP_STRUCT ? structLayout->GetSize() : genTypeSize(type);
+        unsigned size = (type == TYP_STRUCT) ? structLayout->GetSize() : genTypeSize(type);
         info = ABIPassingInformation::FromSegmentByValue(comp, ABIPassingSegment::OnStack(m_stackArgSize, 0, size));
         m_stackArgSize += roundUp(size, TARGET_POINTER_SIZE);
     }

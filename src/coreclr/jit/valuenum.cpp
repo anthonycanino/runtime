@@ -10200,6 +10200,9 @@ void ValueNumStore::vnDump(Compiler* comp, ValueNum vn, bool isPtr)
                 }
             }
             break;
+            case TYP_HALF:
+                printf("HalfCns[0x%04x]", ConstantValue<float16_t>(vn));
+                break;
             case TYP_FLOAT:
                 printf("FltCns[%f]", ConstantValue<float>(vn));
                 break;
@@ -11866,6 +11869,13 @@ void Compiler::fgValueNumberTreeConst(GenTree* tree)
         }
 #endif // FEATURE_MASKED_HW_INTRINSICS
 #endif // FEATURE_SIMD
+
+        case TYP_HALF:
+        {
+            float16_t f16Cns = FloatingPointUtils::convertDoubleToFloat16(tree->AsDblCon()->DconValue());
+            tree->gtVNPair.SetBoth(vnStore->VNForHalfCon(f16Cns));
+            break;
+        }
 
         case TYP_FLOAT:
         {

@@ -3106,7 +3106,8 @@ emitter::code_t emitter::emitExtractEvexPrefix(instruction ins, code_t& code) co
         // 0x0000RM11.
         leadingBytes = (code >> 16) & 0xFF;
         assert(leadingBytes == 0x0F ||
-               ((m_compiler->compIsaSupportedDebugOnly(InstructionSet_AVX10v2) ||
+               ((m_compiler->compIsaSupportedDebugOnly(InstructionSet_AVX10v1) ||
+                 m_compiler->compIsaSupportedDebugOnly(InstructionSet_AVX10v2) ||
                  m_compiler->compIsaSupportedDebugOnly(InstructionSet_AVX512BMM)) &&
                 leadingBytes >= 0x00 && leadingBytes <= 0x07) ||
                (IsApxExtendedEvexInstruction(ins) && leadingBytes == 0));
@@ -21467,8 +21468,8 @@ emitter::insExecutionCharacteristics emitter::getInsExecutionCharacteristics(ins
 
         case INS_vcvtsd2sh:
         {
-            result.insLatency    = PERFSCORE_THROUGHPUT_ILLEGAL;
-            result.insThroughput = PERFSCORE_THROUGHPUT_ILLEGAL;
+            result.insLatency    = PERFSCORE_LATENCY_4C;
+            result.insThroughput = PERFSCORE_THROUGHPUT_2X;
             break;
         }
 

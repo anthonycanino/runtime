@@ -4300,7 +4300,7 @@ int LinearScan::BuildReturn(GenTree* tree)
             }
 #endif // TARGET_ARM64
 
-            if (varTypeIsStruct(tree))
+            if (varTypeIsStruct(tree) && !tree->TypeIs(TYP_HALF))
             {
                 // op1 has to be either a lclvar or a multi-reg returning call
                 if (op1->OperIs(GT_LCL_VAR) && !op1->IsMultiRegLclVar())
