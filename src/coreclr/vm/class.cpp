@@ -1724,7 +1724,7 @@ int MethodTable::GetVectorSize()
 //*******************************************************************************
 // Returns true if this is the System.Half type and the CPU supports AVX10v1.
 // System.Half is passed and returned in floating point registers on xarch
-// when AVX10v1 is available, matching the JIT's behavior in isNativeHalfStructType().
+// when AVX10v1 is available.
 bool MethodTable::IsNativeHalfType()
 {
     CONTRACTL
@@ -1740,8 +1740,6 @@ bool MethodTable::IsNativeHalfType()
     if (GetNumInstanceFieldBytes() != 2)
         return false;
 
-    // The JIT only passes Half in FP registers when AVX10v1 is available.
-    // The VM must match to avoid calling convention mismatches.
     CORJIT_FLAGS cpuFlags = ExecutionManager::GetEEJitManager()->GetCPUCompileFlags();
     if (!cpuFlags.IsSet(InstructionSet_AVX10v1))
         return false;
@@ -1751,7 +1749,7 @@ bool MethodTable::IsNativeHalfType()
 
     return (strcmp(className, "Half") == 0) && (strcmp(namespaceName, "System") == 0);
 }
-#endif // TARGET_XARCH
+#endif // TARGET_AMD64 || TARGET_X86
 
 //*******************************************************************************
 CorInfoHFAElemType MethodTable::GetHFAType()

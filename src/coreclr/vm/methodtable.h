@@ -2049,6 +2049,11 @@ public:
     // Returns the size in bytes of this type if it is a HW vector type; 0 otherwise.
     int GetVectorSize();
 
+#if defined(TARGET_AMD64) || defined(TARGET_X86)
+    // Returns true if this is the System.Half type and the CPU supports AVX10v1.
+    bool IsNativeHalfType();
+#endif
+
     // Get the HFA type. This is supported both with FEATURE_HFA, in which case it
     // depends on the cached bit on the class, or without, in which case it is recomputed
     // for each invocation.

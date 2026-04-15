@@ -1399,7 +1399,13 @@ int ArgIteratorTemplate<ARGITERATOR_BASE>::GetNextOffset()
 
     case ELEMENT_TYPE_VALUETYPE:
     {
-        if (this->IsRegPassedStruct(m_argTypeHandle))
+        // System.Half is passed in floating point registers like a float,
+        // overriding the default SysV eightbyte classification.
+        if (m_argTypeHandle.AsMethodTable()->IsNativeHalfType())
+        {
+            cFPRegs = 1;
+        }
+        else if (this->IsRegPassedStruct(m_argTypeHandle))
         {
             cGenRegs = 0;
             SystemVEightByteRegistersInfo eightByteInfo = this->GetEightByteRegistersInfo(m_argTypeHandle);
@@ -1997,6 +2003,15 @@ void ArgIteratorTemplate<ARGITERATOR_BASE>::ComputeReturnFlags()
             _ASSERTE(!thValueType.IsNull());
 
 #if defined(UNIX_AMD64_ABI)
+            // System.Half is returned in xmm0 like a float, overriding the
+            // default SysV eightbyte classification (which would say INTEGER
+            // because the underlying field is ushort).
+            if (thValueType.AsMethodTable()->IsNativeHalfType())
+            {
+                flags |= sizeof(float) << RETURN_FP_SIZE_SHIFT;
+                break;
+            }
+
             if (this->IsRegPassedStruct(thValueType))
             {
                 SystemVEightByteRegistersInfo eightByteInfo = this->GetEightByteRegistersInfo(thValueType);
